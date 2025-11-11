@@ -1,9 +1,51 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FlashcardApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FlashcardApp.MainWindow"
-        Title="FlashcardApp">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        Title="FlashcardApp"
+        Width="400" Height="600">
+
+    <!-- Wir verwenden ein DockPanel für einfaches Layout -->
+    <DockPanel Margin="10">
+
+        <!-- OBERER BEREICH: Neues Fach hinzufügen -->
+        <StackPanel DockPanel.Dock="Top" Spacing="5">
+            <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
+            
+            <!-- 
+              Bindet die 'Text'-Eigenschaft an 'NewDeckName' im ViewModel.
+              Mode=TwoWay bedeutet: Ändert sich der Text, ändert sich die Variable.
+              Ändert sich die Variable (z.B. wird geleert), ändert sich der Text.
+            -->
+            <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
+                     Watermark="Name des Fachs..."/>
+            
+            <!-- 
+              Bindet den 'Command' an 'AddDeckCommand' im ViewModel.
+              Der Knopf ist automatisch deaktiviert, wenn der Command
+              nicht ausgeführt werden kann (können wir später hinzufügen).
+            -->
+            <Button Content="Fach hinzufügen"
+                    Command="{Binding AddDeckCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <!-- UNTERER BEREICH: Liste aller Fächer -->
+        <Border BorderBrush="Gray" BorderThickness="1" Margin="0,10,0,0">
+            <!-- Bindet die 'ItemsSource' an die 'Decks'-Liste im ViewModel -->
+            <ListBox ItemsSource="{Binding Decks}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Zeigt für jedes Item in der Liste den 'Name' an -->
+                        <TextBlock Text="{Binding Name}" Margin="5"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+    </DockPanel>
 </Window>
