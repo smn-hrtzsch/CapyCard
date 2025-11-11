@@ -52,3 +52,21 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# macOS specific
+# -----------------
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Tthumbnail cache files
+._*
+
+# External disk folder
+.Spotlight-V100
+
+# Trashed files
+.Trashes
+
+# Zipped Mac files
+__MACOSX
