@@ -1,8 +1,14 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:FlashcardApp"
              x:Class="FlashcardApp.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             
+    <!-- `local` ist der Namespace, in dem ViewLocator & ViewModels leben -->
+    <Application.DataTemplates>
+        <!-- HIER DIE ÄNDERUNG: -->
+        <local:ViewLocator/>
+    </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />

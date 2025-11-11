@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:FlashcardApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="FlashcardApp.Views.DeckListView"
+             x:DataType="vm:DeckListViewModel">
+    
+    <!-- Das ist das identische Layout wie vorher im MainWindow -->
+    <DockPanel Margin="10">
+        <!-- OBERER BEREICH: Neues Fach hinzufügen -->
+        <StackPanel DockPanel.Dock="Top" Spacing="5">
+            <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
+            <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
+                     Watermark="Name des Fachs..."/>
+            <Button Content="Fach hinzufügen"
+                    Command="{Binding AddDeckCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+
+        <!-- UNTERER BEREICH: Liste aller Fächer -->
+        <Border BorderBrush="Gray" BorderThickness="1" Margin="0,10,0,0">
+            <!-- 
+              NEU: SelectedItem bindet an 'SelectedDeck'. 
+              Wenn ein Item geklickt wird, wird die Eigenschaft im ViewModel gesetzt.
+            -->
+            <ListBox ItemsSource="{Binding Decks}"
+                     SelectedItem="{Binding SelectedDeck, Mode=TwoWay}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" Margin="5"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+    </DockPanel>
+</UserControl>

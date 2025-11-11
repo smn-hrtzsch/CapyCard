@@ -1,7 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using FlashcardApp.ViewModels; // Hinzufügen
+using FlashcardApp.ViewModels; 
 
 namespace FlashcardApp
 {
@@ -16,11 +16,11 @@ namespace FlashcardApp
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Hier ist die wichtige Änderung:
-                // Wir setzen den DataContext (das ViewModel) für unser Hauptfenster
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel() // Diese Zeile ist neu
+                    // HIER DIE KORREKTUR:
+                    // Wir müssen das 'MainViewModel' verwenden, nicht 'MainWindowViewModel'
+                    DataContext = new MainViewModel() 
                 };
             }
 
