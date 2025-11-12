@@ -8,7 +8,7 @@
              x:DataType="vm:CardListViewModel">
     
     <DockPanel Margin="10">
-        <!-- OBERER BEREICH: Titel und Zurück-Button -->
+        <!-- OBERER BEREICH (unverändert) -->
         <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top" Margin="0,0,0,10">
             <TextBlock Text="{Binding DeckName}" 
                        FontSize="18" FontWeight="Bold" 
@@ -20,26 +20,47 @@
                     HorizontalAlignment="Right"/>
         </Grid>
         
-        <!-- 
-          MITTE: Liste aller Karten 
-          
-          KORREKTUR:
-          Ersetze <ScrollViewer> und <ItemsRepeater> (die den AXN0002-Fehler verursacht haben)
-          durch eine Standard-<ListBox>. Sie ist robust und hat Scrolling eingebaut.
-        -->
+        <!-- UNTERER BEREICH -->
         <Border BorderBrush="Gray" BorderThickness="1">
             <ListBox ItemsSource="{Binding Cards}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <!-- Das Template ist identisch zu vorher -->
-                        <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="10">
-                            <StackPanel Spacing="5">
-                                <TextBlock Text="Vorderseite:" FontWeight="Bold" FontSize="10" Foreground="Gray"/>
-                                <TextBlock Text="{Binding Front}" TextWrapping="Wrap"/>
-                                <TextBlock Text="Rückseite:" FontWeight="Bold" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding Back}" TextWrapping="Wrap"/>
-                            </StackPanel>
-                        </Border>
+                        <Grid ColumnDefinitions="*,Auto">
+                            
+                            <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="10" Grid.Column="0">
+                                <StackPanel Spacing="5">
+                                    <TextBlock Text="Vorderseite:" FontWeight="Bold" FontSize="10" Foreground="Gray"/>
+                                    <TextBlock Text="{Binding Front}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Rückseite:" FontWeight="Bold" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+                                    <TextBlock Text="{Binding Back}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 
+                              KORREKTUR FÜR DESIGN:
+                              1. Button-Größe auf 26x26 reduziert.
+                              2. Padding von 4 hinzugefügt (macht Icon kleiner).
+                            -->
+                            <Button Command="{Binding $parent[ListBox].DataContext.DeleteCardCommand}"
+                                    CommandParameter="{Binding}"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Width="26" Height="26" Padding="4"
+                                    Margin="10">
+                                
+                                <!-- 
+                                  KORREKTUR FÜR DESIGN:
+                                  1. Fill: Ersetzt durch theme-bewusstes Grau.
+                                  2. Stretch: Geändert auf "Uniform", um Proportionen zu halten.
+                                -->
+                                <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z" 
+                                      Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
+                                      Stretch="Uniform"/>
+                            </Button>
+                        </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

@@ -1,47 +1,64 @@
-using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using FlashcardApp.ViewModels;
-using FlashcardApp.Views;
-using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
-using FlashcardApp.Models;
 using CommunityToolkit.Mvvm.Input;
+using FlashcardApp.Data; // NEU
+using FlashcardApp.Models;
+using Microsoft.EntityFrameworkCore; // NEU
+using System;
+using System.Collections.ObjectModel;
+using System.Linq; // NEU
+using System.Threading.Tasks; // NEU
 
 namespace FlashcardApp.ViewModels
 {
     public partial class CardListViewModel : ObservableObject
     {
+        // NEU: Eigenen DBContext hinzugefügt, um Lösch-Operationen durchzuführen
+        private readonly FlashcardDbContext _dbContext;
         private Deck? _currentDeck;
 
-        // Zeigt den Namen des Fachs oben an
         [ObservableProperty]
         private string _deckName = "Karten";
 
         public ObservableCollection<Card> Cards { get; } = new();
 
-        // Event, um dem MainViewModel zu sagen: "Wir wollen zurück!"
         public event Action? OnNavigateBack;
 
         public CardListViewModel()
         {
-            // Konstruktor (bleibt vorerst leer)
+            // NEU: DBContext initialisieren
+            _dbContext = new FlashcardDbContext();
         }
 
-        // Wird vom MainViewModel aufgerufen, um die Karten zu laden
-        public void LoadDeck(Deck deck, ObservableCollection<Card> cards)
+        // NEU: Signatur geändert. Lädt Karten jetzt selbst basierend auf dem Deck.
+        public async void LoadDeck(Deck deck)
         {
             _currentDeck = deck;
             DeckName = $"Karten für: {deck.Name}";
             
             Cards.Clear();
-            foreach (var card in cards)
+            // NEU: Lädt Karten aus der DB
+            var cardsFromDb = await _dbContext.Cards
+                                .Where(c => c.DeckId == _currentDeck.Id)
+                                .ToListAsync();
+
+            foreach (var card in cardsFromDb)
             {
                 Cards.Add(card);
             }
         }
 
-        // Command für den "Zurück"-Button
+        // NEU: Befehl zum sofortigen Löschen einer Karte
+        [RelayCommand]
+        private async Task DeleteCard(Card? card)
+        {
+            if (card == null) return;
+            
+            _dbContext.Cards.Remove(card);
+            await _dbContext.SaveChangesAsync();
+            
+            Cards.Remove(card); // Aus der UI-Liste entfernen
+        }
+
         [RelayCommand]
         private void GoBack()
         {

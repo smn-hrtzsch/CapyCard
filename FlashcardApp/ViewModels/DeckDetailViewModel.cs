@@ -24,43 +24,43 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _deckName = "Fach laden...";
 
-        // NEU: Text für den Navigations-Button
         [ObservableProperty]
         private string _cardCountText = "Karten anzeigen (0)";
 
-        // HINWEIS: Die 'Cards'-Liste bleibt hier. 
-        // Sie wird im Hintergrund geladen und an die CardListView übergeben.
+        // HINWEIS: Diese Liste wird jetzt nur noch zum Hinzufügen und
+        // für die Zählung beim Laden verwendet. Die CardListView lädt ihre eigene Liste.
         public ObservableCollection<Card> Cards { get; } = new();
 
-        // Navigation zurück zur Fächer-Liste
         public event Action? OnNavigateBack;
         
-        // NEU: Navigation zur Karten-Liste
-        public event Action<Deck, ObservableCollection<Card>>? OnNavigateToCardList;
-
+        // NEU: Signatur geändert. Übergibt nur noch das Deck.
+        public event Action<Deck>? OnNavigateToCardList;
 
         public DeckDetailViewModel()
         {
             _dbContext = new FlashcardDbContext();
         }
 
-        public async void LoadDeck(Deck deck)
+        // 'async' und 'Task' hinzugefügt, damit wir darauf warten können
+        public async Task LoadDeck(Deck deck)
         {
             _currentDeck = deck;
             DeckName = deck.Name;
             
-            Cards.Clear();
-            var cardsFromDb = await _dbContext.Cards
-                                .Where(c => c.DeckId == _currentDeck.Id)
-                                .ToListAsync();
+            // Lade die Karten neu, um die Zählung zu aktualisieren
+            await RefreshCardCountAsync();
+        }
+
+        // NEU: Öffentliche Methode, die vom MainViewModel aufgerufen werden kann
+        public async Task RefreshCardCountAsync()
+        {
+            if (_currentDeck == null) return;
+
+            // Zähle die Karten direkt in der DB
+            var count = await _dbContext.Cards
+                            .CountAsync(c => c.DeckId == _currentDeck.Id);
             
-            foreach (var card in cardsFromDb)
-            {
-                Cards.Add(card);
-            }
-            
-            // NEU: Zähler aktualisieren
-            UpdateCardCount(Cards.Count);
+            UpdateCardCount(count);
         }
 
         [RelayCommand]
@@ -70,21 +70,17 @@ namespace FlashcardApp.ViewModels
             {
                 return;
             }
-
             var newCard = new Card
             {
                 Front = NewCardFront,
                 Back = NewCardBack,
                 DeckId = _currentDeck.Id
             };
-
             _dbContext.Cards.Add(newCard);
             await _dbContext.SaveChangesAsync();
-
-            Cards.Add(newCard);
             
-            // NEU: Zähler aktualisieren
-            UpdateCardCount(Cards.Count);
+            // NEU: Zähler über die DB-Methode aktualisieren
+            await RefreshCardCountAsync();
 
             NewCardFront = string.Empty;
             NewCardBack = string.Empty;
@@ -96,17 +92,16 @@ namespace FlashcardApp.ViewModels
             OnNavigateBack?.Invoke();
         }
         
-        // NEU: Befehl, um zur Karten-Liste zu navigieren
         [RelayCommand]
         private void GoToCardList()
         {
             if (_currentDeck != null)
             {
-                OnNavigateToCardList?.Invoke(_currentDeck, Cards);
+                // NEU: Übergibt nur noch das Deck, nicht mehr die Kartenliste
+                OnNavigateToCardList?.Invoke(_currentDeck);
             }
         }
         
-        // NEU: Hilfsmethode für den Button-Text
         private void UpdateCardCount(int count)
         {
             CardCountText = $"Karteikarten anzeigen ({count})";

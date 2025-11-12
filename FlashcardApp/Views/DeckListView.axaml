@@ -7,32 +7,94 @@
              x:Class="FlashcardApp.Views.DeckListView"
              x:DataType="vm:DeckListViewModel">
     
-    <!-- Das ist das identische Layout wie vorher im MainWindow -->
-    <DockPanel Margin="10">
-        <!-- OBERER BEREICH: Neues Fach hinzufügen -->
-        <StackPanel DockPanel.Dock="Top" Spacing="5">
-            <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
-            <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
-                     Watermark="Name des Fachs..."/>
-            <Button Content="Fach hinzufügen"
-                    Command="{Binding AddDeckCommand}"
-                    HorizontalAlignment="Stretch"/>
-        </StackPanel>
-
-        <!-- UNTERER BEREICH: Liste aller Fächer -->
-        <Border BorderBrush="Gray" BorderThickness="1" Margin="0,10,0,0">
-            <!-- 
-              NEU: SelectedItem bindet an 'SelectedDeck'. 
-              Wenn ein Item geklickt wird, wird die Eigenschaft im ViewModel gesetzt.
-            -->
-            <ListBox ItemsSource="{Binding Decks}"
-                     SelectedItem="{Binding SelectedDeck, Mode=TwoWay}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}" Margin="5"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+    <Grid RowDefinitions="*">
+        <DockPanel Margin="10">
+            <!-- OBERER BEREICH (unverändert) -->
+            <StackPanel DockPanel.Dock="Top" Spacing="5">
+                <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
+                <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
+                         Watermark="Name des Fachs..."/>
+                <Button Content="Fach hinzufügen"
+                        Command="{Binding AddDeckCommand}"
+                        HorizontalAlignment="Stretch"/>
+            </StackPanel>
+    
+            <!-- UNTERER BEREICH: Liste aller Fächer -->
+            <Border BorderBrush="Gray" BorderThickness="1" Margin="0,10,0,0">
+                <ListBox ItemsSource="{Binding Decks}"
+                         SelectedItem="{Binding SelectedDeck, Mode=TwoWay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ColumnDefinitions="*,Auto" Margin="5">
+                                <TextBlock Text="{Binding Name}" 
+                                           VerticalAlignment="Center"/>
+                                
+                                <!-- 
+                                  KORREKTUR FÜR DESIGN:
+                                  1. Button-Größe auf 26x26 reduziert.
+                                  2. Padding von 4 hinzugefügt (macht Icon kleiner).
+                                -->
+                                <Button Command="{Binding $parent[ListBox].DataContext.DeleteDeckCommand}"
+                                        CommandParameter="{Binding}"
+                                        Grid.Column="1"
+                                        Background="Transparent" 
+                                        HorizontalAlignment="Right"
+                                        Width="26" Height="26" Padding="4">
+                                    
+                                    <!-- 
+                                      KORREKTUR FÜR DESIGN:
+                                      1. Fill: Ersetzt durch theme-bewusstes Grau.
+                                      2. Stretch: Geändert auf "Uniform", um Proportionen zu halten.
+                                    -->
+                                    <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z" 
+                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
+                                          Stretch="Uniform"/>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </DockPanel>
+        
+        <!-- Bestätigungs-Dialog (unverändert, nutzt bereits Systemfarben) -->
+        <Border Background="#AA000000"
+                IsVisible="{Binding IsConfirmingDelete}"
+                Grid.Row="0">
+            <Border Background="{DynamicResource SystemControlPageBackgroundAltHighBrush}" 
+                    Padding="20"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    CornerRadius="5"
+                    MinWidth="300"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                    BorderThickness="1">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Löschen bestätigen" 
+                               FontSize="18" FontWeight="Bold"
+                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                    <TextBlock Text="Möchtest du dieses Fach und ALLE darin enthaltenen Karten wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                    
+                    <Grid ColumnDefinitions="*,*" Margin="0,10,0,0">
+                        <Button Content="Abbrechen" 
+                                Command="{Binding CancelDeleteCommand}"
+                                Grid.Column="0"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Stretch"/>
+                        
+                        <Button Content="Ja, löschen" 
+                                Command="{Binding ConfirmDeleteCommand}"
+                                Background="#E63946" 
+                                Foreground="White"
+                                Grid.Column="1"
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Stretch"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
         </Border>
-    </DockPanel>
+        
+    </Grid>
 </UserControl>

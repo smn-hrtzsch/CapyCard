@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 
 namespace FlashcardApp.ViewModels
 {
-    // Das ist die Logik für die Ansicht "Fächer-Liste"
     public partial class DeckListViewModel : ObservableObject
     {
         private readonly FlashcardDbContext _dbContext;
@@ -17,37 +16,35 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _newDeckName = string.Empty;
 
-        // Diese Eigenschaft wird an die ListBox.SelectedItem gebunden
+        // NEU: Diese Eigenschaft steuert die Sichtbarkeit der Bestätigungs-Box
+        [ObservableProperty]
+        private bool _isConfirmingDelete = false;
+
+        // NEU: Hier merken wir uns, welches Fach gelöscht werden soll
+        private Deck? _deckToConfirmDelete;
+
         private Deck? _selectedDeck;
         public Deck? SelectedDeck
         {
             get => _selectedDeck;
             set
             {
-                // Wenn der Wert sich ändert UND nicht null ist...
                 if (SetProperty(ref _selectedDeck, value) && value != null)
                 {
-                    // ...feuere das Event, um die Navigation auszulösen
                     OnDeckSelected?.Invoke(value);
-                    
-                    // Setze die Auswahl in der UI sofort zurück (auf null),
-                    // damit der Benutzer dasselbe Fach erneut anklicken kann.
                     _selectedDeck = null;
                     OnPropertyChanged(nameof(SelectedDeck));
                 }
             }
         }
 
-        // Dieses Event fängt das MainViewModel ab, um die Seite zu wechseln
         public event Action<Deck>? OnDeckSelected;
 
-        // Die Liste der Fächer, die in der UI angezeigt wird
         public ObservableCollection<Deck> Decks { get; } = new();
 
         public DeckListViewModel()
         {
             _dbContext = new FlashcardDbContext();
-            // Lade Fächer aus der DB, sobald das ViewModel erstellt wird
             LoadDecks();
         }
 
@@ -66,21 +63,49 @@ namespace FlashcardApp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(NewDeckName))
             {
-                // (Hier könnten wir später eine Fehlermeldung anzeigen)
                 return;
             }
-
             var newDeck = new Deck { Name = NewDeckName };
-
-            // In DB speichern
             _dbContext.Decks.Add(newDeck);
             await _dbContext.SaveChangesAsync();
-
-            // Zur UI-Liste hinzufügen
             Decks.Add(newDeck);
-
-            // Textfeld leeren
             NewDeckName = string.Empty;
+        }
+
+        // NEU: Dieser Befehl wird vom "Löschen"-Button in der Liste aufgerufen
+        [RelayCommand]
+        private void DeleteDeck(Deck? deck)
+        {
+            if (deck == null) return;
+            
+            _deckToConfirmDelete = deck;
+            IsConfirmingDelete = true; // Zeigt die Bestätigungs-Box an
+        }
+
+        // NEU: Dieser Befehl wird vom "Ja, löschen"-Button in der Box aufgerufen
+        [RelayCommand]
+        private async Task ConfirmDelete()
+        {
+            if (_deckToConfirmDelete == null) return;
+
+            // WICHTIG: Da wir 'Cascade' in der DB eingestellt haben,
+            // werden alle Karten, die zu diesem Deck gehören, automatisch mitgelöscht.
+            _dbContext.Decks.Remove(_deckToConfirmDelete);
+            await _dbContext.SaveChangesAsync();
+
+            Decks.Remove(_deckToConfirmDelete); // Aus der UI-Liste entfernen
+
+            // Reset
+            _deckToConfirmDelete = null;
+            IsConfirmingDelete = false;
+        }
+
+        // NEU: Dieser Befehl wird vom "Abbrechen"-Button in der Box aufgerufen
+        [RelayCommand]
+        private void CancelDelete()
+        {
+            _deckToConfirmDelete = null;
+            IsConfirmingDelete = false; // Versteckt die Bestätigungs-Box
         }
     }
 }
