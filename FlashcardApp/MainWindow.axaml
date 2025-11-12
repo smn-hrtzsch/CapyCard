@@ -3,18 +3,19 @@
         xmlns:vm="using:FlashcardApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FlashcardApp.MainWindow"
         x:DataType="vm:MainViewModel" 
         Title="FlashcardApp"
-        Width="1000" Height="700">
+        Width="1000" 
+        Height="700"
+        WindowStartupLocation="CenterScreen">
             
     <!-- 
       Alle Kommentare sind jetzt HIER, innerhalb des <Window>...</Window>
-      Blocks, aber außerhalb der <Window ...> Tag-Definition.
+      Blocks, was legaler XML-Code ist.
       
       Dieser ContentControl hostet unsere 'Seiten' (CurrentViewModel).
-      Der ViewLocator übersetzt das ViewModel in die korrekte View.
     -->
     <ContentControl Content="{Binding CurrentViewModel}" />
 
