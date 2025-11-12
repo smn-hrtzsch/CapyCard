@@ -24,56 +24,72 @@ namespace FlashcardApp
         // Diese Methode definiert das gesamte Layout
         public void Compose(IDocumentContainer container)
         {
-            // 1. Erstelle die gespiegelte Liste für 3 Spalten (unverändert)
-            var mirroredBacks = new List<Card?>();
-            for (int i = 0; i < _cards.Count; i += 3)
-            {
-                var card1 = _cards[i];
-                var card2 = (i + 1 < _cards.Count) ? _cards[i + 1] : null;
-                var card3 = (i + 2 < _cards.Count) ? _cards[i + 2] : null;
+            // Pro Seite passen 7 Reihen à 3 Karten = 21 Karten.
+            // Diese Zahl basiert auf der A4-Größe, den Rändern und der Kartenhöhe.
+            const int cardsPerPage = 21;
 
-                mirroredBacks.Add(card3); 
-                mirroredBacks.Add(card2); 
-                mirroredBacks.Add(card1); 
-            }
-            
-            container.Page(page =>
+            // Teilt die gesamte Kartenliste in Blöcke auf, die jeweils auf eine Seite passen.
+            var cardChunks = _cards.Chunk(cardsPerPage);
+
+            // Iteriert über jeden Block von Karten, um Vorder- und Rückseiten-Paare zu erstellen.
+            foreach (var chunk in cardChunks)
             {
-                page.Size(PageSizes.A4);
-                page.Margin(2, Unit.Centimetre);
-                
-                page.Content()
-                    .Column(column => 
+                var pageCards = chunk.ToList();
+
+                // --- SEITE 1: VORDERSEITEN ---
+                // Generiert eine Seite für die Vorderseiten der aktuellen Karten.
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+
+                    page.Content().Table(table =>
                     {
-                        // (A) VORDERSEITEN-Layout
-                        column.Item().Table(table =>
+                        table.ColumnsDefinition(columns =>
                         {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
-                            });
-                            
-                            foreach (var card in _cards)
-                            {
-                                table.Cell()
-                                    .Element(CardCellStyle)
-                                    .AlignCenter()
-                                    .AlignMiddle()
-                                    .ScaleToFit()
-                                    .Text(card.Front);
-                            }
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
                         });
 
-                        // (B) SEITENUMBRUCH (unverändert)
-                        column.Item().PageBreak();
+                        // Füllt die Tabelle mit den Vorderseiten der Karten.
+                        foreach (var card in pageCards)
+                        {
+                            table.Cell()
+                                .Element(CardCellStyle)
+                                .AlignCenter()
+                                .AlignMiddle()
+                                .ScaleToFit()
+                                .Text(card.Front);
+                        }
+                    });
+                });
 
-                        // Korrektur: Fügt einen 2mm Abstandshalter hinzu, um die Rückseite bündig auszurichten
-                        column.Item().Height(2, Unit.Millimetre);
+                // --- SEITE 2: RÜCKSEITEN ---
+                // Bereitet die Rückseiten vor, indem die Reihenfolge für den Duplexdruck gespiegelt wird.
+                var mirroredBacks = new List<Card?>();
+                for (int i = 0; i < pageCards.Count; i += 3)
+                {
+                    var card1 = pageCards[i];
+                    var card2 = (i + 1 < pageCards.Count) ? pageCards[i + 1] : null;
+                    var card3 = (i + 2 < pageCards.Count) ? pageCards[i + 2] : null;
 
-                        // (C) RÜCKSEITEN-Layout
-                        column.Item().Table(table =>
+                    mirroredBacks.Add(card3);
+                    mirroredBacks.Add(card2);
+                    mirroredBacks.Add(card1);
+                }
+
+                // Generiert eine separate Seite für die Rückseiten.
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+
+                    // Fügt einen kleinen oberen Abstand hinzu, um die Position der Rückseiten
+                    // exakt an die der Vorderseiten für den Duplexdruck anzupassen.
+                    page.Content()
+                        .PaddingTop(2, Unit.Millimetre)
+                        .Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
@@ -81,11 +97,12 @@ namespace FlashcardApp
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
                             });
-                            
+
+                            // Füllt die Tabelle mit den gespiegelten Rückseiten.
                             foreach (var card in mirroredBacks)
                             {
                                 var cell = table.Cell().Element(CardCellStyle);
-                                
+
                                 if (card != null)
                                 {
                                     cell
@@ -96,12 +113,13 @@ namespace FlashcardApp
                                 }
                                 else
                                 {
+                                    // Fügt eine leere Zelle hinzu, falls eine Reihe nicht vollständig ist.
                                     cell.Text(string.Empty);
                                 }
                             }
                         });
-                    });
-            });
+                });
+            }
         }
         
         /// <summary>
