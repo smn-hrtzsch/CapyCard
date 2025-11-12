@@ -37,8 +37,6 @@ namespace FlashcardApp
                 mirroredBacks.Add(card1); 
             }
             
-            const int maxLines = 6; // Basiswert: Annahme, dass 6 Zeilen optimal passen
-
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
@@ -59,26 +57,20 @@ namespace FlashcardApp
                             
                             foreach (var card in _cards)
                             {
-                                var text = card.Front;
-                                var actualLines = text.Split('\n').Length;
-    
-                                float scaleFactor = 1.0f;
-                                if (actualLines > maxLines)
-                                {
-                                    scaleFactor = (float)maxLines / actualLines;
-                                }
-
                                 table.Cell()
                                     .Element(CardCellStyle)
                                     .AlignCenter()
                                     .AlignMiddle()
-                                    .Scale(scaleFactor)
-                                    .Text(text);
+                                    .ScaleToFit()
+                                    .Text(card.Front);
                             }
                         });
 
                         // (B) SEITENUMBRUCH (unverändert)
                         column.Item().PageBreak();
+
+                        // Korrektur: Fügt einen 2mm Abstandshalter hinzu, um die Rückseite bündig auszurichten
+                        column.Item().Height(2, Unit.Millimetre);
 
                         // (C) RÜCKSEITEN-Layout
                         column.Item().Table(table =>
@@ -96,20 +88,11 @@ namespace FlashcardApp
                                 
                                 if (card != null)
                                 {
-                                    var text = card.Back;
-                                    var actualLines = text.Split('\n').Length;
-    
-                                    float scaleFactor = 1.0f;
-                                    if (actualLines > maxLines)
-                                    {
-                                        scaleFactor = (float)maxLines / actualLines;
-                                    }
-
                                     cell
                                         .AlignCenter()
                                         .AlignMiddle()
-                                        .Scale(scaleFactor)
-                                        .Text(text);
+                                        .ScaleToFit()
+                                        .Text(card.Back);
                                 }
                                 else
                                 {
