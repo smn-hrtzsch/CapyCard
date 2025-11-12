@@ -54,7 +54,7 @@ namespace FlashcardApp.ViewModels
         public DeckListViewModel()
         {
             _dbContext = new FlashcardDbContext();
-            _dbContext.Database.Migrate();
+            _dbContext.Database.EnsureCreated();
             LoadDecks();
         }
 
