@@ -79,11 +79,28 @@ namespace FlashcardApp.ViewModels
         {
             if (_currentDeck == null) return;
             
-            _currentDeck = await _dbContext.Decks.Include(d => d.Cards)
-                                 .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id) ?? _currentDeck;
+            // --- HIER IST DIE KORREKTUR ---
+            // 'AsNoTracking()' zwingt EF Core, die Datenbank-Datei
+            // neu abzufragen (z.B. nach einem Löschvorgang im CardListViewModel)
+            // und nicht die veralteten Daten aus seinem eigenen Cache zu verwenden.
+            var deckFromDb = await _dbContext.Decks
+                                 .AsNoTracking() // <-- HINZUGEFÜGT
+                                 .Include(d => d.Cards)
+                                 .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id);
+            
+            // Wir müssen _currentDeck aktualisieren, falls es null war, 
+            // aber hauptsächlich brauchen wir die Kartenliste.
+            if (deckFromDb == null) 
+            {
+                // Das Deck selbst wurde gelöscht, gehe zurück
+                GoBack();
+                return; 
+            }
+            
+            _currentDeck = deckFromDb; 
 
             Cards.Clear();
-            foreach (var card in _currentDeck.Cards.OrderBy(c => c.Id))
+            foreach (var card in deckFromDb.Cards.OrderBy(c => c.Id))
             {
                 Cards.Add(card);
             }
@@ -143,9 +160,6 @@ namespace FlashcardApp.ViewModels
         [RelayCommand]
         private void CancelEdit()
         {
-            // --- HIER IST DIE KORREKTUR ---
-            // Wir navigieren zurück zur Liste, wenn der Benutzer
-            // das Bearbeiten abbricht.
             if (_currentDeck != null)
             {
                 OnNavigateToCardList?.Invoke(_currentDeck);
@@ -179,7 +193,7 @@ namespace FlashcardApp.ViewModels
         
         private void UpdateCardCount(int count)
         {
-            CardCountText = $"Karten anzeigen ({count})";
+            CardCountText = $"Karteikarten anzeigen ({count})";
             HasCards = count > 0;
         }
 
