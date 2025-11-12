@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-    <Package Name="FlashcardApp" Manufacturer="smn-hrtzsch" Version="1.0.0" UpgradeCode="8D1BABC8-8F3A-4298-A898-A14355643595" Platform="x64">
+    <Package Name="FlashcardApp" Manufacturer="smn-hrtzsch" Version="1.0.0" UpgradeCode="8D1BABC8-8F3A-4298-A898-A14355643595">
         <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
         <MediaTemplate EmbedCab="yes" />
