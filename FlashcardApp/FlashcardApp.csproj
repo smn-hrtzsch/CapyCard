@@ -8,16 +8,7 @@
   </PropertyGroup>
 
   <!-- 
-    KORREKTUR (FINAL):
-    Der 'Duplicate' Fehler beweist, dass das .NET 9 SDK ALLE .axaml-Dateien
-    automatisch findet, auch in Unterordnern.
-    
-    Deshalb LÖSCHEN wir den gesamten <ItemGroup> für <AvaloniaXaml Include=...>.
-    Jeder manuelle Eintrag hier führt zu einem 'Duplicate'-Fehler.
-  -->
-  
-  <!-- 
-    Dieser Block ist WICHTIG und BLEIBT. 
+    Dieser Block bleibt unverändert.
     Er verknüpft die .cs-Dateien mit den .axaml-Dateien.
   -->
   <ItemGroup>
@@ -26,12 +17,19 @@
     </Compile>
   </ItemGroup>
 
-  <!-- Hier sind alle unsere Pakete (OHNE Diagnostics) -->
+  <!-- 
+    Paket-Referenzen
+  -->
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.11" />
     <PackageReference Include="Avalonia.Desktop" Version="11.0.11" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.11" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.11" />
+    
+    <!-- 
+      KORREKTUR:
+      Die fehlerhafte Referenz zu 'Avalonia.Storage' wurde entfernt.
+    -->
     
     <!-- EF Core (Datenbank) -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
@@ -42,5 +40,10 @@
 
     <!-- MVVM Toolkit -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+
+    <!-- 
+      'QuestPDF' ist korrekt und bleibt.
+    -->
+    <PackageReference Include="QuestPDF" Version="2024.3.4" />
   </ItemGroup>
 </Project>
