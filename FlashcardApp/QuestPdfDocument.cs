@@ -24,15 +24,14 @@ namespace FlashcardApp
         // Diese Methode definiert das gesamte Layout
         public void Compose(IDocumentContainer container)
         {
-            // 1. KORREKTUR: Erstelle die gespiegelte Liste für 3 Spalten
+            // 1. Erstelle die gespiegelte Liste für 3 Spalten (unverändert)
             var mirroredBacks = new List<Card?>();
-            for (int i = 0; i < _cards.Count; i += 3) // In 3er-Schritten vorgehen
+            for (int i = 0; i < _cards.Count; i += 3)
             {
                 var card1 = _cards[i];
                 var card2 = (i + 1 < _cards.Count) ? _cards[i + 1] : null;
                 var card3 = (i + 2 < _cards.Count) ? _cards[i + 2] : null;
 
-                // In umgekehrter Reihenfolge für Duplex-Spiegelung hinzufügen
                 mirroredBacks.Add(card3); 
                 mirroredBacks.Add(card2); 
                 mirroredBacks.Add(card1); 
@@ -49,26 +48,26 @@ namespace FlashcardApp
                         // (A) VORDERSEITEN-Layout
                         column.Item().Table(table =>
                         {
-                            // KORREKTUR: 3 Spalten
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
-                                columns.RelativeColumn(); // NEU
+                                columns.RelativeColumn();
                             });
                             
                             foreach (var card in _cards)
                             {
-                                // KORREKTUR (Zentrierung):
-                                // .AlignCenter() auf der Zelle zentriert den Inhalt horizontal.
-                                // .AlignCenter() auf dem Text zentriert mehrzeiligen Text in sich selbst.
+                                // KORREKTUR:
+                                // .ScaleToFit() ist der korrekte Befehl, der
+                                // den Inhalt skaliert, anstatt ihn umzubrechen.
                                 table.Cell()
                                     .Element(CardCellStyle)
-                                    .AlignMiddle()  // Vertikal
-                                    .AlignCenter()  // Horizontal (FIX)
+                                    .AlignMiddle()
+                                    .AlignCenter()
                                     .Shrink()
+                                    .ScaleToFit() // <-- KORREKTUR
                                     .Text(card.Front)
-                                    .AlignCenter(); // Text-interne Zentrierung
+                                    .AlignCenter();
                             }
                         });
 
@@ -78,12 +77,11 @@ namespace FlashcardApp
                         // (C) RÜCKSEITEN-Layout
                         column.Item().Table(table =>
                         {
-                            // KORREKTUR: 3 Spalten
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
-                                columns.RelativeColumn(); // NEU
+                                columns.RelativeColumn();
                             });
                             
                             foreach (var card in mirroredBacks)
@@ -92,11 +90,12 @@ namespace FlashcardApp
                                 
                                 if (card != null)
                                 {
-                                    // KORREKTUR: Identische Zentrierungslogik
+                                    // KORREKTUR: Identische Logik
                                     cell
                                         .AlignMiddle()
                                         .AlignCenter()
                                         .Shrink()
+                                        .ScaleToFit() // <-- KORREKTUR
                                         .Text(card.Back)
                                         .AlignCenter();
                                 }
@@ -115,7 +114,7 @@ namespace FlashcardApp
         /// </summary>
         static IContainer CardCellStyle(IContainer container)
         {
-            // KORREKTUR: Höhe auf 3cm geändert
+            // Höhe 3cm (unverändert)
             return container
                 .Border(1)
                 .Padding(10) 
