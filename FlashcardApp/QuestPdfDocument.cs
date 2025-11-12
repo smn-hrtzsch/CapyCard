@@ -8,15 +8,12 @@ using System.Linq;
 namespace FlashcardApp
 {
     /// <summary>
-    /// Definiert das Layout für unser PDF-Dokument (DIN-A4, 2 Spalten, Duplex).
+    /// Definiert das Layout für unser PDF-Dokument (DIN-A4, 3 Spalten, Duplex).
     /// </summary>
     public class QuestPdfDocument : IDocument
     {
         private readonly List<Card> _cards;
         
-        // Definiert die Farbe, die wir als "unsichtbar" verwenden
-        private static readonly string _invisibleColor = Colors.White;
-
         public QuestPdfDocument(List<Card> cards)
         {
             _cards = cards;
@@ -27,13 +24,16 @@ namespace FlashcardApp
         // Diese Methode definiert das gesamte Layout
         public void Compose(IDocumentContainer container)
         {
-            // 1. Erstelle die gespiegelte Liste der Rückseiten (unverändert)
+            // 1. KORREKTUR: Erstelle die gespiegelte Liste für 3 Spalten
             var mirroredBacks = new List<Card?>();
-            for (int i = 0; i < _cards.Count; i += 2)
+            for (int i = 0; i < _cards.Count; i += 3) // In 3er-Schritten vorgehen
             {
                 var card1 = _cards[i];
                 var card2 = (i + 1 < _cards.Count) ? _cards[i + 1] : null;
+                var card3 = (i + 2 < _cards.Count) ? _cards[i + 2] : null;
 
+                // In umgekehrter Reihenfolge für Duplex-Spiegelung hinzufügen
+                mirroredBacks.Add(card3); 
                 mirroredBacks.Add(card2); 
                 mirroredBacks.Add(card1); 
             }
@@ -49,31 +49,26 @@ namespace FlashcardApp
                         // (A) VORDERSEITEN-Layout
                         column.Item().Table(table =>
                         {
+                            // KORREKTUR: 3 Spalten
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
+                                columns.RelativeColumn(); // NEU
                             });
                             
                             foreach (var card in _cards)
                             {
-                                // KORREKTUR: Wir verwenden 'Layers' (Overlay) statt 'Column' (Stapel)
+                                // KORREKTUR (Zentrierung):
+                                // .AlignCenter() auf der Zelle zentriert den Inhalt horizontal.
+                                // .AlignCenter() auf dem Text zentriert mehrzeiligen Text in sich selbst.
                                 table.Cell()
                                     .Element(CardCellStyle)
-                                    .Layers(layers =>
-                                    {
-                                        // Layer 1: Der "Mess-Layer" (unsichtbar)
-                                        // Rendert die Rückseite, um deren Höhe zu messen.
-                                        layers.Layer()
-                                            .DefaultTextStyle(x => x.FontColor(_invisibleColor))
-                                            .Text(card.Back);
-                                        
-                                        // Layer 2: Der "Inhalts-Layer" (sichtbar)
-                                        // KORREKTUR: Wird als 'PrimaryLayer' markiert,
-                                        //            behebt den Runtime-Crash.
-                                        layers.PrimaryLayer()
-                                            .Text(card.Front);
-                                    });
+                                    .AlignMiddle()  // Vertikal
+                                    .AlignCenter()  // Horizontal (FIX)
+                                    .Shrink()
+                                    .Text(card.Front)
+                                    .AlignCenter(); // Text-interne Zentrierung
                             }
                         });
 
@@ -83,10 +78,12 @@ namespace FlashcardApp
                         // (C) RÜCKSEITEN-Layout
                         column.Item().Table(table =>
                         {
+                            // KORREKTUR: 3 Spalten
                             table.ColumnsDefinition(columns =>
                             {
                                 columns.RelativeColumn();
                                 columns.RelativeColumn();
+                                columns.RelativeColumn(); // NEU
                             });
                             
                             foreach (var card in mirroredBacks)
@@ -95,19 +92,13 @@ namespace FlashcardApp
                                 
                                 if (card != null)
                                 {
-                                    // KORREKTUR: Identische 'Layers'-Logik
-                                    cell.Layers(layers =>
-                                    {
-                                        // Layer 1: Der "Mess-Layer" (unsichtbar)
-                                        layers.Layer()
-                                            .DefaultTextStyle(x => x.FontColor(_invisibleColor))
-                                            .Text(card.Front);
-                                        
-                                        // Layer 2: Der "Inhalts-Layer" (sichtbar)
-                                        // KORREKTUR: Wird als 'PrimaryLayer' markiert.
-                                        layers.PrimaryLayer()
-                                            .Text(card.Back);
-                                    });
+                                    // KORREKTUR: Identische Zentrierungslogik
+                                    cell
+                                        .AlignMiddle()
+                                        .AlignCenter()
+                                        .Shrink()
+                                        .Text(card.Back)
+                                        .AlignCenter();
                                 }
                                 else
                                 {
@@ -120,14 +111,15 @@ namespace FlashcardApp
         }
         
         /// <summary>
-        /// Stil für die PDF-Zellen (unverändert).
+        /// Stil für die PDF-Zellen.
         /// </summary>
         static IContainer CardCellStyle(IContainer container)
         {
+            // KORREKTUR: Höhe auf 3cm geändert
             return container
                 .Border(1)
                 .Padding(10) 
-                .PaddingBottom(1, Unit.Centimetre); 
+                .Height(3, Unit.Centimetre);
         }
     }
 }
