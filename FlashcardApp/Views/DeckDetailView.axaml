@@ -7,113 +7,107 @@
              x:Class="FlashcardApp.Views.DeckDetailView"
              x:DataType="vm:DeckDetailViewModel">
     
-    <DockPanel Margin="10">
-        <!-- OBERER BEREICH (unverändert) -->
-        <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
-            <TextBlock Text="{Binding DeckName}" 
-                       FontSize="18" FontWeight="Bold" 
-                       VerticalAlignment="Center"/>
-            
-            <Button Content="Zurück zur Fächerliste" 
-                    Command="{Binding GoBackCommand}" 
-                    Grid.Column="1"
-                    HorizontalAlignment="Right"/>
-        </Grid>
-        
-        <!-- MITTLERER BEREICH (unverändert) -->
-        <StackPanel Spacing="10" Margin="0,15,0,0">
-            <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
-            
-            <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+    <!-- 
+      KORREKTUR (LAYOUT):
+      HorizontalScrollBarVisibility="Disabled" erzwingt den Textumbruch.
+    -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <DockPanel Margin="10">
+            <!-- OBERER BEREICH -->
+            <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
+                <!-- TextWrapping="Wrap" funktioniert jetzt korrekt -->
+                <TextBlock Text="{Binding DeckName}" 
+                           FontSize="18" FontWeight="Bold" 
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap"/>
                 
-                <TextBlock Text="Vorderseite" 
-                           Grid.Row="0" Grid.Column="0" 
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,10"/>
-                <TextBlock Text="Rückseite" 
-                           Grid.Row="0" Grid.Column="2" 
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,10"/>
-                
-                <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         Watermark="Text für Vorderseite..."
-                         Height="150"
-                         Grid.Row="1" Grid.Column="0"
-                         BorderBrush="Gray" BorderThickness="1"/>
-                
-                <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
-                      Stroke="Gray" 
-                      StrokeThickness="2"
-                      Grid.Row="1" Grid.Column="1"
-                      VerticalAlignment="Center" 
-                      HorizontalAlignment="Center"
-                      Margin="10,0"/>
-                
-                <TextBox Text="{Binding NewCardBack, Mode=TwoWay}"
-                         AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         Watermark="Text für Rückseite..."
-                         Height="150"
-                         Grid.Row="1" Grid.Column="2"
-                         BorderBrush="Gray" BorderThickness="1"/>
-            </Grid>
-            
-            <!-- 
-              KORRIGIERTES Button-Grid 
-              1. 'Gap="10"' entfernt (behebt AVLN:0004)
-              2. 'Margin' hinzugefügt, um Abstand zu simulieren
-              3. 'Grid.Column' für Speichern-Button auf 1 korrigiert
-            -->
-            <Grid ColumnDefinitions="*,*">
-                
-                <Button Content="Abbrechen" 
-                        Command="{Binding CancelEditCommand}"
-                        IsVisible="{Binding IsEditing}"
-                        HorizontalAlignment="Stretch"
-                        Grid.Column="0"
-                        Margin="0,0,5,0"/> <!-- 5px rechter Abstand -->
-                
-                <!-- 
-                  KORREKTUR: 
-                  Der 'Speichern'-Button wird jetzt in ZWEI Versionen deklariert.
-                  Das ist die sauberste Art, die Spalten-Logik zu steuern,
-                  ohne komplexe Konverter.
-                -->
-                
-                <!-- Version 1: "Speichern" (im Bearbeiten-Modus) -->
-                <Button Content="{Binding SaveButtonText}" 
-                        Command="{Binding SaveCardCommand}"
-                        HorizontalAlignment="Stretch"
-                        IsVisible="{Binding IsEditing}"
+                <Button Content="Zurück zur Fächerliste" 
+                        Command="{Binding GoBackCommand}" 
                         Grid.Column="1"
-                        Margin="5,0,0,0"/> <!-- 5px linker Abstand -->
-                
-                <!-- Version 2: "Karte hinzufügen" (im Hinzufügen-Modus) -->
-                <Button Content="{Binding SaveButtonText}" 
-                        Command="{Binding SaveCardCommand}"
-                        HorizontalAlignment="Stretch"
-                        IsVisible="{Binding !IsEditing}"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="2"/> <!-- Volle Breite -->
+                        HorizontalAlignment="Right"/>
             </Grid>
             
-            <!-- UNTERER BEREICH (unverändert) -->
-            <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
-                <StackPanel Spacing="10">
-                    <Button Content="{Binding CardCountText}" 
-                            Command="{Binding GoToCardListCommand}"
-                            IsEnabled="{Binding HasCards}"
-                            HorizontalAlignment="Stretch"/>
-                            
-                    <Button Content="Karteikarten lernen" 
-                            Command="{Binding GoToLearnCommand}"
-                            IsEnabled="{Binding HasCards}"
-                            HorizontalAlignment="Stretch"/>
-                </StackPanel>
-            </Border>
-            
-        </StackPanel>
-    </DockPanel>
+            <!-- MITTLERER BEREICH (unverändert) -->
+            <StackPanel Spacing="10" Margin="0,15,0,0">
+                <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
+                
+                <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                    
+                    <TextBlock Text="Vorderseite" 
+                               Grid.Row="0" Grid.Column="0" 
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,10"/>
+                    <TextBlock Text="Rückseite" 
+                               Grid.Row="0" Grid.Column="2" 
+                               FontWeight="SemiBold"
+                               Margin="0,0,0,10"/>
+                    
+                    <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Watermark="Text für Vorderseite..."
+                             Height="150"
+                             Grid.Row="1" Grid.Column="0"
+                             BorderBrush="Gray" BorderThickness="1"/>
+                    
+                    <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
+                          Stroke="Gray" 
+                          StrokeThickness="2"
+                          Grid.Row="1" Grid.Column="1"
+                          VerticalAlignment="Center" 
+                          HorizontalAlignment="Center"
+                          Margin="10,0"/>
+                    
+                    <TextBox Text="{Binding NewCardBack, Mode=TwoWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Watermark="Text für Rückseite..."
+                             Height="150"
+                             Grid.Row="1" Grid.Column="2"
+                             BorderBrush="Gray" BorderThickness="1"/>
+                </Grid>
+                
+                <!-- Button-Grid (unverändert) -->
+                <Grid ColumnDefinitions="*,*">
+                    
+                    <Button Content="Abbrechen" 
+                            Command="{Binding CancelEditCommand}"
+                            IsVisible="{Binding IsEditing}"
+                            HorizontalAlignment="Stretch"
+                            Grid.Column="0"
+                            Margin="0,0,5,0"/>
+                    
+                    <Button Content="{Binding SaveButtonText}" 
+                            Command="{Binding SaveCardCommand}"
+                            HorizontalAlignment="Stretch"
+                            IsVisible="{Binding IsEditing}"
+                            Grid.Column="1"
+                            Margin="5,0,0,0"/>
+                    
+                    <Button Content="{Binding SaveButtonText}" 
+                            Command="{Binding SaveCardCommand}"
+                            HorizontalAlignment="Stretch"
+                            IsVisible="{Binding !IsEditing}"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"/>
+                </Grid>
+                
+                <!-- UNTERER BEREICH (unverändert) -->
+                <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
+                    <StackPanel Spacing="10">
+                        <Button Content="{Binding CardCountText}" 
+                                Command="{Binding GoToCardListCommand}"
+                                IsEnabled="{Binding HasCards}"
+                                HorizontalAlignment="Stretch"/>
+                                
+                        <Button Content="Karteikarten lernen" 
+                                Command="{Binding GoToLearnCommand}"
+                                IsEnabled="{Binding HasCards}"
+                                HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
+                
+            </StackPanel>
+        </DockPanel>
+    </ScrollViewer>
 </UserControl>
