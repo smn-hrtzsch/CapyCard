@@ -25,7 +25,7 @@
     </Fragment>
 
     <Fragment>
-        <StandardDirectory Id="ProgramMenusFolder">
+        <StandardDirectory Id="ProgramMenuFolder">
             <Directory Id="ApplicationProgramsFolder" Name="FlashcardApp" />
         </StandardDirectory>
 
