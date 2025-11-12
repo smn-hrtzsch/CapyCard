@@ -5,7 +5,7 @@ using FlashcardApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel; // Hinzugefügt für PropertyChangedEventArgs
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,19 +19,20 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _deckName = "Karten";
 
-        // KORREKTUR: Die Liste verwaltet jetzt CardItemViewModels
         public ObservableCollection<CardItemViewModel> Cards { get; } = new();
 
-        // NEU: Zählt die ausgewählten Karten
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(ShowPdfButton))] // Aktualisiert den PDF-Button
+        [NotifyPropertyChangedFor(nameof(ShowPdfButton))]
         private int _selectedCardCount = 0;
 
-        // NEU: Steuert die Sichtbarkeit des PDF-Buttons
         public bool ShowPdfButton => SelectedCardCount > 0;
 
         public event Action? OnNavigateBack;
         public event Action<Deck, Card>? OnEditCardRequest;
+
+        // NEU: Event für den "Speichern unter"-Dialog.
+        // Input: string (vorgeschlagener Name), Output: Task<string?> (gewählter Pfad)
+        public event Func<string, Task<string?>>? ShowSaveFileDialog;
 
         public CardListViewModel()
         {
@@ -43,7 +44,6 @@ namespace FlashcardApp.ViewModels
             _currentDeck = deck;
             DeckName = $"Karten für: {deck.Name}";
             
-            // Alte Listener entfernen, bevor wir die Liste leeren
             foreach (var item in Cards)
             {
                 item.PropertyChanged -= CardItem_PropertyChanged;
@@ -57,42 +57,32 @@ namespace FlashcardApp.ViewModels
 
             foreach (var card in cardsFromDb)
             {
-                // KORREKTUR: Füge den Wrapper (CardItemViewModel) hinzu
                 var itemVM = new CardItemViewModel(card);
-                
-                // NEU: Wir hören auf Änderungen der 'IsSelected'-Eigenschaft
                 itemVM.PropertyChanged += CardItem_PropertyChanged;
-                
                 Cards.Add(itemVM);
             }
-            UpdateSelectedCount(); // Zähler beim Laden initialisieren
+            UpdateSelectedCount();
         }
 
-        // KORREKTUR: Nimmt jetzt ein CardItemViewModel entgegen
         [RelayCommand]
         private async Task DeleteCard(CardItemViewModel? itemVM)
         {
             if (itemVM == null) return;
             
-            // NEU: Listener entfernen, um Speicherlecks zu vermeiden
             itemVM.PropertyChanged -= CardItem_PropertyChanged;
-
-            // KORREKTUR: Löscht die 'innere' Karte
             _dbContext.Cards.Attach(itemVM.Card);
             _dbContext.Cards.Remove(itemVM.Card);
             await _dbContext.SaveChangesAsync();
             
-            Cards.Remove(itemVM); // Entfernt den Wrapper aus der UI
-            UpdateSelectedCount(); // Zähler aktualisieren
+            Cards.Remove(itemVM);
+            UpdateSelectedCount();
         }
 
-        // KORREKTUR: Nimmt jetzt ein CardItemViewModel entgegen
         [RelayCommand]
         private void EditCard(CardItemViewModel? itemVM)
         {
             if (itemVM != null && _currentDeck != null)
             {
-                // KORREKTUR: Übergibt die 'innere' Karte
                 OnEditCardRequest?.Invoke(_currentDeck, itemVM.Card);
             }
         }
@@ -103,35 +93,53 @@ namespace FlashcardApp.ViewModels
             OnNavigateBack?.Invoke();
         }
 
-        // NEU: Befehl für den "Alle auswählen"-Button
         [RelayCommand]
         private void ToggleSelectAll()
         {
-            // Wenn NICHT alle ausgewählt sind, wähle alle aus.
-            // Wenn alle ausgewählt sind, wähle alle ab.
             bool selectAll = Cards.Count == 0 || Cards.Any(c => !c.IsSelected);
-            
             foreach (var item in Cards)
             {
                 item.IsSelected = selectAll;
             }
-            // (Der Zähler wird automatisch durch die PropertyChanged-Events aktualisiert)
         }
 
-        // NEU: Befehl für den "Als PDF speichern"-Button
+        // KORREKTUR: Befehl ist jetzt 'async' und implementiert
         [RelayCommand]
-        private void GeneratePdf()
+        private async Task GeneratePdf()
         {
-            // Dieser Befehl ist noch leer.
-            // In Teil 2 rufen wir von hier aus den Speichern-Dialog
-            // und den PdfGenerationService auf.
-            
-            // Logik (für später):
-            // var selectedCards = Cards.Where(c => c.IsSelected).Select(c => c.Card).ToList();
-            // Console.WriteLine($"Würde jetzt {selectedCards.Count} Karten als PDF speichern.");
+            var selectedCards = Cards
+                .Where(c => c.IsSelected)
+                .Select(c => c.Card)
+                .ToList();
+
+            // 1. Prüfen, ob Karten ausgewählt sind und der Dialog-Handler existiert
+            if (!selectedCards.Any() || ShowSaveFileDialog == null)
+            {
+                return;
+            }
+
+            // 2. Vorgeschlagenen Dateinamen festlegen
+            string suggestedName = $"{_currentDeck?.Name ?? "Karten"}.pdf";
+
+            try
+            {
+                // 3. Den "Speichern unter"-Dialog aufrufen (wird von der View behandelt)
+                string? path = await ShowSaveFileDialog.Invoke(suggestedName);
+
+                // 4. Wenn der Nutzer einen Pfad ausgewählt hat (nicht auf "Abbrechen" geklickt hat)
+                if (!string.IsNullOrEmpty(path))
+                {
+                    // 5. PDF generieren und speichern
+                    PdfGenerationService.GeneratePdf(path, selectedCards);
+                }
+            }
+            catch (Exception ex)
+            {
+                // TODO: Hier könnten wir dem Nutzer eine Fehlermeldung anzeigen
+                Console.WriteLine($"PDF-Speicherfehler: {ex.Message}");
+            }
         }
 
-        // NEU: Dieser Handler wird aufgerufen, wenn eine Checkbox geklickt wird
         private void CardItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(CardItemViewModel.IsSelected))
@@ -140,7 +148,6 @@ namespace FlashcardApp.ViewModels
             }
         }
 
-        // NEU: Hilfsmethode zur Aktualisierung des Zählers
         private void UpdateSelectedCount()
         {
             SelectedCardCount = Cards.Count(c => c.IsSelected);
