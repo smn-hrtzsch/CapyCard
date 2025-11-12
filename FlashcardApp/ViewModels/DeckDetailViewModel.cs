@@ -13,7 +13,7 @@ namespace FlashcardApp.ViewModels
     public partial class DeckDetailViewModel : ObservableObject
     {
         private readonly FlashcardDbContext _dbContext;
-        private Deck? _currentDeck; // Das aktuell ausgewählte Fach
+        private Deck? _currentDeck; 
 
         [ObservableProperty]
         private string _newCardFront = string.Empty;
@@ -21,21 +21,29 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _newCardBack = string.Empty;
 
-        // Zeigt den Namen des Fachs oben an
         [ObservableProperty]
         private string _deckName = "Fach laden...";
 
+        // NEU: Text für den Navigations-Button
+        [ObservableProperty]
+        private string _cardCountText = "Karten anzeigen (0)";
+
+        // HINWEIS: Die 'Cards'-Liste bleibt hier. 
+        // Sie wird im Hintergrund geladen und an die CardListView übergeben.
         public ObservableCollection<Card> Cards { get; } = new();
 
-        // Event, um dem MainViewModel zu sagen: "Wir wollen zurück!"
+        // Navigation zurück zur Fächer-Liste
         public event Action? OnNavigateBack;
+        
+        // NEU: Navigation zur Karten-Liste
+        public event Action<Deck, ObservableCollection<Card>>? OnNavigateToCardList;
+
 
         public DeckDetailViewModel()
         {
             _dbContext = new FlashcardDbContext();
         }
 
-        // Wird vom MainViewModel aufgerufen, um das Fach zu laden
         public async void LoadDeck(Deck deck)
         {
             _currentDeck = deck;
@@ -50,6 +58,9 @@ namespace FlashcardApp.ViewModels
             {
                 Cards.Add(card);
             }
+            
+            // NEU: Zähler aktualisieren
+            UpdateCardCount(Cards.Count);
         }
 
         [RelayCommand]
@@ -71,16 +82,34 @@ namespace FlashcardApp.ViewModels
             await _dbContext.SaveChangesAsync();
 
             Cards.Add(newCard);
+            
+            // NEU: Zähler aktualisieren
+            UpdateCardCount(Cards.Count);
 
             NewCardFront = string.Empty;
             NewCardBack = string.Empty;
         }
 
-        // Command für den "Zurück"-Button
         [RelayCommand]
         private void GoBack()
         {
             OnNavigateBack?.Invoke();
+        }
+        
+        // NEU: Befehl, um zur Karten-Liste zu navigieren
+        [RelayCommand]
+        private void GoToCardList()
+        {
+            if (_currentDeck != null)
+            {
+                OnNavigateToCardList?.Invoke(_currentDeck, Cards);
+            }
+        }
+        
+        // NEU: Hilfsmethode für den Button-Text
+        private void UpdateCardCount(int count)
+        {
+            CardCountText = $"Karteikarten anzeigen ({count})";
         }
     }
 }

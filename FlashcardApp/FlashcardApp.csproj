@@ -8,10 +8,9 @@
   </PropertyGroup>
 
   <!-- 
-    KORREKTUR V4:
-    Der 'Duplicate' Fehler (jetzt bei DeckDetailView) beweist,
-    dass das .NET 9 SDK ALLE .axaml-Dateien automatisch findet, 
-    auch in Unterordnern.
+    KORREKTUR (FINAL):
+    Der 'Duplicate' Fehler beweist, dass das .NET 9 SDK ALLE .axaml-Dateien
+    automatisch findet, auch in Unterordnern.
     
     Deshalb LÖSCHEN wir den gesamten <ItemGroup> für <AvaloniaXaml Include=...>.
     Jeder manuelle Eintrag hier führt zu einem 'Duplicate'-Fehler.

@@ -1,48 +1,63 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using FlashcardApp.Models; // <-- HIER IST DIE KORREKTUR
+using FlashcardApp.Models;
 
 namespace FlashcardApp.ViewModels
 {
-    // Das ist der neue DataContext für unser MainWindow.
-    // Er ist ein ObservableObject, damit die UI seine Änderungen mitbekommt.
     public partial class MainViewModel : ObservableObject
     {
-        // [ObservableProperty] erstellt eine Eigenschaft "CurrentViewModel".
-        // Wenn sich diese ändert, ändert sich die Ansicht im MainWindow.
         [ObservableProperty]
         private ObservableObject _currentViewModel;
 
-        // Wir erstellen die beiden "Seiten" (ViewModels)
         private readonly DeckListViewModel _deckListViewModel;
         private readonly DeckDetailViewModel _deckDetailViewModel;
+        
+        // NEU: Eine Instanz für die Karten-Liste
+        private readonly CardListViewModel _cardListViewModel;
 
         public MainViewModel()
         {
-            // Wir erstellen Instanzen unserer "Seiten"
+            // Instanzen erstellen
             _deckListViewModel = new DeckListViewModel();
             _deckDetailViewModel = new DeckDetailViewModel();
+            _cardListViewModel = new CardListViewModel(); // NEU
 
-            // Wir verknüpfen die Navigation
-            // Wenn im DeckListViewModel ein Deck ausgewählt wird...
+            // Navigation verknüpfen
             _deckListViewModel.OnDeckSelected += NavigateToDeckDetail;
-            // Wenn im DeckDetailViewModel "Zurück" geklickt wird...
             _deckDetailViewModel.OnNavigateBack += NavigateToDeckList;
+            
+            // NEUE Navigations-Pfade
+            _deckDetailViewModel.OnNavigateToCardList += NavigateToCardList;
+            _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
 
             // Startseite festlegen
             _currentViewModel = _deckListViewModel;
         }
 
-        // Diese Methode wird aufgerufen, um zur Karten-Seite zu wechseln
+        // Navigation zur Fach-Detail-Ansicht (Karten hinzufügen)
         private void NavigateToDeckDetail(Deck selectedDeck)
         {
-            _deckDetailViewModel.LoadDeck(selectedDeck); // Deck laden
-            CurrentViewModel = _deckDetailViewModel;     // Ansicht wechseln
+            _deckDetailViewModel.LoadDeck(selectedDeck); 
+            CurrentViewModel = _deckDetailViewModel;     
         }
 
-        // Diese Methode wird aufgerufen, um zur Fächer-Liste zurückzukehren
+        // Navigation zurück zur Fächer-Liste
         private void NavigateToDeckList()
         {
-            CurrentViewModel = _deckListViewModel; // Ansicht wechseln
+            CurrentViewModel = _deckListViewModel; 
+        }
+        
+        // NEU: Navigation zur Karten-Liste
+        private void NavigateToCardList(Deck deck, System.Collections.ObjectModel.ObservableCollection<Card> cards)
+        {
+            _cardListViewModel.LoadDeck(deck, cards);
+            CurrentViewModel = _cardListViewModel;
+        }
+        
+        // NEU: Navigation zurück zur Fach-Detail-Ansicht
+        private void NavigateBackToDeckDetail()
+        {
+            // Wir müssen nicht neu laden, das ViewModel existiert noch
+            CurrentViewModel = _deckDetailViewModel;
         }
     }
 }

@@ -8,39 +8,87 @@
              x:DataType="vm:DeckDetailViewModel">
     
     <DockPanel Margin="10">
-        <!-- ZURÜCK-Button und Titel -->
-        <StackPanel DockPanel.Dock="Top" Spacing="5">
-            <Button Content="&lt; Zurück zur Fächerliste"
-                    Command="{Binding GoBackCommand}"
-                    HorizontalAlignment="Left"/>
+        <!-- OBERER BEREICH: Titel und Zurück-Button -->
+        <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
+            <TextBlock Text="{Binding DeckName}" 
+                       FontSize="18" FontWeight="Bold" 
+                       VerticalAlignment="Center"/>
             
-            <TextBlock Text="{Binding DeckName}"
-                       FontSize="20" FontWeight="Bold" Margin="0,10,0,0"/>
-        </StackPanel>
+            <Button Content="Zurück zur Fächerliste" 
+                    Command="{Binding GoBackCommand}" 
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"/>
+        </Grid>
         
-        <!-- MITTE: Neue Karte hinzufügen -->
-        <StackPanel DockPanel.Dock="Top" Spacing="5" Margin="0,15,0,0">
-            <TextBlock Text="Neue Karte hinzufügen:" FontWeight="Bold"/>
-            <TextBox Text="{Binding NewCardFront, Mode=TwoWay}" Watermark="Vorderseite..."/>
-            <TextBox Text="{Binding NewCardBack, Mode=TwoWay}" Watermark="Rückseite..."/>
-            <Button Content="Karte hinzufügen"
+        <!-- MITTLERER BEREICH: Karte hinzufügen -->
+        <StackPanel Spacing="10" Margin="0,15,0,0">
+            <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
+            
+            <!-- 
+              Grid für nebeneinander liegende Eingabe 
+              
+              KORREKTUR HIER:
+              'RowSpacing' und 'ColumnSpacing' (die den AVLN:0004 Fehler verursacht haben)
+              wurden aus der Grid-Definition entfernt.
+            -->
+            <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                
+                <!-- 
+                  Titel
+                  KORREKTUR: Margin hinzugefügt für vertikalen Abstand 
+                -->
+                <TextBlock Text="Vorderseite" 
+                           Grid.Row="0" Grid.Column="0" 
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,10"/>
+                <TextBlock Text="Rückseite" 
+                           Grid.Row="0" Grid.Column="2" 
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,10"/>
+                
+                <!-- Mehrzeilige Textboxen -->
+                <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Watermark="Text für Vorderseite..."
+                         Height="150"
+                         Grid.Row="1" Grid.Column="0"
+                         BorderBrush="Gray" BorderThickness="1"/>
+                
+                <!-- 
+                  Pfeil-Icon (SVG) 
+                  KORREKTUR: Margin hinzugefügt für horizontalen Abstand
+                -->
+                <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
+                      Stroke="Gray" 
+                      StrokeThickness="2"
+                      Grid.Row="1" Grid.Column="1"
+                      VerticalAlignment="Center" 
+                      HorizontalAlignment="Center"
+                      Margin="10,0"/>
+                
+                <TextBox Text="{Binding NewCardBack, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Watermark="Text für Rückseite..."
+                         Height="150"
+                         Grid.Row="1" Grid.Column="2"
+                         BorderBrush="Gray" BorderThickness="1"/>
+            </Grid>
+            
+            <Button Content="Karte hinzufügen" 
                     Command="{Binding AddCardCommand}"
                     HorizontalAlignment="Stretch"/>
+            
+            <!-- UNTERER BEREICH: Navigation zur Karten-Liste -->
+            <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
+                <Button Content="{Binding CardCountText}" 
+                        Command="{Binding GoToCardListCommand}"
+                        HorizontalAlignment="Stretch"
+                        Background="Gray"
+                        Foreground="White"/>
+            </Border>
+            
         </StackPanel>
-
-        <!-- UNTEN: Liste der Karten -->
-        <Border BorderBrush="Gray" BorderThickness="1" Margin="0,10,0,0">
-            <ListBox ItemsSource="{Binding Cards}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <!-- Zeigt Vorder- und Rückseite an -->
-                        <StackPanel Spacing="5" Margin="5">
-                            <TextBlock Text="{Binding Front}" FontWeight="Medium"/>
-                            <TextBlock Text="{Binding Back}" Foreground="DarkGray"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
     </DockPanel>
 </UserControl>
