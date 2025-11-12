@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+    <Package Name="FlashcardApp" Manufacturer="smn-hrtzsch" Version="1.0.0" UpgradeCode="8D1BABC8-8F3A-4298-A898-A14355643595">
+        <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+        <MediaTemplate EmbedCab="yes" />
+
+        <Feature Id="Main">
+            <ComponentGroupRef Id="AppComponents" />
+            <ComponentRef Id="StartMenuShortcut" />
+        </Feature>
+    </Package>
+
+    <Fragment>
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="FlashcardApp" />
+        </StandardDirectory>
+
+        <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
+            <Component Id="FlashcardApp.exe">
+                <!-- This path is relative to the project root, where the wix command will be run -->
+                <File Source="bin/Release/net9.0/win-x64/publish/FlashcardApp.exe" />
+            </Component>
+        </ComponentGroup>
+    </Fragment>
+
+    <Fragment>
+        <StandardDirectory Id="ProgramMenusFolder">
+            <Directory Id="ApplicationProgramsFolder" Name="FlashcardApp" />
+        </StandardDirectory>
+
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="StartMenuShortcut">
+                <Shortcut Id="StartMenuShortcut"
+                          Name="FlashcardApp"
+                          Description="A simple flashcard application"
+                          Target="[#FlashcardApp.exe]"
+                          WorkingDirectory="INSTALLFOLDER" />
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\smn-hrtzsch\FlashcardApp" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+    </Fragment>
+</Wix>
