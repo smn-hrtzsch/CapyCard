@@ -37,6 +37,8 @@ namespace FlashcardApp
                 mirroredBacks.Add(card1); 
             }
             
+            const int maxLines = 6; // Basiswert: Annahme, dass 6 Zeilen optimal passen
+
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
@@ -57,17 +59,21 @@ namespace FlashcardApp
                             
                             foreach (var card in _cards)
                             {
-                                // KORREKTUR:
-                                // .ScaleToFit() ist der korrekte Befehl, der
-                                // den Inhalt skaliert, anstatt ihn umzubrechen.
+                                var text = card.Front;
+                                var actualLines = text.Split('\n').Length;
+    
+                                float scaleFactor = 1.0f;
+                                if (actualLines > maxLines)
+                                {
+                                    scaleFactor = (float)maxLines / actualLines;
+                                }
+
                                 table.Cell()
                                     .Element(CardCellStyle)
-                                    .AlignMiddle()
                                     .AlignCenter()
-                                    .Shrink()
-                                    .ScaleToFit() // <-- KORREKTUR
-                                    .Text(card.Front)
-                                    .AlignCenter();
+                                    .AlignMiddle()
+                                    .Scale(scaleFactor)
+                                    .Text(text);
                             }
                         });
 
@@ -90,14 +96,20 @@ namespace FlashcardApp
                                 
                                 if (card != null)
                                 {
-                                    // KORREKTUR: Identische Logik
+                                    var text = card.Back;
+                                    var actualLines = text.Split('\n').Length;
+    
+                                    float scaleFactor = 1.0f;
+                                    if (actualLines > maxLines)
+                                    {
+                                        scaleFactor = (float)maxLines / actualLines;
+                                    }
+
                                     cell
-                                        .AlignMiddle()
                                         .AlignCenter()
-                                        .Shrink()
-                                        .ScaleToFit() // <-- KORREKTUR
-                                        .Text(card.Back)
-                                        .AlignCenter();
+                                        .AlignMiddle()
+                                        .Scale(scaleFactor)
+                                        .Text(text);
                                 }
                                 else
                                 {
@@ -114,10 +126,10 @@ namespace FlashcardApp
         /// </summary>
         static IContainer CardCellStyle(IContainer container)
         {
-            // Höhe 3cm (unverändert)
+            // Padding 5, Höhe 3cm (unverändert)
             return container
                 .Border(1)
-                .Padding(10) 
+                .Padding(5) 
                 .Height(3, Unit.Centimetre);
         }
     }
