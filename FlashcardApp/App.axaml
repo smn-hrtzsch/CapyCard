@@ -4,13 +4,16 @@
              x:Class="FlashcardApp.App"
              RequestedThemeVariant="Default">
              
-    <!-- `local` ist der Namespace, in dem ViewLocator & ViewModels leben -->
     <Application.DataTemplates>
-        <!-- HIER DIE ÄNDERUNG: -->
         <local:ViewLocator/>
     </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+    
+    <!-- NEU: Wir fügen einen globalen Konverter hinzu -->
+    <Application.Resources>
+        <local:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
+    </Application.Resources>
 </Application>

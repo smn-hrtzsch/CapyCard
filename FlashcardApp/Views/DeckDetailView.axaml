@@ -61,33 +61,52 @@
             </Grid>
             
             <!-- 
-              KORREKTUR (DESIGN):
-              "Karte hinzufügen" hat keine eigenen Farben, es verwendet
-              den Standard-Look (dunkles Grau im Dark Mode).
+              KORRIGIERTES Button-Grid 
+              1. 'Gap="10"' entfernt (behebt AVLN:0004)
+              2. 'Margin' hinzugefügt, um Abstand zu simulieren
+              3. 'Grid.Column' für Speichern-Button auf 1 korrigiert
             -->
-            <Button Content="Karte hinzufügen" 
-                    Command="{Binding AddCardCommand}"
-                    HorizontalAlignment="Stretch"/>
+            <Grid ColumnDefinitions="*,*">
+                
+                <Button Content="Abbrechen" 
+                        Command="{Binding CancelEditCommand}"
+                        IsVisible="{Binding IsEditing}"
+                        HorizontalAlignment="Stretch"
+                        Grid.Column="0"
+                        Margin="0,0,5,0"/> <!-- 5px rechter Abstand -->
+                
+                <!-- 
+                  KORREKTUR: 
+                  Der 'Speichern'-Button wird jetzt in ZWEI Versionen deklariert.
+                  Das ist die sauberste Art, die Spalten-Logik zu steuern,
+                  ohne komplexe Konverter.
+                -->
+                
+                <!-- Version 1: "Speichern" (im Bearbeiten-Modus) -->
+                <Button Content="{Binding SaveButtonText}" 
+                        Command="{Binding SaveCardCommand}"
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding IsEditing}"
+                        Grid.Column="1"
+                        Margin="5,0,0,0"/> <!-- 5px linker Abstand -->
+                
+                <!-- Version 2: "Karte hinzufügen" (im Hinzufügen-Modus) -->
+                <Button Content="{Binding SaveButtonText}" 
+                        Command="{Binding SaveCardCommand}"
+                        HorizontalAlignment="Stretch"
+                        IsVisible="{Binding !IsEditing}"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"/> <!-- Volle Breite -->
+            </Grid>
             
-            <!-- UNTERER BEREICH: Navigations-Buttons -->
+            <!-- UNTERER BEREICH (unverändert) -->
             <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
                 <StackPanel Spacing="10">
-                    
-                    <!-- 
-                      KORREKTUR (DESIGN):
-                      Background="Gray" und Foreground="White" entfernt,
-                      damit dieser Button den Standard-Look annimmt.
-                    -->
                     <Button Content="{Binding CardCountText}" 
                             Command="{Binding GoToCardListCommand}"
                             IsEnabled="{Binding HasCards}"
                             HorizontalAlignment="Stretch"/>
                             
-                    <!-- 
-                      KORREKTUR (DESIGN):
-                      Background="..." und Foreground="White" entfernt,
-                      damit dieser Button den Standard-Look annimmt.
-                    -->
                     <Button Content="Karteikarten lernen" 
                             Command="{Binding GoToLearnCommand}"
                             IsEnabled="{Binding HasCards}"

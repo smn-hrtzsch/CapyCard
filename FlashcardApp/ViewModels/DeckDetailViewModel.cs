@@ -4,7 +4,7 @@ using FlashcardApp.Data;
 using FlashcardApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic; // NEU
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,7 +14,11 @@ namespace FlashcardApp.ViewModels
     public partial class DeckDetailViewModel : ObservableObject
     {
         private readonly FlashcardDbContext _dbContext;
-        private Deck? _currentDeck; 
+        private Deck? _currentDeck;
+        
+        // NEU: Hält die Karte, die gerade bearbeitet wird.
+        // Ist 'null', wenn wir eine neue Karte hinzufügen.
+        private Card? _cardToEdit;
 
         [ObservableProperty]
         private string _newCardFront = string.Empty;
@@ -28,21 +32,29 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _cardCountText = "Karten anzeigen (0)";
         
-        // NEU: Steuert die IsEnabled-Eigenschaft der Buttons
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))] // Aktualisiert den "Anzeigen"-Button
-        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]    // Aktualisiert den "Lernen"-Button
+        [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))]
+        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]
         private bool _hasCards = false;
 
-        
+        // NEU: Ändert den Text des Haupt-Buttons ("Hinzufügen" vs. "Speichern")
+        [ObservableProperty]
+        private string _saveButtonText = "Karte hinzufügen";
+
+        // NEU: Steuert die Sichtbarkeit des "Abbrechen"-Buttons
+        [ObservableProperty]
+        private bool _isEditing = false;
+
+
         public ObservableCollection<Card> Cards { get; } = new();
 
-        
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList;
-        
-        // NEU: Event für den Lern-Modus. Übergibt eine Kopie der Karten.
         public event Action<List<Card>>? OnNavigateToLearn;
+
+        // NEU: Sagt dem MainViewModel, dass wir zur Kartenliste zurückwollen
+        // (wird aufgerufen, NACHDEM wir eine Karte zum Bearbeiten ausgewählt haben)
+        public event Action<Deck>? OnRequestNavigateToCardList;
 
 
         public DeckDetailViewModel()
@@ -50,51 +62,99 @@ namespace FlashcardApp.ViewModels
             _dbContext = new FlashcardDbContext();
         }
 
+        // Wird aufgerufen, wenn wir die Seite normal betreten
         public async Task LoadDeck(Deck deck)
         {
             _currentDeck = deck;
             DeckName = deck.Name;
-            await RefreshCardDataAsync(); // Lädt Karten und aktualisiert Zähler
+            ResetToAddingMode(); // Stellt sicher, dass wir im "Hinzufügen"-Modus starten
+            await RefreshCardDataAsync();
+        }
+        
+        // NEU: Wird vom MainViewModel aufgerufen, wenn wir auf "Bearbeiten" klicken
+        public void LoadCardForEditing(Deck deck, Card card)
+        {
+            _currentDeck = deck;
+            _cardToEdit = card;
+            DeckName = deck.Name;
+
+            // Fülle die Textboxen mit dem Inhalt der Karte
+            NewCardFront = card.Front;
+            NewCardBack = card.Back;
+            
+            // UI-Zustand für "Bearbeiten" setzen
+            SaveButtonText = "Änderungen speichern";
+            IsEditing = true;
+            // (Wir brauchen RefreshCardDataAsync hier nicht, da wir die Daten schon haben)
+            UpdateCardCount(deck.Cards.Count);
         }
 
         public async Task RefreshCardDataAsync()
         {
             if (_currentDeck == null) return;
+            
+            _currentDeck = await _dbContext.Decks.Include(d => d.Cards)
+                                 .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id) ?? _currentDeck;
 
-            // Lädt die Karten in die lokale Collection
             Cards.Clear();
-            var cardsFromDb = await _dbContext.Cards
-                                .Where(c => c.DeckId == _currentDeck.Id)
-                                .ToListAsync();
-            foreach (var card in cardsFromDb)
+            foreach (var card in _currentDeck.Cards.OrderBy(c => c.Id))
             {
                 Cards.Add(card);
             }
             
             UpdateCardCount(Cards.Count);
         }
-
+        
+        // NEU: Dieser Befehl heißt jetzt 'SaveCard' und ist multifunktional
         [RelayCommand]
-        private async Task AddCard()
+        private async Task SaveCard()
         {
             if (_currentDeck == null || string.IsNullOrWhiteSpace(NewCardFront) || string.IsNullOrWhiteSpace(NewCardBack))
             {
                 return;
             }
-            var newCard = new Card
-            {
-                Front = NewCardFront,
-                Back = NewCardBack,
-                DeckId = _currentDeck.Id
-            };
-            _dbContext.Cards.Add(newCard);
-            await _dbContext.SaveChangesAsync();
-            
-            // NEU: Lädt Karten neu, statt nur Zähler zu aktualisieren
-            await RefreshCardDataAsync();
 
-            NewCardFront = string.Empty;
-            NewCardBack = string.Empty;
+            if (_cardToEdit != null)
+            {
+                // FALL 1: WIR BEARBEITEN
+                _cardToEdit.Front = NewCardFront;
+                _cardToEdit.Back = NewCardBack;
+                
+                _dbContext.Cards.Update(_cardToEdit);
+                await _dbContext.SaveChangesAsync();
+
+                // NEU: Nach dem Speichern, gehe zurück zur Kartenliste
+                // (Das ist das logischste Verhalten nach einer Bearbeitung)
+                OnRequestNavigateToCardList?.Invoke(_currentDeck);
+                ResetToAddingMode();
+            }
+            else
+            {
+                // FALL 2: WIR FÜGEN HINZU (wie bisher)
+                var newCard = new Card
+                {
+                    Front = NewCardFront,
+                    Back = NewCardBack,
+                    DeckId = _currentDeck.Id
+                };
+                _dbContext.Cards.Add(newCard);
+                await _dbContext.SaveChangesAsync();
+                await RefreshCardDataAsync(); // Lade Daten neu, um Zähler zu aktualisieren
+            }
+
+            // Textboxen leeren (passiert in Reset oder Refresh)
+            if(_cardToEdit == null) // Nur leeren, wenn wir nicht im Edit-Modus waren
+            {
+                NewCardFront = string.Empty;
+                NewCardBack = string.Empty;
+            }
+        }
+        
+        // NEU: Setzt den Editor zurück in den "Hinzufügen"-Modus
+        [RelayCommand]
+        private void CancelEdit()
+        {
+            ResetToAddingMode();
         }
 
         [RelayCommand]
@@ -103,7 +163,6 @@ namespace FlashcardApp.ViewModels
             OnNavigateBack?.Invoke();
         }
         
-        // NEU: CanExecute prüft jetzt die 'HasCards'-Eigenschaft
         [RelayCommand(CanExecute = nameof(HasCards))]
         private void GoToCardList()
         {
@@ -113,13 +172,11 @@ namespace FlashcardApp.ViewModels
             }
         }
         
-        // NEU: Befehl für den "Lernen"-Button
         [RelayCommand(CanExecute = nameof(HasCards))]
         private void GoToLearn()
         {
             if (_currentDeck != null)
             {
-                // Wir übergeben eine Kopie der Liste, damit das Original nicht verändert wird
                 OnNavigateToLearn?.Invoke(Cards.ToList());
             }
         }
@@ -127,7 +184,17 @@ namespace FlashcardApp.ViewModels
         private void UpdateCardCount(int count)
         {
             CardCountText = $"Karteikarten anzeigen ({count})";
-            HasCards = count > 0; // NEU: Aktualisiert die Eigenschaft
+            HasCards = count > 0;
+        }
+
+        // NEU: Private Hilfsmethode
+        private void ResetToAddingMode()
+        {
+            _cardToEdit = null;
+            NewCardFront = string.Empty;
+            NewCardBack = string.Empty;
+            SaveButtonText = "Karte hinzufügen";
+            IsEditing = false;
         }
     }
 }
