@@ -4,6 +4,7 @@ using FlashcardApp.Data;
 using FlashcardApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic; // NEU
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,41 +27,51 @@ namespace FlashcardApp.ViewModels
 
         [ObservableProperty]
         private string _cardCountText = "Karten anzeigen (0)";
+        
+        // NEU: Steuert die IsEnabled-Eigenschaft der Buttons
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))] // Aktualisiert den "Anzeigen"-Button
+        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]    // Aktualisiert den "Lernen"-Button
+        private bool _hasCards = false;
 
-        // HINWEIS: Diese Liste wird jetzt nur noch zum Hinzufügen und
-        // für die Zählung beim Laden verwendet. Die CardListView lädt ihre eigene Liste.
+        
         public ObservableCollection<Card> Cards { get; } = new();
 
-        public event Action? OnNavigateBack;
         
-        // NEU: Signatur geändert. Übergibt nur noch das Deck.
+        public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList;
+        
+        // NEU: Event für den Lern-Modus. Übergibt eine Kopie der Karten.
+        public event Action<List<Card>>? OnNavigateToLearn;
+
 
         public DeckDetailViewModel()
         {
             _dbContext = new FlashcardDbContext();
         }
 
-        // 'async' und 'Task' hinzugefügt, damit wir darauf warten können
         public async Task LoadDeck(Deck deck)
         {
             _currentDeck = deck;
             DeckName = deck.Name;
-            
-            // Lade die Karten neu, um die Zählung zu aktualisieren
-            await RefreshCardCountAsync();
+            await RefreshCardDataAsync(); // Lädt Karten und aktualisiert Zähler
         }
 
-        // NEU: Öffentliche Methode, die vom MainViewModel aufgerufen werden kann
-        public async Task RefreshCardCountAsync()
+        public async Task RefreshCardDataAsync()
         {
             if (_currentDeck == null) return;
 
-            // Zähle die Karten direkt in der DB
-            var count = await _dbContext.Cards
-                            .CountAsync(c => c.DeckId == _currentDeck.Id);
+            // Lädt die Karten in die lokale Collection
+            Cards.Clear();
+            var cardsFromDb = await _dbContext.Cards
+                                .Where(c => c.DeckId == _currentDeck.Id)
+                                .ToListAsync();
+            foreach (var card in cardsFromDb)
+            {
+                Cards.Add(card);
+            }
             
-            UpdateCardCount(count);
+            UpdateCardCount(Cards.Count);
         }
 
         [RelayCommand]
@@ -79,8 +90,8 @@ namespace FlashcardApp.ViewModels
             _dbContext.Cards.Add(newCard);
             await _dbContext.SaveChangesAsync();
             
-            // NEU: Zähler über die DB-Methode aktualisieren
-            await RefreshCardCountAsync();
+            // NEU: Lädt Karten neu, statt nur Zähler zu aktualisieren
+            await RefreshCardDataAsync();
 
             NewCardFront = string.Empty;
             NewCardBack = string.Empty;
@@ -92,19 +103,31 @@ namespace FlashcardApp.ViewModels
             OnNavigateBack?.Invoke();
         }
         
-        [RelayCommand]
+        // NEU: CanExecute prüft jetzt die 'HasCards'-Eigenschaft
+        [RelayCommand(CanExecute = nameof(HasCards))]
         private void GoToCardList()
         {
             if (_currentDeck != null)
             {
-                // NEU: Übergibt nur noch das Deck, nicht mehr die Kartenliste
                 OnNavigateToCardList?.Invoke(_currentDeck);
+            }
+        }
+        
+        // NEU: Befehl für den "Lernen"-Button
+        [RelayCommand(CanExecute = nameof(HasCards))]
+        private void GoToLearn()
+        {
+            if (_currentDeck != null)
+            {
+                // Wir übergeben eine Kopie der Liste, damit das Original nicht verändert wird
+                OnNavigateToLearn?.Invoke(Cards.ToList());
             }
         }
         
         private void UpdateCardCount(int count)
         {
             CardCountText = $"Karteikarten anzeigen ({count})";
+            HasCards = count > 0; // NEU: Aktualisiert die Eigenschaft
         }
     }
 }

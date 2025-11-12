@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashcardApp.Models;
-using System.Threading.Tasks; // NEU
+using System.Collections.Generic; // NEU
+using System.Threading.Tasks;
 
 namespace FlashcardApp.ViewModels
 {
@@ -12,27 +13,32 @@ namespace FlashcardApp.ViewModels
         private readonly DeckListViewModel _deckListViewModel;
         private readonly DeckDetailViewModel _deckDetailViewModel;
         private readonly CardListViewModel _cardListViewModel;
+        
+        // NEU: Eine Instanz für den Lern-Modus
+        private readonly LearnViewModel _learnViewModel;
 
         public MainViewModel()
         {
             _deckListViewModel = new DeckListViewModel();
             _deckDetailViewModel = new DeckDetailViewModel();
             _cardListViewModel = new CardListViewModel(); 
+            _learnViewModel = new LearnViewModel(); // NEU: Instanziieren
 
+            // Navigation verknüpfen
             _deckListViewModel.OnDeckSelected += NavigateToDeckDetail;
             _deckDetailViewModel.OnNavigateBack += NavigateToDeckList;
-            
-            // NEU: Signatur angepasst
             _deckDetailViewModel.OnNavigateToCardList += NavigateToCardList;
             _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
+            
+            // NEUE Navigations-Pfade
+            _deckDetailViewModel.OnNavigateToLearn += NavigateToLearn;
+            _learnViewModel.OnNavigateBack += NavigateBackToDeckDetail;
 
             _currentViewModel = _deckListViewModel;
         }
 
-        // NEU: 'async' und 'void'
         private async void NavigateToDeckDetail(Deck selectedDeck)
         {
-            // NEU: 'await' hinzugefügt, da LoadDeck jetzt Task ist
             await _deckDetailViewModel.LoadDeck(selectedDeck); 
             CurrentViewModel = _deckDetailViewModel;     
         }
@@ -42,20 +48,35 @@ namespace FlashcardApp.ViewModels
             CurrentViewModel = _deckListViewModel; 
         }
         
-        // NEU: Signatur angepasst. Nimmt nur noch Deck.
         private void NavigateToCardList(Deck deck)
         {
-            // NEU: LoadDeck hat neue Signatur
             _cardListViewModel.LoadDeck(deck);
             CurrentViewModel = _cardListViewModel;
         }
         
-        // NEU: 'async' und 'void'
-        private async void NavigateBackToDeckDetail()
+        // NEU: 'async' entfernt, da Refresh jetzt in LoadDeck passiert
+        private void NavigateBackToDeckDetail()
         {
-            // NEU: Ruft die Refresh-Methode auf, um den Kartenzähler zu aktualisieren
-            await _deckDetailViewModel.RefreshCardCountAsync();
+            // Beim Zurückkehren einfach die Ansicht wechseln.
+            // Die Daten (Kartenzahl) im DeckDetailViewModel sind bereits aktuell,
+            // da sie bei JEDER Aktion (Add, Delete) aktualisiert wurden.
+            // Oh, Moment. RefreshCardDataAsync() wird in CardListViewModel nicht aufgerufen.
+            // Wir müssen es hier tun.
+            RefreshDeckDetailData();
             CurrentViewModel = _deckDetailViewModel;
+        }
+        
+        // NEU: Asynchrone Hilfsmethode
+        private async void RefreshDeckDetailData()
+        {
+            await _deckDetailViewModel.RefreshCardDataAsync();
+        }
+        
+        // NEU: Navigation zum Lern-Modus
+        private void NavigateToLearn(List<Card> cards)
+        {
+            _learnViewModel.LoadDeck(cards);
+            CurrentViewModel = _learnViewModel;
         }
     }
 }

@@ -8,7 +8,7 @@
              x:DataType="vm:DeckDetailViewModel">
     
     <DockPanel Margin="10">
-        <!-- OBERER BEREICH: Titel und Zurück-Button -->
+        <!-- OBERER BEREICH (unverändert) -->
         <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
             <TextBlock Text="{Binding DeckName}" 
                        FontSize="18" FontWeight="Bold" 
@@ -20,23 +20,12 @@
                     HorizontalAlignment="Right"/>
         </Grid>
         
-        <!-- MITTLERER BEREICH: Karte hinzufügen -->
+        <!-- MITTLERER BEREICH (unverändert) -->
         <StackPanel Spacing="10" Margin="0,15,0,0">
             <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
             
-            <!-- 
-              Grid für nebeneinander liegende Eingabe 
-              
-              KORREKTUR HIER:
-              'RowSpacing' und 'ColumnSpacing' (die den AVLN:0004 Fehler verursacht haben)
-              wurden aus der Grid-Definition entfernt.
-            -->
             <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
                 
-                <!-- 
-                  Titel
-                  KORREKTUR: Margin hinzugefügt für vertikalen Abstand 
-                -->
                 <TextBlock Text="Vorderseite" 
                            Grid.Row="0" Grid.Column="0" 
                            FontWeight="SemiBold"
@@ -46,7 +35,6 @@
                            FontWeight="SemiBold"
                            Margin="0,0,0,10"/>
                 
-                <!-- Mehrzeilige Textboxen -->
                 <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"
@@ -55,10 +43,6 @@
                          Grid.Row="1" Grid.Column="0"
                          BorderBrush="Gray" BorderThickness="1"/>
                 
-                <!-- 
-                  Pfeil-Icon (SVG) 
-                  KORREKTUR: Margin hinzugefügt für horizontalen Abstand
-                -->
                 <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
                       Stroke="Gray" 
                       StrokeThickness="2"
@@ -76,17 +60,39 @@
                          BorderBrush="Gray" BorderThickness="1"/>
             </Grid>
             
+            <!-- 
+              KORREKTUR (DESIGN):
+              "Karte hinzufügen" hat keine eigenen Farben, es verwendet
+              den Standard-Look (dunkles Grau im Dark Mode).
+            -->
             <Button Content="Karte hinzufügen" 
                     Command="{Binding AddCardCommand}"
                     HorizontalAlignment="Stretch"/>
             
-            <!-- UNTERER BEREICH: Navigation zur Karten-Liste -->
+            <!-- UNTERER BEREICH: Navigations-Buttons -->
             <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
-                <Button Content="{Binding CardCountText}" 
-                        Command="{Binding GoToCardListCommand}"
-                        HorizontalAlignment="Stretch"
-                        Background="Gray"
-                        Foreground="White"/>
+                <StackPanel Spacing="10">
+                    
+                    <!-- 
+                      KORREKTUR (DESIGN):
+                      Background="Gray" und Foreground="White" entfernt,
+                      damit dieser Button den Standard-Look annimmt.
+                    -->
+                    <Button Content="{Binding CardCountText}" 
+                            Command="{Binding GoToCardListCommand}"
+                            IsEnabled="{Binding HasCards}"
+                            HorizontalAlignment="Stretch"/>
+                            
+                    <!-- 
+                      KORREKTUR (DESIGN):
+                      Background="..." und Foreground="White" entfernt,
+                      damit dieser Button den Standard-Look annimmt.
+                    -->
+                    <Button Content="Karteikarten lernen" 
+                            Command="{Binding GoToLearnCommand}"
+                            IsEnabled="{Binding HasCards}"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
             </Border>
             
         </StackPanel>
