@@ -13,15 +13,16 @@ namespace FlashcardApp.Data
 
         public string DbPath { get; }
 
-                public FlashcardDbContext()
-                {
-                    // Wir legen die Datenbank-Datei im Benutzerprofil-Ordner ab.
-                    // Das ist der Standard-Speicherort für Anwendungsdaten.
-                    var folder = Environment.SpecialFolder.LocalApplicationData;
-                    var path = Environment.GetFolderPath(folder);
-                    DbPath = Path.Join(path, "flashcards.db");
-                }
-        // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
+                        public FlashcardDbContext()
+                        {
+                            // Wir legen die Datenbank-Datei im Benutzerprofil-Ordner ab.
+                            // Das ist der Standard-Speicherort für Anwendungsdaten.
+                            var folder = Environment.SpecialFolder.LocalApplicationData;
+                            var path = Environment.GetFolderPath(folder);
+                            DbPath = Path.Join(path, "flashcards.db");
+                
+                            Database.Migrate();
+                        }        // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite($"Data Source={DbPath}");
     }
