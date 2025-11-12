@@ -21,8 +21,19 @@ namespace FlashcardApp.Data
             var path = Environment.GetFolderPath(folder);
             DbPath = Path.Join(path, "flashcards.db");
 
-            // NEU: Stellt sicher, dass die Datenbank erstellt und alle Migrationen angewendet wurden.
-            Database.Migrate();
+            Console.WriteLine($"Database path is: {DbPath}");
+            Console.WriteLine("Attempting to apply migrations...");
+            try
+            {
+                Database.Migrate();
+                Console.WriteLine("Migrations applied successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("!!!!!!!!!! ERROR APPLYING MIGRATIONS !!!!!!!!!!");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            }
         }
 
         // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
