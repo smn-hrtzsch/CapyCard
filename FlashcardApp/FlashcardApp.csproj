@@ -8,6 +8,12 @@
     <CreatePackageOnPublish>true</CreatePackageOnPublish>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='win-x64'">
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
   <!-- 
     Dieser Block bleibt unverändert.
     Er verknüpft die .cs-Dateien mit den .axaml-Dateien.
@@ -46,6 +52,5 @@
       'QuestPDF' ist korrekt und bleibt.
     -->
     <PackageReference Include="QuestPDF" Version="2024.3.4" />
-    <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
   </ItemGroup>
 </Project>

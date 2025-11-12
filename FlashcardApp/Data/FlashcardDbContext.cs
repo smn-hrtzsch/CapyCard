@@ -20,6 +20,9 @@ namespace FlashcardApp.Data
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var path = Environment.GetFolderPath(folder);
             DbPath = Path.Join(path, "flashcards.db");
+
+            // NEU: Stellt sicher, dass die Datenbank erstellt und alle Migrationen angewendet wurden.
+            Database.Migrate();
         }
 
         // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
