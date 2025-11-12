@@ -16,31 +16,40 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _newDeckName = string.Empty;
 
-        // NEU: Diese Eigenschaft steuert die Sichtbarkeit der Bestätigungs-Box
         [ObservableProperty]
         private bool _isConfirmingDelete = false;
 
-        // NEU: Hier merken wir uns, welches Fach gelöscht werden soll
-        private Deck? _deckToConfirmDelete;
+        // KORREKTUR: Speichert jetzt das DeckItemViewModel für die Lösch-Bestätigung
+        private DeckItemViewModel? _deckToConfirmDelete;
 
-        private Deck? _selectedDeck;
-        public Deck? SelectedDeck
+        // KORREKTUR: Die Liste verwaltet jetzt DeckItemViewModels
+        public ObservableCollection<DeckItemViewModel> Decks { get; } = new();
+
+        
+        // KORREKTUR: Die Eigenschaft für das ausgewählte Item ist jetzt vom Typ DeckItemViewModel
+        private DeckItemViewModel? _selectedDeck;
+        public DeckItemViewModel? SelectedDeck
         {
             get => _selectedDeck;
             set
             {
+                // Beim Auswählen eines Items (Klick für Navigation)...
                 if (SetProperty(ref _selectedDeck, value) && value != null)
                 {
-                    OnDeckSelected?.Invoke(value);
-                    _selectedDeck = null;
-                    OnPropertyChanged(nameof(SelectedDeck));
+                    // ...solange wir nicht gerade dieses Item bearbeiten...
+                    if (!value.IsEditing)
+                    {
+                        // ...navigiere zur Detail-Ansicht.
+                        OnDeckSelected?.Invoke(value.Deck);
+                        _selectedDeck = null; // Auswahl aufheben
+                        OnPropertyChanged(nameof(SelectedDeck));
+                    }
                 }
             }
         }
 
         public event Action<Deck>? OnDeckSelected;
 
-        public ObservableCollection<Deck> Decks { get; } = new();
 
         public DeckListViewModel()
         {
@@ -54,7 +63,8 @@ namespace FlashcardApp.ViewModels
             var decksFromDb = await _dbContext.Decks.ToListAsync();
             foreach (var deck in decksFromDb)
             {
-                Decks.Add(deck);
+                // KORREKTUR: Füge den Wrapper (DeckItemViewModel) zur Liste hinzu
+                Decks.Add(new DeckItemViewModel(deck));
             }
         }
 
@@ -68,44 +78,75 @@ namespace FlashcardApp.ViewModels
             var newDeck = new Deck { Name = NewDeckName };
             _dbContext.Decks.Add(newDeck);
             await _dbContext.SaveChangesAsync();
-            Decks.Add(newDeck);
+            
+            // KORREKTUR: Füge den Wrapper zur UI-Liste hinzu
+            Decks.Add(new DeckItemViewModel(newDeck));
             NewDeckName = string.Empty;
         }
 
-        // NEU: Dieser Befehl wird vom "Löschen"-Button in der Liste aufgerufen
+        // KORREKTUR: Nimmt jetzt ein DeckItemViewModel entgegen
         [RelayCommand]
-        private void DeleteDeck(Deck? deck)
+        private void DeleteDeck(DeckItemViewModel? itemVM)
         {
-            if (deck == null) return;
+            if (itemVM == null) return;
             
-            _deckToConfirmDelete = deck;
-            IsConfirmingDelete = true; // Zeigt die Bestätigungs-Box an
+            _deckToConfirmDelete = itemVM;
+            IsConfirmingDelete = true;
         }
 
-        // NEU: Dieser Befehl wird vom "Ja, löschen"-Button in der Box aufgerufen
         [RelayCommand]
         private async Task ConfirmDelete()
         {
             if (_deckToConfirmDelete == null) return;
 
-            // WICHTIG: Da wir 'Cascade' in der DB eingestellt haben,
-            // werden alle Karten, die zu diesem Deck gehören, automatisch mitgelöscht.
-            _dbContext.Decks.Remove(_deckToConfirmDelete);
+            // KORREKTUR: Löscht das 'innere' Deck-Modell
+            _dbContext.Decks.Remove(_deckToConfirmDelete.Deck);
             await _dbContext.SaveChangesAsync();
 
-            Decks.Remove(_deckToConfirmDelete); // Aus der UI-Liste entfernen
+            // KORREKTUR: Entfernt das Wrapper-ViewModel aus der UI-Liste
+            Decks.Remove(_deckToConfirmDelete);
 
-            // Reset
             _deckToConfirmDelete = null;
             IsConfirmingDelete = false;
         }
 
-        // NEU: Dieser Befehl wird vom "Abbrechen"-Button in der Box aufgerufen
         [RelayCommand]
         private void CancelDelete()
         {
             _deckToConfirmDelete = null;
-            IsConfirmingDelete = false; // Versteckt die Bestätigungs-Box
+            IsConfirmingDelete = false; 
+        }
+
+        // NEU: Befehl zum Speichern des bearbeiteten Fachnamens
+        [RelayCommand]
+        private async Task SaveDeckEdit(DeckItemViewModel? itemVM)
+        {
+            if (itemVM == null || string.IsNullOrWhiteSpace(itemVM.EditText))
+            {
+                itemVM?.CancelEdit(); // Breche ab, wenn der Name leer ist
+                return;
+            }
+
+            // Finde das Fach in der Datenbank
+            var trackedDeck = await _dbContext.Decks.FindAsync(itemVM.Deck.Id);
+            if (trackedDeck != null)
+            {
+                // 1. Aktualisiere die Datenbank
+                trackedDeck.Name = itemVM.EditText;
+                await _dbContext.SaveChangesAsync();
+
+                // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
+                //    (Dadurch wird das TextBlock in der UI aktualisiert)
+                itemVM.Name = itemVM.EditText;
+
+                // 3. Beende den Bearbeiten-Modus
+                itemVM.IsEditing = false;
+            }
+            else
+            {
+                // Fach nicht gefunden? Breche den Editiermodus ab.
+                itemVM.CancelEdit();
+            }
         }
     }
 }

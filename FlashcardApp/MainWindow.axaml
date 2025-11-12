@@ -3,11 +3,11 @@
         xmlns:vm="using:FlashcardApp.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
         x:Class="FlashcardApp.MainWindow"
         x:DataType="vm:MainViewModel" 
         Title="FlashcardApp"
-        Width="400" Height="600">
+        Width="1000" Height="700">
             
     <!-- 
       Alle Kommentare sind jetzt HIER, innerhalb des <Window>...</Window>
