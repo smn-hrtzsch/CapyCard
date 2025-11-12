@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using FlashcardApp.Models;
-using System.Collections.Generic; // NEU
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FlashcardApp.ViewModels
@@ -13,8 +13,6 @@ namespace FlashcardApp.ViewModels
         private readonly DeckListViewModel _deckListViewModel;
         private readonly DeckDetailViewModel _deckDetailViewModel;
         private readonly CardListViewModel _cardListViewModel;
-        
-        // NEU: Eine Instanz für den Lern-Modus
         private readonly LearnViewModel _learnViewModel;
 
         public MainViewModel()
@@ -22,17 +20,19 @@ namespace FlashcardApp.ViewModels
             _deckListViewModel = new DeckListViewModel();
             _deckDetailViewModel = new DeckDetailViewModel();
             _cardListViewModel = new CardListViewModel(); 
-            _learnViewModel = new LearnViewModel(); // NEU: Instanziieren
+            _learnViewModel = new LearnViewModel(); 
 
             // Navigation verknüpfen
             _deckListViewModel.OnDeckSelected += NavigateToDeckDetail;
             _deckDetailViewModel.OnNavigateBack += NavigateToDeckList;
             _deckDetailViewModel.OnNavigateToCardList += NavigateToCardList;
-            _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
-            
-            // NEUE Navigations-Pfade
             _deckDetailViewModel.OnNavigateToLearn += NavigateToLearn;
+            
+            _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
             _learnViewModel.OnNavigateBack += NavigateBackToDeckDetail;
+            
+            // NEU: Abonniert das "Bearbeiten"-Event aus der Kartenliste
+            _cardListViewModel.OnEditCardRequest += NavigateToEditCard;
 
             _currentViewModel = _deckListViewModel;
         }
@@ -54,29 +54,29 @@ namespace FlashcardApp.ViewModels
             CurrentViewModel = _cardListViewModel;
         }
         
-        // NEU: 'async' entfernt, da Refresh jetzt in LoadDeck passiert
-        private void NavigateBackToDeckDetail()
+        private async void NavigateBackToDeckDetail()
         {
-            // Beim Zurückkehren einfach die Ansicht wechseln.
-            // Die Daten (Kartenzahl) im DeckDetailViewModel sind bereits aktuell,
-            // da sie bei JEDER Aktion (Add, Delete) aktualisiert wurden.
-            // Oh, Moment. RefreshCardDataAsync() wird in CardListViewModel nicht aufgerufen.
-            // Wir müssen es hier tun.
-            RefreshDeckDetailData();
+            // Ruft Refresh auf, um Zähler (nach Löschen/Hinzufügen) zu aktualisieren
+            await _deckDetailViewModel.RefreshCardDataAsync();
             CurrentViewModel = _deckDetailViewModel;
         }
         
-        // NEU: Asynchrone Hilfsmethode
-        private async void RefreshDeckDetailData()
-        {
-            await _deckDetailViewModel.RefreshCardDataAsync();
-        }
-        
-        // NEU: Navigation zum Lern-Modus
         private void NavigateToLearn(List<Card> cards)
         {
             _learnViewModel.LoadDeck(cards);
             CurrentViewModel = _learnViewModel;
+        }
+
+        // NEU: Diese Methode wird vom 'OnEditCardRequest'-Event aufgerufen
+        // KORREKTUR: 'async' hinzugefügt
+        private async void NavigateToEditCard(Deck deck, Card card)
+        {
+            // Ruft die neue Methode auf, die wir in Teil 1 erstellt haben
+            // KORREKTUR: 'await' hinzugefügt
+            await _deckDetailViewModel.LoadCardForEditing(deck, card);
+            
+            // Zeigt die Detail-Ansicht an (jetzt im "Bearbeiten"-Modus)
+            CurrentViewModel = _deckDetailViewModel;
         }
     }
 }

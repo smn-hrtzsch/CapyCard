@@ -15,9 +15,6 @@ namespace FlashcardApp.ViewModels
     {
         private readonly FlashcardDbContext _dbContext;
         private Deck? _currentDeck;
-        
-        // NEU: Hält die Karte, die gerade bearbeitet wird.
-        // Ist 'null', wenn wir eine neue Karte hinzufügen.
         private Card? _cardToEdit;
 
         [ObservableProperty]
@@ -33,15 +30,13 @@ namespace FlashcardApp.ViewModels
         private string _cardCountText = "Karten anzeigen (0)";
         
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))]
-        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]
+        [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))] 
+        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]    
         private bool _hasCards = false;
 
-        // NEU: Ändert den Text des Haupt-Buttons ("Hinzufügen" vs. "Speichern")
         [ObservableProperty]
         private string _saveButtonText = "Karte hinzufügen";
 
-        // NEU: Steuert die Sichtbarkeit des "Abbrechen"-Buttons
         [ObservableProperty]
         private bool _isEditing = false;
 
@@ -49,44 +44,35 @@ namespace FlashcardApp.ViewModels
         public ObservableCollection<Card> Cards { get; } = new();
 
         public event Action? OnNavigateBack;
-        public event Action<Deck>? OnNavigateToCardList;
+        public event Action<Deck>? OnNavigateToCardList; 
         public event Action<List<Card>>? OnNavigateToLearn;
-
-        // NEU: Sagt dem MainViewModel, dass wir zur Kartenliste zurückwollen
-        // (wird aufgerufen, NACHDEM wir eine Karte zum Bearbeiten ausgewählt haben)
-        public event Action<Deck>? OnRequestNavigateToCardList;
-
 
         public DeckDetailViewModel()
         {
             _dbContext = new FlashcardDbContext();
         }
 
-        // Wird aufgerufen, wenn wir die Seite normal betreten
         public async Task LoadDeck(Deck deck)
         {
             _currentDeck = deck;
             DeckName = deck.Name;
-            ResetToAddingMode(); // Stellt sicher, dass wir im "Hinzufügen"-Modus starten
+            ResetToAddingMode(); 
             await RefreshCardDataAsync();
         }
         
-        // NEU: Wird vom MainViewModel aufgerufen, wenn wir auf "Bearbeiten" klicken
-        public void LoadCardForEditing(Deck deck, Card card)
+        public async Task LoadCardForEditing(Deck deck, Card card)
         {
             _currentDeck = deck;
             _cardToEdit = card;
             DeckName = deck.Name;
 
-            // Fülle die Textboxen mit dem Inhalt der Karte
             NewCardFront = card.Front;
             NewCardBack = card.Back;
             
-            // UI-Zustand für "Bearbeiten" setzen
             SaveButtonText = "Änderungen speichern";
             IsEditing = true;
-            // (Wir brauchen RefreshCardDataAsync hier nicht, da wir die Daten schon haben)
-            UpdateCardCount(deck.Cards.Count);
+            
+            await RefreshCardDataAsync();
         }
 
         public async Task RefreshCardDataAsync()
@@ -105,7 +91,6 @@ namespace FlashcardApp.ViewModels
             UpdateCardCount(Cards.Count);
         }
         
-        // NEU: Dieser Befehl heißt jetzt 'SaveCard' und ist multifunktional
         [RelayCommand]
         private async Task SaveCard()
         {
@@ -117,20 +102,26 @@ namespace FlashcardApp.ViewModels
             if (_cardToEdit != null)
             {
                 // FALL 1: WIR BEARBEITEN
-                _cardToEdit.Front = NewCardFront;
-                _cardToEdit.Back = NewCardBack;
-                
-                _dbContext.Cards.Update(_cardToEdit);
+                var trackedCard = _dbContext.Cards.Find(_cardToEdit.Id);
+                if (trackedCard != null)
+                {
+                    trackedCard.Front = NewCardFront;
+                    trackedCard.Back = NewCardBack;
+                }
+                else
+                {
+                    _cardToEdit.Front = NewCardFront; 
+                    _cardToEdit.Back = NewCardBack;
+                    _dbContext.Entry(_cardToEdit).State = EntityState.Modified;
+                }
                 await _dbContext.SaveChangesAsync();
-
-                // NEU: Nach dem Speichern, gehe zurück zur Kartenliste
-                // (Das ist das logischste Verhalten nach einer Bearbeitung)
-                OnRequestNavigateToCardList?.Invoke(_currentDeck);
+                
+                OnNavigateToCardList?.Invoke(_currentDeck);
                 ResetToAddingMode();
             }
             else
             {
-                // FALL 2: WIR FÜGEN HINZU (wie bisher)
+                // FALL 2: WIR FÜGEN HINZU
                 var newCard = new Card
                 {
                     Front = NewCardFront,
@@ -139,21 +130,26 @@ namespace FlashcardApp.ViewModels
                 };
                 _dbContext.Cards.Add(newCard);
                 await _dbContext.SaveChangesAsync();
-                await RefreshCardDataAsync(); // Lade Daten neu, um Zähler zu aktualisieren
+                await RefreshCardDataAsync(); 
             }
 
-            // Textboxen leeren (passiert in Reset oder Refresh)
-            if(_cardToEdit == null) // Nur leeren, wenn wir nicht im Edit-Modus waren
+            if(_cardToEdit == null) 
             {
                 NewCardFront = string.Empty;
                 NewCardBack = string.Empty;
             }
         }
         
-        // NEU: Setzt den Editor zurück in den "Hinzufügen"-Modus
         [RelayCommand]
         private void CancelEdit()
         {
+            // --- HIER IST DIE KORREKTUR ---
+            // Wir navigieren zurück zur Liste, wenn der Benutzer
+            // das Bearbeiten abbricht.
+            if (_currentDeck != null)
+            {
+                OnNavigateToCardList?.Invoke(_currentDeck);
+            }
             ResetToAddingMode();
         }
 
@@ -183,11 +179,10 @@ namespace FlashcardApp.ViewModels
         
         private void UpdateCardCount(int count)
         {
-            CardCountText = $"Karteikarten anzeigen ({count})";
+            CardCountText = $"Karten anzeigen ({count})";
             HasCards = count > 0;
         }
 
-        // NEU: Private Hilfsmethode
         private void ResetToAddingMode()
         {
             _cardToEdit = null;
