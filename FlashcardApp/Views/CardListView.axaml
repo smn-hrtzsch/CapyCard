@@ -57,7 +57,7 @@
                         <ItemsPanelTemplate>
                             <controls:WrapPanel HorizontalAlignment="Stretch"
                                                  VerticalAlignment="Top"
-                                                 ItemWidth="280"/>
+                                                 ItemWidth="275"/>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.Styles>
@@ -97,7 +97,7 @@
                     <ListBox.ItemTemplate>
                         <!-- KORREKTUR: DataType ist jetzt CardItemViewModel -->
                         <DataTemplate x:DataType="vm:CardItemViewModel">
-                            <Border Margin="0,0,12,12"
+                            <Border Margin="0,0,10,10"
                                     Padding="14"
                                     CornerRadius="10"
                                     Classes="card-tile"
