@@ -24,12 +24,16 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private string _editText;
 
-        public DeckItemViewModel(Deck deck)
+        [ObservableProperty]
+        private int _cardCount;
+
+        public DeckItemViewModel(Deck deck, int cardCount = 0)
         {
             Deck = deck;
             _name = deck.Name;
             _editText = deck.Name;
             _isEditing = false;
+            _cardCount = cardCount;
         }
 
         // KORREKTUR: Von 'private' zu 'public' geändert

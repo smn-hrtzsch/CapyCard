@@ -46,6 +46,7 @@ namespace FlashcardApp.ViewModels
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
         public event Action<List<Card>>? OnNavigateToLearn;
+        public event Action<Deck, int>? OnCardCountUpdated;
 
         public DeckDetailViewModel()
         {
@@ -195,6 +196,11 @@ namespace FlashcardApp.ViewModels
         {
             CardCountText = $"Karteikarten anzeigen ({count})";
             HasCards = count > 0;
+
+            if (_currentDeck != null)
+            {
+                OnCardCountUpdated?.Invoke(_currentDeck, count);
+            }
         }
 
         private void ResetToAddingMode()
