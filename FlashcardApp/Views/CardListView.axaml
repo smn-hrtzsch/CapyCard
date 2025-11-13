@@ -41,12 +41,14 @@
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="12">
-                <ListBox ItemsSource="{Binding Cards}"
+                <ListBox x:Name="CardsListBox"
+                         ItemsSource="{Binding Cards}"
                          Background="Transparent"
                          BorderThickness="0"
                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         SelectionMode="Multiple">
+                         SelectionMode="Multiple"
+                         SelectionChanged="CardsListBox_OnSelectionChanged">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <controls:WrapPanel HorizontalAlignment="Stretch"
@@ -62,14 +64,22 @@
                             <Setter Property="BorderThickness" Value="0"/>
                             <Setter Property="Focusable" Value="False"/>
                         </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
                         <Style Selector="Border.card-tile">
                             <Setter Property="Background" Value="#14FFFFFF"/>
                             <Setter Property="BorderBrush" Value="#28FFFFFF"/>
                             <Setter Property="BorderThickness" Value="1"/>
-                        </Style>
-                        <Style Selector="ListBoxItem:pointerover Border.card-tile">
-                            <Setter Property="Background" Value="#1EFFFFFF"/>
-                            <Setter Property="BorderBrush" Value="#33FFFFFF"/>
                         </Style>
                         <Style Selector="ListBoxItem:selected Border.card-tile">
                             <Setter Property="Background" Value="#29FFFFFF"/>
