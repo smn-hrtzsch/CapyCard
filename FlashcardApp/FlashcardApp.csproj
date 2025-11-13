@@ -7,6 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
 
     <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+
+    <CFBundleName>FlashcardApp</CFBundleName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='win-x64'">
@@ -17,6 +19,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='osx-arm64'">
     <SelfContained>true</SelfContained>
+    <PackageFormat>app</PackageFormat>
   </PropertyGroup>
 
   <!-- 
