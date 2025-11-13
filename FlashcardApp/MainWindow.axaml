@@ -9,7 +9,8 @@
         Title="FlashcardApp"
         Width="1000" 
         Height="700"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Icon="/Assets/icon.ico">
             
     <!-- 
       Alle Kommentare sind jetzt HIER, innerhalb des <Window>...</Window>

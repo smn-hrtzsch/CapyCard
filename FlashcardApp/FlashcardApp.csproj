@@ -5,13 +5,18 @@
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <CreatePackageOnPublish>true</CreatePackageOnPublish>
+
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='win-x64'">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='osx-arm64'">
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <!-- 
@@ -53,4 +58,13 @@
     -->
     <PackageReference Include="QuestPDF" Version="2024.3.4" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AppleIcon Include="Assets/icon.icns" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+
 </Project>
