@@ -70,3 +70,5 @@ nunit-*.xml
 
 # Zipped Mac files
 __MACOSX
+
+FlashcardApp.App/
