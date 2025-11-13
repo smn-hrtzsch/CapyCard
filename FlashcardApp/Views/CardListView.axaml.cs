@@ -50,5 +50,14 @@ namespace FlashcardApp.Views
             // Die korrekte Methode ist 'TryGetLocalPath()', die direkt einen string? zurückgibt.
             return file?.TryGetLocalPath();
         }
+
+        private void CardsListBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ListBox listBox)
+            {
+                listBox.SelectedIndex = -1;
+                listBox.SelectedItem = null;
+            }
+        }
     }
 }

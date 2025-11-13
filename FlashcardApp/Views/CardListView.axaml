@@ -3,105 +3,138 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:FlashcardApp.ViewModels"
+             xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardApp.Views.CardListView"
              x:DataType="vm:CardListViewModel">
     
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="10">
             <!-- 
               OBERER BEREICH
               NEU: "Alle auswählen"-Button hinzugefügt
             -->
-            <Grid ColumnDefinitions="*,Auto,Auto" DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top" Margin="0,0,0,10">
                 <TextBlock Text="{Binding DeckName}" 
                            FontSize="18" FontWeight="Bold" 
                            VerticalAlignment="Center"
                            Grid.Column="0"/>
                 
-                <!-- NEU: Button "Alle auswählen" -->
-                <Button Content="Alle auswählen" 
-                        Command="{Binding ToggleSelectAllCommand}" 
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        Margin="0,0,10,0"/>
-                
-                <Button Content="Zurück zum Fach" 
-                        Command="{Binding GoBackCommand}" 
-                        Grid.Column="2"
-                        HorizontalAlignment="Right"/>
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            HorizontalAlignment="Right">
+                    <Button Content="Auswahl als PDF speichern"
+                            Command="{Binding GeneratePdfCommand}"
+                            IsVisible="{Binding ShowPdfButton}"/>
+                    <Button Content="{Binding SelectAllButtonText}"
+                            Command="{Binding ToggleSelectAllCommand}"/>
+                    <Button Content="Zurück zum Fach" 
+                            Command="{Binding GoBackCommand}"/>
+                </StackPanel>
             </Grid>
             
-            <!-- 
-              UNTERER BEREICH
-              NEU: "Als PDF speichern"-Button hinzugefügt
-            -->
-            <Button Content="Auswahl als PDF speichern"
-                    Command="{Binding GeneratePdfCommand}"
-                    IsVisible="{Binding ShowPdfButton}"
-                    HorizontalAlignment="Stretch"
-                    DockPanel.Dock="Bottom"
-                    Background="{DynamicResource SystemAccentColorLight1Brush}"
-                    Foreground="White"
-                    Margin="0,10,0,0"/>
-            
             <!-- MITTLERER BEREICH: Die Liste -->
-            <Border BorderBrush="Gray" BorderThickness="1">
-                <ListBox ItemsSource="{Binding Cards}">
+            <Border BorderBrush="#33FFFFFF"
+                    Background="#0DFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12">
+                <ListBox x:Name="CardsListBox"
+                         ItemsSource="{Binding Cards}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         SelectionMode="Multiple"
+                         SelectionChanged="CardsListBox_OnSelectionChanged">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <controls:WrapPanel HorizontalAlignment="Stretch"
+                                                 VerticalAlignment="Top"
+                                                 ItemWidth="280"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Focusable" Value="False"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="Border.card-tile">
+                            <Setter Property="Background" Value="#14FFFFFF"/>
+                            <Setter Property="BorderBrush" Value="#28FFFFFF"/>
+                            <Setter Property="BorderThickness" Value="1"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected Border.card-tile">
+                            <Setter Property="Background" Value="#29FFFFFF"/>
+                            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+                        </Style>
+                    </ListBox.Styles>
                     <ListBox.ItemTemplate>
                         <!-- KORREKTUR: DataType ist jetzt CardItemViewModel -->
                         <DataTemplate x:DataType="vm:CardItemViewModel">
-                            <!-- KORREKTUR: 4 Spalten (Checkbox, Inhalt, Bearbeiten, Löschen) -->
-                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                                
-                                <!-- NEU: Checkbox in Spalte 0 -->
-                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                          Grid.Column="0"
-                                          VerticalAlignment="Center"
-                                          Margin="10,0"/>
-                                
-                                <!-- Inhalt in Spalte 1 -->
-                                <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="10" Grid.Column="1">
-                                    <StackPanel Spacing="5">
-                                        <TextBlock Text="Vorderseite:" FontWeight="Bold" FontSize="10" Foreground="Gray"/>
-                                        <!-- KORREKTUR: Bindet an Card.Front -->
+                            <Border Margin="0,0,12,12"
+                                    Padding="14"
+                                    CornerRadius="10"
+                                    Classes="card-tile"
+                                    MinWidth="220"
+                                    MaxWidth="320">
+                                <Grid RowDefinitions="Auto,Auto">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Grid.Row="0" Margin="0,0,0,8" VerticalAlignment="Center">
+                                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"
+                                                  Margin="0,0,12,0"/>
+                                        <Button Command="{Binding $parent[ListBox].DataContext.EditCardCommand}"
+                                                CommandParameter="{Binding}"
+                                                Grid.Column="2"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Width="26" Height="26" Padding="4"
+                                                Margin="0,0,8,0">
+                                            <Path Data="M 3 17.25 V 21 H 6.75 L 17.81 9.94 L 14.06 6.19 L 3 17.25 Z M 20.71 7.04 C 21.1 6.65 21.1 6.02 20.71 5.63 L 18.37 3.29 C 17.98 2.9 17.35 2.9 16.96 3.29 L 15.13 5.12 L 18.88 8.87 L 20.71 7.04 Z" 
+                                                  Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                        <Button Command="{Binding $parent[ListBox].DataContext.DeleteCardCommand}"
+                                                CommandParameter="{Binding}"
+                                                Grid.Column="3"
+                                                VerticalAlignment="Center"
+                                                HorizontalAlignment="Center"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Width="26" Height="26" Padding="4">
+                                            <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z" 
+                                                  Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
+                                                  Stretch="Uniform"/>
+                                        </Button>
+                                    </Grid>
+                                    <StackPanel Grid.Row="1" Spacing="6">
+                                        <TextBlock Text="Vorderseite" FontSize="11" FontWeight="SemiBold" Foreground="Gray"/>
                                         <TextBlock Text="{Binding Card.Front}" TextWrapping="Wrap"/>
-                                        <TextBlock Text="Rückseite:" FontWeight="Bold" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
-                                        <!-- KORREKTUR: Bindet an Card.Back -->
+                                        <Separator Margin="0,6"/>
+                                        <TextBlock Text="Rückseite" FontSize="11" FontWeight="SemiBold" Foreground="Gray"/>
                                         <TextBlock Text="{Binding Card.Back}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                </Border>
-
-                                <!-- Stift-Button in Spalte 2 -->
-                                <Button Command="{Binding $parent[ListBox].DataContext.EditCardCommand}"
-                                        CommandParameter="{Binding}"
-                                        Grid.Column="2"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Width="26" Height="26" Padding="4"
-                                        Margin="5,0">
-                                    <Path Data="M 3 17.25 V 21 H 6.75 L 17.81 9.94 L 14.06 6.19 L 3 17.25 Z M 20.71 7.04 C 21.1 6.65 21.1 6.02 20.71 5.63 L 18.37 3.29 C 17.98 2.9 17.35 2.9 16.96 3.29 L 15.13 5.12 L 18.88 8.87 L 20.71 7.04 Z" 
-                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
-                                          Stretch="Uniform"/>
-                                </Button>
-
-                                <!-- Löschen-Button in Spalte 3 -->
-                                <Button Command="{Binding $parent[ListBox].DataContext.DeleteCardCommand}"
-                                        CommandParameter="{Binding}"
-                                        Grid.Column="3"
-                                        VerticalAlignment="Center"
-                                        HorizontalAlignment="Center"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Width="26" Height="26" Padding="4"
-                                        Margin="0,0,10,0">
-                                    <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z" 
-                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}" 
-                                          Stretch="Uniform"/>
-                                </Button>
-                            </Grid>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
