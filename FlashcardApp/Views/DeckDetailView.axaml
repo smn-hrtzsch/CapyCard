@@ -16,15 +16,18 @@
             <!-- OBERER BEREICH -->
             <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top">
                 <!-- TextWrapping="Wrap" funktioniert jetzt korrekt -->
-                <TextBlock Text="{Binding DeckName}" 
-                           FontSize="18" FontWeight="Bold" 
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding DeckName}" 
+                               FontSize="18" FontWeight="Bold" 
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left"
+                               Margin="0,0,12,0"
+                               TextWrapping="Wrap"/>
                 
                 <Button Content="Zurück zur Fächerliste" 
-                        Command="{Binding GoBackCommand}" 
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"/>
+                    Command="{Binding GoBackCommand}" 
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    Margin="12,0,0,0"/>
             </Grid>
             
             <!-- MITTLERER BEREICH (unverändert) -->
@@ -35,28 +38,30 @@
                     
                     <TextBlock Text="Vorderseite" 
                                Grid.Row="0" Grid.Column="0" 
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,10"/>
+                             FontWeight="SemiBold"
+                             Foreground="{DynamicResource MutedForegroundBrush}"
+                             Margin="0,0,0,10"/>
                     <TextBlock Text="Rückseite" 
                                Grid.Row="0" Grid.Column="2" 
-                               FontWeight="SemiBold"
-                               Margin="0,0,0,10"/>
-                    
+                             FontWeight="SemiBold"
+                             Foreground="{DynamicResource MutedForegroundBrush}"
+                             Margin="0,0,0,10"/>
+
                     <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             Watermark="Text für Vorderseite..."
-                             Height="150"
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            Watermark="Text für Vorderseite..."
+                            Height="150"
                              Grid.Row="1" Grid.Column="0"
-                             BorderBrush="Gray" BorderThickness="1"/>
-                    
+                            BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
+
                     <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
-                          Stroke="Gray" 
-                          StrokeThickness="2"
+                         Stroke="{DynamicResource MutedForegroundBrush}" 
+                         StrokeThickness="2"
                           Grid.Row="1" Grid.Column="1"
-                          VerticalAlignment="Center" 
-                          HorizontalAlignment="Center"
-                          Margin="10,0"/>
+                         VerticalAlignment="Center" 
+                         HorizontalAlignment="Center"
+                         Margin="10,0"/>
                     
                     <TextBox Text="{Binding NewCardBack, Mode=TwoWay}"
                              AcceptsReturn="True"
@@ -64,7 +69,7 @@
                              Watermark="Text für Rückseite..."
                              Height="150"
                              Grid.Row="1" Grid.Column="2"
-                             BorderBrush="Gray" BorderThickness="1"/>
+                             BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
                 </Grid>
                 
                 <!-- Button-Grid (unverändert) -->
@@ -93,7 +98,7 @@
                 </Grid>
                 
                 <!-- UNTERER BEREICH (unverändert) -->
-                <Border BorderBrush="LightGray" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
+                <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
                     <StackPanel Spacing="10">
                         <Button Content="{Binding CardCountText}" 
                                 Command="{Binding GoToCardListCommand}"

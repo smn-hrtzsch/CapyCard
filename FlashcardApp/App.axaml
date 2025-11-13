@@ -12,8 +12,37 @@
         <FluentTheme />
     </Application.Styles>
     
-    <!-- NEU: Wir fügen einen globalen Konverter hinzu -->
+    <!-- Theme-aware resources shared across views -->
     <Application.Resources>
-        <local:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="#FFF3F4F6"/>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFD8DAE0"/>
+                    <SolidColorBrush x:Key="TileBackgroundBrush" Color="#FFFFFFFF"/>
+                    <SolidColorBrush x:Key="TileBorderBrush" Color="#FFE2E4EA"/>
+                    <SolidColorBrush x:Key="TileHoverBrush" Color="#FFF0F2F8"/>
+                    <SolidColorBrush x:Key="TileSelectedBrush" Color="#FFE3E8F6"/>
+                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFD8E4FF"/>
+                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF234082"/>
+                    <SolidColorBrush x:Key="MutedForegroundBrush" Color="#FF61646D"/>
+                    <SolidColorBrush x:Key="DividerBrush" Color="#FFE1E3E8"/>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="#FF1F2126"/>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF2E3038"/>
+                    <SolidColorBrush x:Key="TileBackgroundBrush" Color="#FF2B2E36"/>
+                    <SolidColorBrush x:Key="TileBorderBrush" Color="#FF3A3D46"/>
+                    <SolidColorBrush x:Key="TileHoverBrush" Color="#FF343844"/>
+                    <SolidColorBrush x:Key="TileSelectedBrush" Color="#FF3F4554"/>
+                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#663E6BFF"/>
+                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFE6ECFF"/>
+                    <SolidColorBrush x:Key="MutedForegroundBrush" Color="#FFB7BAC4"/>
+                    <SolidColorBrush x:Key="DividerBrush" Color="#FF2F323A"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <local:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

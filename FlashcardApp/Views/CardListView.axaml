@@ -19,12 +19,16 @@
                 <TextBlock Text="{Binding DeckName}" 
                            FontSize="18" FontWeight="Bold" 
                            VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           Margin="0,0,22,0"
+                           TextWrapping="Wrap"
                            Grid.Column="0"/>
                 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             Spacing="8"
-                            HorizontalAlignment="Right">
+                            HorizontalAlignment="Right"
+                            Margin="22,0,0,0">
                     <Button Content="Auswahl als PDF speichern"
                             Command="{Binding GeneratePdfCommand}"
                             IsVisible="{Binding ShowPdfButton}"/>
@@ -36,8 +40,8 @@
             </Grid>
             
             <!-- MITTLERER BEREICH: Die Liste -->
-            <Border BorderBrush="#33FFFFFF"
-                    Background="#0DFFFFFF"
+            <Border BorderBrush="{DynamicResource SurfaceBorderBrush}"
+                    Background="{DynamicResource SurfaceBackgroundBrush}"
                     BorderThickness="1"
                     CornerRadius="8"
                     Padding="12">
@@ -77,13 +81,17 @@
                             <Setter Property="Background" Value="Transparent"/>
                         </Style>
                         <Style Selector="Border.card-tile">
-                            <Setter Property="Background" Value="#14FFFFFF"/>
-                            <Setter Property="BorderBrush" Value="#28FFFFFF"/>
+                            <Setter Property="Background" Value="{DynamicResource TileBackgroundBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource TileBorderBrush}"/>
                             <Setter Property="BorderThickness" Value="1"/>
                         </Style>
                         <Style Selector="ListBoxItem:selected Border.card-tile">
-                            <Setter Property="Background" Value="#29FFFFFF"/>
-                            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+                            <Setter Property="Background" Value="{DynamicResource TileSelectedBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:pointerover Border.card-tile">
+                            <Setter Property="Background" Value="{DynamicResource TileHoverBrush}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
                         </Style>
                     </ListBox.Styles>
                     <ListBox.ItemTemplate>
@@ -127,10 +135,10 @@
                                         </Button>
                                     </Grid>
                                     <StackPanel Grid.Row="1" Spacing="6">
-                                        <TextBlock Text="Vorderseite" FontSize="11" FontWeight="SemiBold" Foreground="Gray"/>
+                                        <TextBlock Text="Vorderseite" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedForegroundBrush}"/>
                                         <TextBlock Text="{Binding Card.Front}" TextWrapping="Wrap"/>
-                                        <Separator Margin="0,6"/>
-                                        <TextBlock Text="Rückseite" FontSize="11" FontWeight="SemiBold" Foreground="Gray"/>
+                                        <Separator Margin="0,6" Background="{DynamicResource DividerBrush}"/>
+                                        <TextBlock Text="Rückseite" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedForegroundBrush}"/>
                                         <TextBlock Text="{Binding Card.Back}" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Grid>
