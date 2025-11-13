@@ -23,9 +23,13 @@ namespace FlashcardApp.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowPdfButton))]
+        [NotifyPropertyChangedFor(nameof(SelectAllButtonText))]
         private int _selectedCardCount = 0;
 
         public bool ShowPdfButton => SelectedCardCount > 0;
+        public string SelectAllButtonText => SelectedCardCount == Cards.Count && Cards.Count > 0
+            ? "Alle abwählen"
+            : "Alle auswählen";
 
         public event Action? OnNavigateBack;
         public event Action<Deck, Card>? OnEditCardRequest;
@@ -101,6 +105,7 @@ namespace FlashcardApp.ViewModels
             {
                 item.IsSelected = selectAll;
             }
+            UpdateSelectedCount();
         }
 
         // KORREKTUR: Befehl ist jetzt 'async' und implementiert
