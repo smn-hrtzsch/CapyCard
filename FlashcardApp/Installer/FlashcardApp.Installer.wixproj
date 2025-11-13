@@ -1,0 +1,27 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <Configuration>Release</Configuration>
+    <OutputName>FlashcardApp-Installer</OutputName>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <WixSource Include="Package.wxs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
+    <PackageReference Include="WixToolset.Heat" Version="6.0.2" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <HeatDirectory Include="C:\Users\Simon\Documents\Simon\Alina\Flashcard-App\FlashcardApp\bin\Release\net9.0\win-x64\publish\">
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <ComponentGroupName>HARVESTED_COMPONENTS</ComponentGroupName>
+      <RemoveFile>FlashcardApp.exe</RemoveFile>
+      <KeepEmptyDirectories>false</KeepEmptyDirectories>
+    </HeatDirectory>
+  </ItemGroup>
+
+</Project>
