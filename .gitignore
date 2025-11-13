@@ -70,3 +70,12 @@ nunit-*.xml
 
 # Zipped Mac files
 __MACOSX
+
+FlashcardApp.App/
+
+FlashcardApp/FlashcardApp-Installer.msi
+FlashcardApp/FlashcardApp-Installer.wixpdb
+FlashcardApp/FlashcardApp.sln
+FlashcardApp/StartFlashcardApp.cmd
+.gemini/
+gha-creds-*.json
