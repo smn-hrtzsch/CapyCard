@@ -1,27 +1,20 @@
-<Project Sdk="WixToolset.Sdk/6.0.2">
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="WixToolset.Sdk/4.0.5">
+  
   <PropertyGroup>
-    <Configuration>Release</Configuration>
-    <OutputName>FlashcardApp-Installer</OutputName>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishDir>..\bin\Release\net9.0\win-x64\publish\</PublishDir>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <DefineConstants>PublishDir=$(PublishDir)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <WixSource Include="Package.wxs" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
-    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.2" />
-    <PackageReference Include="WixToolset.Heat" Version="6.0.2" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <HeatDirectory Include="C:\Users\Simon\Documents\Simon\Alina\Flashcard-App\FlashcardApp\bin\Release\net9.0\win-x64\publish\">
-      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
-      <ComponentGroupName>HARVESTED_COMPONENTS</ComponentGroupName>
-      <RemoveFile>FlashcardApp.exe</RemoveFile>
-      <KeepEmptyDirectories>false</KeepEmptyDirectories>
-    </HeatDirectory>
+    <BindPath Include="$(PublishDir)">
+      <Name>SourceDir</Name>
+    </BindPath>
   </ItemGroup>
 
 </Project>

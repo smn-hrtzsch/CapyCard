@@ -10,53 +10,62 @@
 
         <MajorUpgrade DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />
 
-        <Feature Id="ProductFeature" Title="FlashcardApp" Level="1">
-            <ComponentRef Id="FlashcardAppExe" />
-            <ComponentGroupRef Id="HARVESTED_COMPONENTS" /> 
+        <Feature Id="ProductFeature" Title="FlashcardApp" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+            <ComponentRef Id="MainExecutable" />
+            <ComponentRef Id="NativePayload" />
             <ComponentRef Id="ApplicationShortcut" />
-            <ComponentRef Id="DesktopShortcut" />
+            <Feature Id="DesktopShortcutFeature" Title="Desktop-Verknüpfung" Level="1" AllowAbsent="yes">
+                <ComponentRef Id="DesktopShortcut" />
+            </Feature>
         </Feature>
 
-        <ui:WIXUI Id="WixUI_InstallDir"
-                  InstallDirectory="INSTALLFOLDER" />
+        <UI>
+            <ui:WixUI Id="WixUI_FeatureTree" />
+        </UI>
 
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    </Package> 
+
+    <Fragment>
         <StandardDirectory Id="ProgramFiles64Folder">
             <Directory Id="INSTALLFOLDER" Name="FlashcardApp" />
         </StandardDirectory>
         <StandardDirectory Id="ProgramMenuFolder">
             <Directory Id="ApplicationProgramsFolder" Name="FlashcardApp"/>
         </StandardDirectory>
-        <StandardDirectory Id="DesktopFolder" />
-    </Package> <Fragment>
-        <DirectoryRef Id="INSTALLFOLDER">
-            <Component Id="FlashcardAppExe" Guid="54ff843a-d73a-4652-9b39-4c550c2d9022">
-                <File Id="FlashcardApp.exe"
-                      Source="C:\Users\Simon\Documents\Simon\Alina\Flashcard-App\FlashcardApp\bin\Release\net9.0\win-x64\publish\FlashcardApp.exe"
-                      KeyPath="yes" />
+        <StandardDirectory Id="DesktopFolder">
+            <Component Id="DesktopShortcut" Guid="7f85b720-89af-47d5-9f4c-0eea5aff4d9e">
+                <Shortcut Id="ApplicationDesktopShortcut"
+                          Name="FlashcardApp"
+                          Description="Karteikarten-Anwendung"
+                          Target="[INSTALLFOLDER]FlashcardApp.exe"
+                          WorkingDirectory="INSTALLFOLDER"/>
+                <RegistryValue Root="HKCU" Key="Software\FlashcardApp\Installer" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes"/>
             </Component>
-        </DirectoryRef>
-
+        </StandardDirectory>
         <DirectoryRef Id="ApplicationProgramsFolder">
             <Component Id="ApplicationShortcut" Guid="5a457ca4-3f4d-4143-8998-2b16b5f4e591">
                 <Shortcut Id="ApplicationStartMenuShortcut"
                           Name="FlashcardApp"
                           Description="Karteikarten-Anwendung"
-                          Target="[#FlashcardApp.exe]"
+                          Target="[INSTALLFOLDER]FlashcardApp.exe"
                           WorkingDirectory="INSTALLFOLDER"/>
                 <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
                 <RegistryValue Root="HKCU" Key="Software\FlashcardApp\Installer" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
             </Component>
         </DirectoryRef>
 
-        <StandardDirectory Id="DesktopFolder">
-            <Component Id="DesktopShortcut" Guid="7f85b720-89af-47d5-9f4c-0eea5aff4d9e">
-                <Shortcut Id="ApplicationDesktopShortcut"
-                          Name="FlashcardApp"
-                          Description="Karteikarten-Anwendung"
-                          Target="[#FlashcardApp.exe]"
-                          WorkingDirectory="INSTALLFOLDER"/>
-                <RegistryValue Root="HKCU" Key="Software\FlashcardApp\Installer" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes"/>
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="MainExecutable" Guid="73aea244-85ff-4bda-b6f3-3d115bfa26a4" Bitness="always64">
+                <File Id="FlashcardAppExe" Source="$(var.PublishDir)FlashcardApp.exe" KeyPath="yes" Checksum="yes" />
             </Component>
-        </StandardDirectory>
+            <Component Id="NativePayload" Guid="c957fd38-3c97-4dbe-8274-2f3dbfd9d8a4" Bitness="always64">
+                <File Id="SQLiteNative" Source="$(var.PublishDir)..\e_sqlite3.dll" KeyPath="yes" />
+                <File Id="SkiaSharpNative" Source="$(var.PublishDir)..\libSkiaSharp.dll" />
+                <File Id="HarfBuzzNative" Source="$(var.PublishDir)..\libHarfBuzzSharp.dll" />
+                <File Id="QuestPdfSkiaNative" Source="$(var.PublishDir)..\QuestPdfSkia.dll" />
+            </Component>
+        </DirectoryRef>
     </Fragment>
 </Wix>
