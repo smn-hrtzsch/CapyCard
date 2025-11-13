@@ -5,6 +5,7 @@ using FlashcardApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace FlashcardApp.ViewModels
@@ -60,11 +61,23 @@ namespace FlashcardApp.ViewModels
         private async void LoadDecks()
         {
             Decks.Clear();
-            var decksFromDb = await _dbContext.Decks.ToListAsync();
-            foreach (var deck in decksFromDb)
+            var decksFromDb = await _dbContext.Decks
+                .Select(d => new { Deck = d, CardCount = d.Cards.Count })
+                .ToListAsync();
+
+            foreach (var entry in decksFromDb)
             {
                 // KORREKTUR: Füge den Wrapper (DeckItemViewModel) zur Liste hinzu
-                Decks.Add(new DeckItemViewModel(deck));
+                Decks.Add(new DeckItemViewModel(entry.Deck, entry.CardCount));
+            }
+        }
+
+        public void UpdateDeckCardCount(int deckId, int cardCount)
+        {
+            var deckVm = Decks.FirstOrDefault(d => d.Deck.Id == deckId);
+            if (deckVm != null)
+            {
+                deckVm.CardCount = cardCount;
             }
         }
 
