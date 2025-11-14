@@ -10,10 +10,10 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="wix:File[not(@Language)]">
+  <xsl:template match="wix:File[not(@Culture)]">
     <xsl:copy>
       <xsl:apply-templates select="@*" />
-      <xsl:attribute name="Language">0</xsl:attribute>
+      <xsl:attribute name="Culture">0</xsl:attribute>
       <xsl:apply-templates select="node()" />
     </xsl:copy>
   </xsl:template>
