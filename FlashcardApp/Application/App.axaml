@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:FlashcardApp"
              xmlns:behaviors="using:FlashcardApp.Behaviors"
+             xmlns:converters="using:FlashcardApp.Converters"
              x:Class="FlashcardApp.App"
              RequestedThemeVariant="Default">
              
@@ -46,7 +47,7 @@
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
-            <local:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
+            <converters:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

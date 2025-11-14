@@ -5,7 +5,7 @@ using QuestPDF.Infrastructure;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FlashcardApp
+namespace FlashcardApp.Services.Pdf
 {
     /// <summary>
     /// Definiert das Layout für unser PDF-Dokument (DIN-A4, 3 Spalten, Duplex).

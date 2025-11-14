@@ -4,13 +4,15 @@
 set -e
 
 # --- KONFIGURATION ---
-APP_NAME="FlashcardApp"
+APP_EXECUTABLE="FlashcardApp"
+APP_BUNDLE_NAME="Alinas Karteikarten"
+BUNDLE_DISPLAY_NAME="Alinas Karteikarten"
 PROJECT_ASSETS_PATH="Assets/icon.icns"
 PUBLISH_DIR="bin/Release/net9.0/osx-arm64/publish"
-APP_BUNDLE_PATH="$PUBLISH_DIR/$APP_NAME.app"
+APP_BUNDLE_PATH="$PUBLISH_DIR/$APP_BUNDLE_NAME.app"
 BUNDLE_ID="com.simon.flashcardapp" # Du kannst 'simon' durch deinen Namen/Firma ersetzen
 
-echo "--- Starte sauberen macOS Build für $APP_NAME ---"
+echo "--- Starte sauberen macOS Build für $APP_BUNDLE_NAME ---"
 
 # 1. Alte Builds löschen
 echo "1/6: Lösche alte Builds..."
@@ -44,11 +46,13 @@ cat << EOF > "$APP_BUNDLE_PATH/Contents/Info.plist"
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>$APP_NAME</string>
+    <string>$APP_EXECUTABLE</string>
     <key>CFBundleIdentifier</key>
     <string>$BUNDLE_ID</string>
     <key>CFBundleName</key>
-    <string>$APP_NAME</string>
+    <string>$APP_BUNDLE_NAME</string>
+    <key>CFBundleDisplayName</key>
+    <string>$BUNDLE_DISPLAY_NAME</string>
     <key>CFBundleIconFile</key>
     <string>icon.icns</string>
     <key>CFBundlePackageType</key>
