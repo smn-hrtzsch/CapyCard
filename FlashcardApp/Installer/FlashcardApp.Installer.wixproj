@@ -5,18 +5,18 @@
     <PublishDir>..\bin\Release\net9.0\win-x64\publish\</PublishDir>
     <InstallerPlatform>x64</InstallerPlatform>
     <ProductVersion Condition="'$(ProductVersion)' == ''">$(MsiProductVersion)</ProductVersion>
-    <HarvestDirectorySuppressSpecificWarnings>HEAT5151</HarvestDirectorySuppressSpecificWarnings>
+    <HarvestDirectorySuppressSpecificWarnings>5151</HarvestDirectorySuppressSpecificWarnings>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
-    <PackageReference Include="WixToolset.Heat" Version="4.0.5" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" GeneratePathProperty="true" />
+    <PackageReference Include="WixToolset.Heat" Version="4.0.5" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
     <WixExtension Include="WixToolset.UI.wixext">
-      <SourceFile>$(PkgWixToolset_UI_wixext)wixext4\WixToolset.UI.wixext.dll</SourceFile>
+      <SourceFile>$(PkgWixToolset_UI_wixext)\wixext4\WixToolset.UI.wixext.dll</SourceFile>
     </WixExtension>
   </ItemGroup>
 
