@@ -14,8 +14,7 @@
                       DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />
 
             <Feature Id="ProductFeature" Title="Alinas Karteikarten" Level="1" ConfigurableDirectory="INSTALLFOLDER">
-            <ComponentRef Id="MainExecutable" />
-            <ComponentRef Id="NativePayload" />
+            <ComponentGroupRef Id="PublishedContent" />
             <ComponentRef Id="ApplicationShortcut" />
             <Feature Id="DesktopShortcutFeature" Title="Desktop-Verknüpfung" Level="1" AllowAbsent="yes">
                 <ComponentRef Id="DesktopShortcut" />
@@ -59,16 +58,6 @@
             </Component>
         </DirectoryRef>
 
-        <DirectoryRef Id="INSTALLFOLDER">
-            <Component Id="MainExecutable" Guid="73aea244-85ff-4bda-b6f3-3d115bfa26a4" Bitness="always64">
-                <File Id="FlashcardAppExe" Source="$(var.PublishDir)FlashcardApp.exe" KeyPath="yes" Checksum="yes" />
-            </Component>
-            <Component Id="NativePayload" Guid="c957fd38-3c97-4dbe-8274-2f3dbfd9d8a4" Bitness="always64">
-                <File Id="SQLiteNative" Source="$(var.PublishDir)..\e_sqlite3.dll" KeyPath="yes" />
-                <File Id="SkiaSharpNative" Source="$(var.PublishDir)..\libSkiaSharp.dll" />
-                <File Id="HarfBuzzNative" Source="$(var.PublishDir)..\libHarfBuzzSharp.dll" />
-                <File Id="QuestPdfSkiaNative" Source="$(var.PublishDir)..\QuestPdfSkia.dll" />
-            </Component>
-        </DirectoryRef>
+        <DirectoryRef Id="INSTALLFOLDER"/>
     </Fragment>
 </Wix>

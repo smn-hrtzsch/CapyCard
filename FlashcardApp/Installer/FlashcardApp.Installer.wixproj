@@ -15,6 +15,11 @@
     <BindPath Include="$(PublishDir)">
       <Name>SourceDir</Name>
     </BindPath>
+    <HarvestDirectory Include="$(PublishDir)">
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <ComponentGroupName>PublishedContent</ComponentGroupName>
+      <HarvestType>file</HarvestType>
+    </HarvestDirectory>
   </ItemGroup>
 
 </Project>
