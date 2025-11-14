@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:FlashcardApp"
+             xmlns:behaviors="using:FlashcardApp.Behaviors"
              x:Class="FlashcardApp.App"
              RequestedThemeVariant="Default">
              
@@ -10,6 +11,9 @@
 
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="TextBox">
+            <Setter Property="behaviors:MacTextEditingBehavior.EnableMacShortcuts" Value="True"/>
+        </Style>
     </Application.Styles>
     
     <!-- Theme-aware resources shared across views -->

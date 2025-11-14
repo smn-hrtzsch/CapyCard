@@ -47,6 +47,7 @@ namespace FlashcardApp.ViewModels
         public event Action<Deck>? OnNavigateToCardList; 
         public event Action<List<Card>>? OnNavigateToLearn;
         public event Action<Deck, int>? OnCardCountUpdated;
+        public event Action? RequestFrontFocus;
 
         public DeckDetailViewModel()
         {
@@ -149,6 +150,7 @@ namespace FlashcardApp.ViewModels
                 _dbContext.Cards.Add(newCard);
                 await _dbContext.SaveChangesAsync();
                 await RefreshCardDataAsync(); 
+                RequestFrontFocus?.Invoke();
             }
 
             if(_cardToEdit == null) 

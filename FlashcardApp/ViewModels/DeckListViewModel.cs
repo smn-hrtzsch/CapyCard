@@ -137,6 +137,7 @@ namespace FlashcardApp.ViewModels
             if (itemVM == null || string.IsNullOrWhiteSpace(itemVM.EditText))
             {
                 itemVM?.CancelEdit(); // Breche ab, wenn der Name leer ist
+                SelectedDeck = null;
                 return;
             }
 
@@ -160,6 +161,8 @@ namespace FlashcardApp.ViewModels
                 // Fach nicht gefunden? Breche den Editiermodus ab.
                 itemVM.CancelEdit();
             }
+
+            SelectedDeck = null;
         }
     }
 }

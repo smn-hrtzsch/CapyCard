@@ -52,7 +52,9 @@
                          ScrollViewer.VerticalScrollBarVisibility="Disabled"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                          SelectionMode="Multiple"
-                         SelectionChanged="CardsListBox_OnSelectionChanged">
+                         PointerReleased="CardsListBox_OnPointerReleased"
+                         PointerMoved="CardsListBox_OnPointerMoved"
+                         PointerCaptureLost="CardsListBox_OnPointerCaptureLost">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <controls:WrapPanel HorizontalAlignment="Stretch"
@@ -66,7 +68,8 @@
                             <Setter Property="Padding" Value="0"/>
                             <Setter Property="Margin" Value="0"/>
                             <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="Focusable" Value="True"/>
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
                         </Style>
                         <Style Selector="ListBoxItem:pointerover">
                             <Setter Property="Background" Value="Transparent"/>
@@ -97,12 +100,13 @@
                     <ListBox.ItemTemplate>
                         <!-- KORREKTUR: DataType ist jetzt CardItemViewModel -->
                         <DataTemplate x:DataType="vm:CardItemViewModel">
-                            <Border Margin="0,0,10,10"
+                                    <Border Margin="0,0,10,10"
                                     Padding="14"
                                     CornerRadius="10"
                                     Classes="card-tile"
                                     MinWidth="220"
-                                    MaxWidth="320">
+                                        MaxWidth="320"
+                                        PointerPressed="CardTile_OnPointerPressed">
                                 <Grid RowDefinitions="Auto,Auto">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" Grid.Row="0" Margin="0,0,0,8" VerticalAlignment="Center">
                                         <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"

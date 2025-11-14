@@ -6,7 +6,6 @@
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardApp.Views.LearnView"
              x:DataType="vm:LearnViewModel">
-    
     <!-- 
       KORREKTUR (LAYOUT):
       HorizontalScrollBarVisibility="Disabled".
