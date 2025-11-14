@@ -16,12 +16,16 @@
 
   <ItemGroup>
     <BindPath Include="$(PublishDir)">
-      <Name>SourceDir</Name>
+      <Name>PublishDir</Name>
     </BindPath>
     <HarvestDirectory Include="$(PublishDir)">
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
       <ComponentGroupName>PublishedContent</ComponentGroupName>
-      <HarvestType>file</HarvestType>
+      <HarvestType>directory</HarvestType>
+      <PreprocessorVariable>PublishDir</PreprocessorVariable>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <SuppressCom>true</SuppressCom>
+      <SuppressRegistry>true</SuppressRegistry>
     </HarvestDirectory>
   </ItemGroup>
 

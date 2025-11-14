@@ -11,6 +11,8 @@
                              Compressed="yes"
                              UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
 
+            <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
             <MajorUpgrade Schedule="afterInstallValidate"
                       DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />
 
