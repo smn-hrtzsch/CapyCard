@@ -40,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi
-          path: FlashcardApp/Installer/bin/${{ env.Configuration }}/FlashcardApp.msi
+          path: FlashcardApp/Installer/bin/${{ env.Configuration }}/*.msi
