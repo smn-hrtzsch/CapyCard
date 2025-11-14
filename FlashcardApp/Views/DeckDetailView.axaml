@@ -6,6 +6,10 @@
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardApp.Views.DeckDetailView"
              x:DataType="vm:DeckDetailViewModel">
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Ctrl+Enter"/>
+        <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Meta+Enter"/>
+    </UserControl.KeyBindings>
     
     <!-- 
       KORREKTUR (LAYOUT):
@@ -47,13 +51,14 @@
                              Foreground="{DynamicResource MutedForegroundBrush}"
                              Margin="0,0,0,10"/>
 
-                    <TextBox Text="{Binding NewCardFront, Mode=TwoWay}"
-                            AcceptsReturn="True"
-                            TextWrapping="Wrap"
-                            Watermark="Text für Vorderseite..."
-                            Height="150"
+                        <TextBox x:Name="FrontTextBox"
+                             Text="{Binding NewCardFront, Mode=TwoWay}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Watermark="Text für Vorderseite..."
+                             Height="150"
                              Grid.Row="1" Grid.Column="0"
-                            BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
+                             BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
 
                     <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
                          Stroke="{DynamicResource MutedForegroundBrush}" 
@@ -63,7 +68,8 @@
                          HorizontalAlignment="Center"
                          Margin="10,0"/>
                     
-                    <TextBox Text="{Binding NewCardBack, Mode=TwoWay}"
+                    <TextBox x:Name="BackTextBox"
+                             Text="{Binding NewCardBack, Mode=TwoWay}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
                              Watermark="Text für Rückseite..."

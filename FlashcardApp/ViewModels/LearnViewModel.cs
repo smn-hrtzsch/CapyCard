@@ -30,6 +30,7 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsEditing))]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))]
         private bool _isDeckFinished = false;
 
         // === KORRIGIERTE Eigenschaften für den Bearbeiten-Zustand ===
@@ -37,6 +38,7 @@ namespace FlashcardApp.ViewModels
         // Steuert, ob WIR GERADE bearbeiten (nur noch eine Eigenschaft)
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))]
         private bool _isEditing = false;
         
         // (IsEditingFront und IsEditingBack wurden entfernt)
@@ -199,6 +201,21 @@ namespace FlashcardApp.ViewModels
             else
             {
                 ShowNextCardButton = true;
+            }
+        }
+
+        private bool CanAdvance() => !IsEditing;
+
+        [RelayCommand(CanExecute = nameof(CanAdvance))]
+        private void Advance()
+        {
+            if (!IsBackVisible)
+            {
+                ShowBack();
+            }
+            else
+            {
+                NextCard();
             }
         }
 

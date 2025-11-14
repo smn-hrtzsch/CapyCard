@@ -21,7 +21,11 @@
                 <StackPanel DockPanel.Dock="Top" Spacing="5">
                     <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
                     <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
-                             Watermark="Name des Fachs..."/>
+                             Watermark="Name des Fachs...">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Command="{Binding AddDeckCommand}" Gesture="Enter"/>
+                        </TextBox.KeyBindings>
+                    </TextBox>
                     <Button Content="Fach hinzufügen"
                             Command="{Binding AddDeckCommand}"
                             HorizontalAlignment="Stretch"/>
@@ -132,7 +136,13 @@
                                             <TextBox Text="{Binding EditText, Mode=TwoWay}"
                                                      VerticalAlignment="Center"
                                                      Margin="0,0,12,0"
-                                                     Grid.Column="0"/>
+                                                     Grid.Column="0">
+                                                <TextBox.KeyBindings>
+                                                    <KeyBinding Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
+                                                                CommandParameter="{Binding}"
+                                                                Gesture="Enter"/>
+                                                </TextBox.KeyBindings>
+                                            </TextBox>
 
                                             <Button Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
                                                     CommandParameter="{Binding}"
