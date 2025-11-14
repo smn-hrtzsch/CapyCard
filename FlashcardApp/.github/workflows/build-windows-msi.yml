@@ -1,0 +1,43 @@
+name: Build Windows Installer
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+
+    env:
+      Configuration: Release
+      RuntimeIdentifier: win-x64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install WiX Toolset
+        run: choco install wixtoolset --version=3.11.2 --no-progress
+
+      - name: Restore dependencies
+        run: dotnet restore FlashcardApp/FlashcardApp.csproj
+
+      - name: Publish Windows build
+        run: dotnet publish FlashcardApp/FlashcardApp.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true
+
+      - name: Build MSI installer
+        working-directory: FlashcardApp/Installer
+        run: |
+          dotnet build FlashcardApp.Installer.wixproj -c $env:Configuration
+
+      - name: Archive MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-msi
+          path: FlashcardApp/Installer/bin/${{ env.Configuration }}/FlashcardApp.msi
