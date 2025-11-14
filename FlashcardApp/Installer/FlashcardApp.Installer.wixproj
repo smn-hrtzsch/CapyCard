@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
+    <PackageReference Include="WixToolset.Heat.wixext" Version="4.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WixExtension Include="WixToolset.UI.wixext" />
+    <WixExtension Include="WixToolset.Heat.wixext" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +24,7 @@
     <HarvestDirectory Include="$(PublishDir)">
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
       <ComponentGroupName>PublishedContent</ComponentGroupName>
-      <HarvestType>file</HarvestType>
+      <HarvestType>payload</HarvestType>
     </HarvestDirectory>
   </ItemGroup>
 
