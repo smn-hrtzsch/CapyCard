@@ -37,7 +37,7 @@ namespace FlashcardApp.Migrations
 
                     b.HasIndex("DeckId");
 
-                    b.ToTable("Cards");
+                    b.ToTable("Cards", (string)null);
                 });
 
             modelBuilder.Entity("FlashcardApp.Models.Deck", b =>
@@ -53,7 +53,7 @@ namespace FlashcardApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Decks");
+                    b.ToTable("Decks", (string)null);
                 });
 
             modelBuilder.Entity("FlashcardApp.Models.Card", b =>
