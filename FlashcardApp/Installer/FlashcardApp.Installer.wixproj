@@ -5,7 +5,7 @@
     <PublishDir>..\bin\Release\net9.0\win-x64\publish\</PublishDir>
     <InstallerPlatform>x64</InstallerPlatform>
     <ProductVersion Condition="'$(ProductVersion)' == ''">$(MsiProductVersion)</ProductVersion>
-    <HarvestDirectorySuppressSpecificWarnings>5151</HarvestDirectorySuppressSpecificWarnings>
+    <HarvestDirectorySuppressSpecificWarnings>5151;1076</HarvestDirectorySuppressSpecificWarnings>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
 
@@ -28,12 +28,7 @@
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
       <ComponentGroupName>PublishedContent</ComponentGroupName>
       <HarvestType>file</HarvestType>
-      <Transforms>Transforms\NeutralizeLanguage.xsl</Transforms>
     </HarvestDirectory>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Transforms\NeutralizeLanguage.xsl" />
   </ItemGroup>
 
 </Project>
