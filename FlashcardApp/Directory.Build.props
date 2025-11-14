@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>0</VersionMinor>
+    <VersionBuild>$([MSBuild]::Add($([MSBuild]::Multiply($([MSBuild]::Subtract($([System.DateTime]::UtcNow.Year), 2000)), 400)), $([System.DateTime]::UtcNow.DayOfYear)))</VersionBuild>
+    <VersionRevision>$([System.DateTime]::UtcNow.ToString('HHmm'))</VersionRevision>
+
+    <VersionPrefix>$(VersionMajor).$(VersionMinor)</VersionPrefix>
+    <Version>$(VersionMajor).$(VersionMinor).$(VersionBuild)</Version>
+    <FileVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)</FileVersion>
+    <AssemblyVersion>$(VersionMajor).$(VersionMinor).0.0</AssemblyVersion>
+    <InformationalVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)</InformationalVersion>
+    <MsiProductVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild)</MsiProductVersion>
+  </PropertyGroup>
+</Project>

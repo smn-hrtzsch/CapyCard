@@ -4,7 +4,8 @@
   <PropertyGroup>
     <PublishDir>..\bin\Release\net9.0\win-x64\publish\</PublishDir>
     <InstallerPlatform>x64</InstallerPlatform>
-    <ProductVersion>1.0.0</ProductVersion>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">$(MsiProductVersion)</ProductVersion>
+    <HarvestDirectorySuppressSpecificWarnings>HEAT5151</HarvestDirectorySuppressSpecificWarnings>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
 
@@ -15,10 +16,7 @@
 
   <ItemGroup>
     <WixExtension Include="WixToolset.UI.wixext">
-      <SourceFile>$(PkgWixToolset_UI_wixext)\tools\WixToolset.UI.wixext.dll</SourceFile>
-    </WixExtension>
-    <WixExtension Include="WixToolset.Heat.wixext">
-      <SourceFile>$(PkgWixToolset_Heat)\tools\WixToolset.Heat.wixext.dll</SourceFile>
+      <SourceFile>$(PkgWixToolset_UI_wixext)wixext4\WixToolset.UI.wixext.dll</SourceFile>
     </WixExtension>
   </ItemGroup>
 
@@ -30,7 +28,12 @@
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
       <ComponentGroupName>PublishedContent</ComponentGroupName>
       <HarvestType>file</HarvestType>
+      <Transforms>Transforms\NeutralizeLanguage.xsl</Transforms>
     </HarvestDirectory>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Transforms\NeutralizeLanguage.xsl" />
   </ItemGroup>
 
 </Project>

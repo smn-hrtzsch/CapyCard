@@ -6,9 +6,10 @@
                                  Name="Alinas Karteikarten" 
                              Manufacturer="Dein Name" 
                              Version="$(var.ProductVersion)" 
-               InstallerVersion="500"
-               Scope="perMachine"
-               UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
+                             InstallerVersion="500"
+                             Scope="perMachine"
+                             Compressed="yes"
+                             UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
 
             <MajorUpgrade Schedule="afterInstallValidate"
                       DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />

@@ -28,16 +28,35 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore FlashcardApp/FlashcardApp.csproj
 
+      - name: Calculate version
+        id: version
+        shell: pwsh
+        working-directory: FlashcardApp
+        run: |
+          $versionMajor = [int](dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMajor)
+          $versionMinor = [int](dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMinor)
+          $utcNow = [DateTime]::UtcNow
+          $versionBuild = (($utcNow.Year - 2000) * 400) + $utcNow.DayOfYear
+          $versionRevision = $utcNow.ToString('HHmm')
+          $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
+          $fullVersion = "$msiVersion.$versionRevision"
+          "versionMajor=$versionMajor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "versionMinor=$versionMinor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "versionBuild=$versionBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "versionRevision=$versionRevision" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "msiVersion=$msiVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "fullVersion=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Publish Windows build
-        run: dotnet publish FlashcardApp/FlashcardApp.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true
+        run: dotnet publish FlashcardApp/FlashcardApp.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }}
 
       - name: Build MSI installer
         working-directory: FlashcardApp/Installer
         run: |
-          dotnet build FlashcardApp.Installer.wixproj -c $env:Configuration
+          dotnet build FlashcardApp.Installer.wixproj -c $env:Configuration -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -p:ProductVersion=${{ steps.version.outputs.msiVersion }}
 
       - name: Archive MSI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-msi
+          name: windows-msi-${{ steps.version.outputs.fullVersion }}
           path: FlashcardApp/Installer/bin/${{ env.Configuration }}/*.msi
