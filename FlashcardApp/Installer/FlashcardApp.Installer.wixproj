@@ -15,12 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WixExtension Include="WixToolset.UI.wixext">
-      <SourceFile>$(PkgWixToolset_UI_wixext)\wixext4\WixToolset.UI.wixext.dll</SourceFile>
-    </WixExtension>
-  </ItemGroup>
-
-  <ItemGroup>
     <BindPath Include="$(PublishDir)">
       <Name>SourceDir</Name>
     </BindPath>
