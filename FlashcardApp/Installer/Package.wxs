@@ -2,10 +2,10 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
-        <Package ProductCode="*"
-                 Name="Alinas Karteikarten" 
-               Manufacturer="Dein Name" 
-               Version="!(bind.FileVersion.FlashcardAppExe)" 
+                <Package ProductCode="*"
+                                 Name="Alinas Karteikarten" 
+                             Manufacturer="Dein Name" 
+                             Version="$(var.ProductVersion)" 
                InstallerVersion="500"
                Scope="perMachine"
                UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
