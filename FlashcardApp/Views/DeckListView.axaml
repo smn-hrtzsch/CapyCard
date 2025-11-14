@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:FlashcardApp.ViewModels"
+             xmlns:behaviors="using:FlashcardApp.Behaviors"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardApp.Views.DeckListView"
              x:DataType="vm:DeckListViewModel">
@@ -136,7 +137,8 @@
                                             <TextBox Text="{Binding EditText, Mode=TwoWay}"
                                                      VerticalAlignment="Center"
                                                      Margin="0,0,12,0"
-                                                     Grid.Column="0">
+                                                     Grid.Column="0"
+                                                     behaviors:FocusBehaviors.FocusOnTrue="{Binding IsEditing}">
                                                 <TextBox.KeyBindings>
                                                     <KeyBinding Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
                                                                 CommandParameter="{Binding}"
