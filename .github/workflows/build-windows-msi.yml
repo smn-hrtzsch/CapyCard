@@ -2,7 +2,7 @@ name: Build Windows Installer
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: "9.0.x"
 
       - name: Install WiX Toolset
         run: choco install wixtoolset --version=3.11.2 --no-progress
