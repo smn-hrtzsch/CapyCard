@@ -4,7 +4,8 @@
 set -e
 
 # --- KONFIGURATION ---
-APP_NAME="FlashcardApp"
+BUNDLE_DISPLAY_NAME="Alinas Karteikarten"
+APP_NAME="Alinas Karteikarten"
 PROJECT_ASSETS_PATH="Assets/icon.icns"
 PUBLISH_DIR="bin/Release/net9.0/osx-arm64/publish"
 APP_BUNDLE_PATH="$PUBLISH_DIR/$APP_NAME.app"
@@ -49,6 +50,8 @@ cat << EOF > "$APP_BUNDLE_PATH/Contents/Info.plist"
     <string>$BUNDLE_ID</string>
     <key>CFBundleName</key>
     <string>$APP_NAME</string>
+    <key>CFBundleDisplayName</key>
+    <string>$BUNDLE_DISPLAY_NAME</string>
     <key>CFBundleIconFile</key>
     <string>icon.icns</string>
     <key>CFBundlePackageType</key>
