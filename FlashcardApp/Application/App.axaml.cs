@@ -1,7 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using FlashcardApp.ViewModels; 
+using FlashcardApp.ViewModels;
+using FlashcardApp.Views;
 
 namespace FlashcardApp
 {

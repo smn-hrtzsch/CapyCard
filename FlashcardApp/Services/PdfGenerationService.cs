@@ -1,8 +1,9 @@
 using FlashcardApp.Models;
+using FlashcardApp.Services.Pdf;
 using QuestPDF.Fluent;
 using System.Collections.Generic;
 
-namespace FlashcardApp
+namespace FlashcardApp.Services
 {
     /// <summary>
     /// Isoliert die Logik zur PDF-Erstellung von den ViewModels.

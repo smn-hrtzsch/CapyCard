@@ -2,7 +2,7 @@ using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
-namespace FlashcardApp
+namespace FlashcardApp.Converters
 {
     // Diese Hilfsklasse wandelt 'true' in 2 und 'false' in 1 um.
     // Wir benutzen das, damit der "Speichern"-Button die volle Breite (2 Spalten) einnimmt,
