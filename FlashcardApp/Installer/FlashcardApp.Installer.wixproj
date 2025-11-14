@@ -5,7 +5,6 @@
     <PublishDir>..\bin\Release\net9.0\win-x64\publish\</PublishDir>
     <InstallerPlatform>x64</InstallerPlatform>
     <ProductVersion>1.0.0</ProductVersion>
-    <WixExtensionVersion>4.0.5</WixExtensionVersion>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
   </PropertyGroup>
 
@@ -16,10 +15,10 @@
 
   <ItemGroup>
     <WixExtension Include="WixToolset.UI.wixext">
-      <SourceFile>$(NuGetPackageRoot)wixtoolset.ui.wixext\$(WixExtensionVersion)\tools\WixToolset.UI.wixext.dll</SourceFile>
+      <SourceFile>$(PkgWixToolset_UI_wixext)\tools\WixToolset.UI.wixext.dll</SourceFile>
     </WixExtension>
     <WixExtension Include="WixToolset.Heat.wixext">
-      <SourceFile>$(NuGetPackageRoot)wixtoolset.heat\$(WixExtensionVersion)\tools\WixToolset.Heat.wixext.dll</SourceFile>
+      <SourceFile>$(PkgWixToolset_Heat)\tools\WixToolset.Heat.wixext.dll</SourceFile>
     </WixExtension>
   </ItemGroup>
 
