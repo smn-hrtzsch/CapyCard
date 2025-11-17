@@ -95,7 +95,7 @@ jobs:
           APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
           BACKSLASH_SPACE=$'\\ '
           ESCAPED_APP_BUNDLE=${APP_BUNDLE_DISPLAY// /$BACKSLASH_SPACE}
-          COMMAND_TEXT=$'xattr -cr /Applications/'"Alinas\ Karteikarten.app"
+          COMMAND_TEXT=$'xattr -cr /Applications/Alinas\ Karteikarten.app'
           HINT_TEXT="Nach dem Verschieben in Applications, bitte im Terminal ausführen:"
 
           # Create a background image with the text at the bottom
