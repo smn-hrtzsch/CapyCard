@@ -80,6 +80,7 @@ jobs:
           rm -f "$DMG_PATH"
           WORK_DIR="$(mktemp -d)"
           cp -R "$APP_PATH" "$WORK_DIR/"
+          ln -s /Applications "$WORK_DIR/Applications"
           /usr/bin/hdiutil create -volname "${{ env.AppBundleName }}" -srcfolder "$WORK_DIR" -ov -format UDZO "$DMG_PATH"
           rm -rf "$WORK_DIR"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
