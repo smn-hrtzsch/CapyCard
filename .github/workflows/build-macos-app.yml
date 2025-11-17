@@ -99,24 +99,24 @@ jobs:
           ESCAPED_APP_BUNDLE=${APP_BUNDLE_DISPLAY// /$BACKSLASH_SPACE}
           DISPLAY_COMMAND_TEXT=$'xattr -cr /Applications/'"$ESCAPED_APP_BUNDLE"
 
-          magick -size 680x400 xc:'#17171d' \
-            -fill '#f5f5f7' -font 'Helvetica' -pointsize 30 -annotate +36+85 "$HEADER_TEXT" \
-            -pointsize 24 -annotate +36+150 "$TERMINAL_TEXT" \
-            -pointsize 22 -fill '#f0a500' -annotate +36+190 "$DISPLAY_COMMAND_TEXT" \
-            -fill '#f0a500' -stroke '#f0a500' -strokewidth 10 \
-            -draw 'line 270,285 410,285' \
-            -draw 'line 410,285 375,265' -draw 'line 410,285 375,305' \
+          magick -size 720x440 xc:'#17171d' \
+            -fill '#f5f5f7' -font 'Helvetica' -pointsize 28 -annotate +40+80 "$HEADER_TEXT" \
+            -pointsize 20 -annotate +40+150 "$TERMINAL_TEXT" \
+            -pointsize 20 -fill '#f0a500' -annotate +40+180 "$DISPLAY_COMMAND_TEXT" \
+            -fill '#f0a500' -stroke '#f0a500' -strokewidth 8 \
+            -draw 'line 290,280 480,280' \
+            -draw 'line 480,280 450,260' -draw 'line 480,280 450,300' \
             "$BACKGROUND_IMG"
 
           create-dmg \
             --volname "${{ env.AppBundleName }}" \
             --window-pos 200 120 \
-            --window-size 680 400 \
-            --icon-size 95 \
-            --text-size 12 \
+            --window-size 720 440 \
+            --icon-size 80 \
+            --text-size 14 \
             --background "$BACKGROUND_IMG" \
-            --icon "${{ env.AppBundleName }}.app" 190 275 \
-            --icon "Applications" 430 275 \
+            --icon "${{ env.AppBundleName }}.app" 210 280 \
+            --icon "Applications" 510 280 \
             "$DMG_PATH" "$WORK_DIR"
 
           rm -rf "$WORK_DIR"
