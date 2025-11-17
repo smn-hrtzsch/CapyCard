@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-macos:
     runs-on: macos-latest
@@ -56,6 +59,7 @@ jobs:
           PUBLISH_DIR="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
           ZIP_NAME="${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip"
           /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$PUBLISH_DIR/${{ env.AppBundleName }}.app" "$PUBLISH_DIR/$ZIP_NAME"
+          echo "packagePath=$PUBLISH_DIR/$ZIP_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload macOS app artifact
         uses: actions/upload-artifact@v4
@@ -63,15 +67,14 @@ jobs:
           name: macos-app-${{ steps.version.outputs.fullVersion }}
           path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip
 
-      - name: Copy .app into repo Release folder
+      - name: Copy .app zip into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
-          APP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
+          ZIP_NAME="${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip"
+          ZIP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/$ZIP_NAME"
           RELEASE_DIR="FlashcardApp/Release"
-          APP_DEST="$RELEASE_DIR/${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.app"
           mkdir -p "$RELEASE_DIR"
-          rm -rf "$APP_DEST"
-          cp -R "$APP_SRC" "$APP_DEST"
+          cp "$ZIP_SRC" "$RELEASE_DIR/$ZIP_NAME"
 
       - name: Commit macOS release artifact
         if: github.ref == 'refs/heads/main'
