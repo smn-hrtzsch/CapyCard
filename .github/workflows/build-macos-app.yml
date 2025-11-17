@@ -52,12 +52,10 @@ jobs:
         run: |
           publishDir="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
           appPath="$publishDir/${{ env.AppBundleName }}.app"
-          releaseApp="Release/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
           zipName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip"
           {
             echo "publishDir=$publishDir"
             echo "appPath=$appPath"
-            echo "releaseAppPath=$releaseApp"
             echo "zipName=$zipName"
           } >> "$GITHUB_OUTPUT"
 
@@ -99,15 +97,13 @@ jobs:
           fi
           rm -f "$RELEASE_DIR/.gitkeep"
 
-      - name: Copy macOS app into repo Release folder
+      - name: Copy macOS zip into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
-          APP_SRC="${{ steps.paths.outputs.appPath }}"
-          APP_DEST="${{ steps.paths.outputs.releaseAppPath }}"
-          mkdir -p "$(dirname "$APP_DEST")"
-          rm -rf "$APP_DEST"
-          /usr/bin/ditto "$APP_SRC" "$APP_DEST"
-          xattr -cr "$APP_DEST"
+          ZIP_SRC="${{ steps.paths.outputs.publishDir }}/${{ steps.paths.outputs.zipName }}"
+          ZIP_DEST="Release/${{ steps.paths.outputs.zipName }}"
+          mkdir -p "$(dirname "$ZIP_DEST")"
+          cp "$ZIP_SRC" "$ZIP_DEST"
 
       - name: Commit macOS release artifact
         if: github.ref == 'refs/heads/main'

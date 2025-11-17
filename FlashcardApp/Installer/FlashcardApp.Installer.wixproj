@@ -7,6 +7,7 @@
     <ProductVersion Condition="'$(ProductVersion)' == ''">$(MsiProductVersion)</ProductVersion>
     <HarvestDirectorySuppressSpecificWarnings>5151;1076</HarvestDirectorySuppressSpecificWarnings>
     <DefineConstants>PublishDir=$(PublishDir);ProductVersion=$(ProductVersion)</DefineConstants>
+    <SuppressIces>ICE60</SuppressIces>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +27,6 @@
       <SuppressRootDirectory>true</SuppressRootDirectory>
       <SuppressCom>true</SuppressCom>
       <SuppressRegistry>true</SuppressRegistry>
-      <Transforms>Transforms\AddLanguage.xslt</Transforms>
     </HarvestDirectory>
   </ItemGroup>
 
