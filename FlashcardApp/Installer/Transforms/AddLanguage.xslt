@@ -11,8 +11,8 @@
     </xsl:copy>
   </xsl:template>
 
-  <!-- Mark individual TTF files with German language metadata for ICE60 compliance -->
-  <xsl:template match="wix:File[contains(translate(@Source,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), '.ttf') and not(@Language)]">
+  <!-- Mark components that include TTF files with German language metadata for ICE60 compliance -->
+  <xsl:template match="wix:Component[not(@Language) and wix:File[contains(translate(@Source,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), '.ttf')]]">
     <xsl:copy>
       <xsl:apply-templates select="@*" />
       <xsl:attribute name="Language">1031</xsl:attribute>

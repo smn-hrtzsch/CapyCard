@@ -87,6 +87,18 @@ jobs:
           name: macos-app-${{ steps.version.outputs.fullVersion }}
           path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ steps.paths.outputs.zipName }}
 
+      - name: Clean previous macOS releases
+        if: github.ref == 'refs/heads/main'
+        run: |
+          RELEASE_DIR="Release"
+          APP_PATTERN="${{ env.AppBundleSlug }}-macos-*.app"
+          ZIP_PATTERN="${{ env.AppBundleSlug }}-macos-*.zip"
+          if [ -d "$RELEASE_DIR" ]; then
+            find "$RELEASE_DIR" -maxdepth 1 -type d -name "$APP_PATTERN" -exec rm -rf {} +
+            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$ZIP_PATTERN" -delete
+          fi
+          rm -f "$RELEASE_DIR/.gitkeep"
+
       - name: Copy macOS app into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |

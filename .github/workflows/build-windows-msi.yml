@@ -64,6 +64,15 @@ jobs:
           name: windows-msi-${{ steps.version.outputs.fullVersion }}
           path: FlashcardApp/Installer/bin/${{ env.Configuration }}/*.msi
 
+      - name: Clean previous MSI releases
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          $releaseDir = "Release"
+          if (Test-Path $releaseDir) {
+            Get-ChildItem $releaseDir -Filter "Alinas-Karteikarten-*.msi" | Remove-Item -Force
+          }
+
       - name: Copy MSI into repo Release folder
         if: github.ref == 'refs/heads/main'
         shell: pwsh
