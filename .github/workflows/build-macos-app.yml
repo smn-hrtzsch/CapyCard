@@ -101,9 +101,9 @@ jobs:
           # Create a background image with the text at the bottom
           magick -size 550x420 xc:none \
             -font "Helvetica" -pointsize 14 -fill "black" \
-            -gravity North -annotate +0+320 "$HINT_TEXT" \
+            -gravity North -annotate +0+280 "$HINT_TEXT" \
             -font "Menlo" -pointsize 12 -fill "black" \
-            -gravity North -annotate +0+350 "$COMMAND_TEXT" \
+            -gravity North -annotate +0+305 "$COMMAND_TEXT" \
             "$BACKGROUND_IMG"
 
           create-dmg \
