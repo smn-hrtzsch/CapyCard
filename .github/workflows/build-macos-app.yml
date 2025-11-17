@@ -72,13 +72,13 @@ jobs:
           name: macos-app-${{ steps.version.outputs.fullVersion }}
           path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip
 
-      - name: Copy .app into repo Release folder
+      - name: Copy macOS app into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
           APP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
-          APP_DEST="FlashcardApp/Release/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
-          RELEASE_DIR="FlashcardApp/Release"
+          RELEASE_DIR="Release"
           mkdir -p "$RELEASE_DIR"
+          APP_DEST="$RELEASE_DIR/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
           rm -rf "$APP_DEST"
           cp -R "$APP_SRC" "$APP_DEST"
 
@@ -89,7 +89,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase --autostash origin "$branch"
-          git add FlashcardApp/Release
+          git add Release
           if git diff --cached --quiet; then
             echo "No release changes to commit."
             exit 0

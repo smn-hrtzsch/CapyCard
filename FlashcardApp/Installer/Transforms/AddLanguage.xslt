@@ -11,11 +11,11 @@
     </xsl:copy>
   </xsl:template>
 
-  <!-- Add a default language to harvested TTF files (WiX v4 uses DefaultLanguage) -->
-  <xsl:template match="wix:File[contains(translate(@Source,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), '.ttf') and not(@DefaultLanguage)]">
+  <!-- Mark components containing TTF fonts with a language so ICE60 is satisfied -->
+  <xsl:template match="wix:Component[wix:File[contains(translate(@Source,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), '.ttf')] and not(@Language)]">
     <xsl:copy>
       <xsl:apply-templates select="@*" />
-      <xsl:attribute name="DefaultLanguage">1031</xsl:attribute>
+      <xsl:attribute name="Language">1031</xsl:attribute>
       <xsl:apply-templates select="node()" />
     </xsl:copy>
   </xsl:template>

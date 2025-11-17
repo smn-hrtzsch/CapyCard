@@ -81,6 +81,7 @@ FlashcardApp/StartFlashcardApp.cmd
 gha-creds-*.json
 Flashcard-App.sln
 
-# Keep packaged release artifacts tracked
-!FlashcardApp/Release/
-!FlashcardApp/Release/**/*
+# Track only root-level packaged releases
+FlashcardApp/Release/
+!Release/
+!Release/**/*
