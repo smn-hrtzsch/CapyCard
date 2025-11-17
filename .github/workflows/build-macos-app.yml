@@ -47,6 +47,20 @@ jobs:
             echo "fullVersion=$fullVersion"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Prepare bundle paths
+        id: paths
+        run: |
+          publishDir="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
+          appPath="$publishDir/${{ env.AppBundleName }}.app"
+          releaseApp="Release/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
+          zipName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip"
+          {
+            echo "publishDir=$publishDir"
+            echo "appPath=$appPath"
+            echo "releaseAppPath=$releaseApp"
+            echo "zipName=$zipName"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Make build script executable
         run: chmod +x FlashcardApp/scripts/build-macos.sh
 
@@ -56,31 +70,32 @@ jobs:
 
       - name: Remove extended attributes from bundle
         run: |
-          APP_PATH="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
-          xattr -cr "$APP_PATH"
+          xattr -cr "${{ steps.paths.outputs.appPath }}"
 
       - name: Package .app as zip artifact
         run: |
-          PUBLISH_DIR="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
-          ZIP_NAME="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip"
-          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$PUBLISH_DIR/${{ env.AppBundleName }}.app" "$PUBLISH_DIR/$ZIP_NAME"
+          PUBLISH_DIR="${{ steps.paths.outputs.publishDir }}"
+          ZIP_NAME="${{ steps.paths.outputs.zipName }}"
+          APP_PATH="${{ steps.paths.outputs.appPath }}"
+          rm -f "$PUBLISH_DIR/$ZIP_NAME"
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$PUBLISH_DIR/$ZIP_NAME"
           echo "packagePath=$PUBLISH_DIR/$ZIP_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload macOS app artifact
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ steps.version.outputs.fullVersion }}
-          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip
+          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ steps.paths.outputs.zipName }}
 
       - name: Copy macOS app into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
-          APP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
-          RELEASE_DIR="Release"
-          mkdir -p "$RELEASE_DIR"
-          APP_DEST="$RELEASE_DIR/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
+          APP_SRC="${{ steps.paths.outputs.appPath }}"
+          APP_DEST="${{ steps.paths.outputs.releaseAppPath }}"
+          mkdir -p "$(dirname "$APP_DEST")"
           rm -rf "$APP_DEST"
-          cp -R "$APP_SRC" "$APP_DEST"
+          /usr/bin/ditto "$APP_SRC" "$APP_DEST"
+          xattr -cr "$APP_DEST"
 
       - name: Commit macOS release artifact
         if: github.ref == 'refs/heads/main'
