@@ -92,8 +92,8 @@ jobs:
           mkdir -p "$BACKGROUND_DIR"
           BACKGROUND_IMG="$BACKGROUND_DIR/instructions.png"
 
-          HEADER_TEXT=$'1. Ziehe "${{ env.AppBundleName }}.app" in den Ordner "Applications".'
-          TERMINAL_TEXT=$'2. \u00D6ffne das Terminal und f\u00FChre aus:'
+          HEADER_TEXT="1. Ziehe \"${{ env.AppBundleName }}.app\" in den Ordner \"Applications\"."
+          TERMINAL_TEXT="2. Oeffne das Terminal und fuehre aus:"
           APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
           BACKSLASH_SPACE=$'\\ '
           ESCAPED_APP_BUNDLE=${APP_BUNDLE_DISPLAY// /$BACKSLASH_SPACE}
