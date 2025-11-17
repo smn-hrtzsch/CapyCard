@@ -26,6 +26,10 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
+      - name: Install DMG tooling
+        run: |
+          brew install --quiet imagemagick create-dmg
+
       - name: Calculate version
         id: version
         run: |
@@ -70,18 +74,43 @@ jobs:
         run: |
           xattr -cr "${{ steps.paths.outputs.appPath }}"
 
-      - name: Create DMG image
+      - name: Create guided DMG image
         id: dmg
         run: |
+          set -euo pipefail
           PUBLISH_DIR="${{ steps.paths.outputs.publishDir }}"
           APP_PATH="${{ steps.paths.outputs.appPath }}"
           DMG_NAME="${{ steps.paths.outputs.dmgName }}"
           DMG_PATH="$PUBLISH_DIR/$DMG_NAME"
           rm -f "$DMG_PATH"
+
           WORK_DIR="$(mktemp -d)"
-          cp -R "$APP_PATH" "$WORK_DIR/"
+          cp -R "$APP_PATH" "$WORK_DIR/${{ env.AppBundleName }}.app"
           ln -s /Applications "$WORK_DIR/Applications"
-          /usr/bin/hdiutil create -volname "${{ env.AppBundleName }}" -srcfolder "$WORK_DIR" -ov -format UDZO "$DMG_PATH"
+
+          BACKGROUND_DIR="$WORK_DIR/.background"
+          mkdir -p "$BACKGROUND_DIR"
+          BACKGROUND_IMG="$BACKGROUND_DIR/instructions.png"
+
+          magick -size 660x400 xc:'#1f1f24' \
+            -fill '#f5f5f7' -font 'Helvetica' -pointsize 28 -annotate +40+80 "1. Ziehe \"${{ env.AppBundleName }}.app\" in den Ordner \"Applications\"." \
+            -pointsize 20 -annotate +40+150 "2. Oeffne das Terminal und fuehre aus:" \
+            -pointsize 20 -fill '#f0a500' -annotate +40+190 "xattr -cr /Applications/${{ env.AppBundleName }}.app" \
+            -fill '#f0a500' -stroke '#f0a500' -strokewidth 12 \
+            -draw 'line 260,260 440,260' -draw 'line 440,260 400,230' -draw 'line 440,260 400,290' \
+            "$BACKGROUND_IMG"
+
+          create-dmg \
+            --volname "${{ env.AppBundleName }}" \
+            --window-pos 200 120 \
+            --window-size 660 400 \
+            --icon-size 120 \
+            --text-size 12 \
+            --background "$BACKGROUND_IMG" \
+            --icon "${{ env.AppBundleName }}.app" 150 230 \
+            --icon "Applications" 470 230 \
+            "$DMG_PATH" "$WORK_DIR"
+
           rm -rf "$WORK_DIR"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
