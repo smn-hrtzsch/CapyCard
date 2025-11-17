@@ -26,6 +26,7 @@
       <SuppressRootDirectory>true</SuppressRootDirectory>
       <SuppressCom>true</SuppressCom>
       <SuppressRegistry>true</SuppressRegistry>
+      <Transforms>Transforms\AddLanguage.xslt</Transforms>
     </HarvestDirectory>
   </ItemGroup>
 

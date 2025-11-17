@@ -80,3 +80,7 @@ FlashcardApp/StartFlashcardApp.cmd
 .gemini/
 gha-creds-*.json
 Flashcard-App.sln
+
+# Keep packaged release artifacts tracked
+!FlashcardApp/Release/
+!FlashcardApp/Release/**/*

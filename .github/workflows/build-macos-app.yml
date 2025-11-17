@@ -1,0 +1,89 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    env:
+      Configuration: Release
+      RuntimeIdentifier: osx-arm64
+      AppBundleName: "Alinas Karteikarten"
+      AppBundleSlug: "Alinas-Karteikarten"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Calculate version
+        id: version
+        run: |
+          cd FlashcardApp
+          versionMajor=$(dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMajor)
+          versionMinor=$(dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMinor)
+          year=$(date -u +%Y)
+          dayOfYear=$(date -u +%j)
+          versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+          versionRevision=$(date -u +%H%M)
+          msiVersion="$versionMajor.$versionMinor.$versionBuild"
+          fullVersion="$msiVersion.$versionRevision"
+          {
+            echo "versionMajor=$versionMajor"
+            echo "versionMinor=$versionMinor"
+            echo "versionBuild=$versionBuild"
+            echo "versionRevision=$versionRevision"
+            echo "msiVersion=$msiVersion"
+            echo "fullVersion=$fullVersion"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Make build script executable
+        run: chmod +x FlashcardApp/scripts/build-macos.sh
+
+      - name: Build macOS .app bundle
+        working-directory: FlashcardApp
+        run: ./scripts/build-macos.sh
+
+      - name: Package .app as zip artifact
+        run: |
+          PUBLISH_DIR="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
+          ZIP_NAME="${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip"
+          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$PUBLISH_DIR/${{ env.AppBundleName }}.app" "$PUBLISH_DIR/$ZIP_NAME"
+
+      - name: Upload macOS app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-app-${{ steps.version.outputs.fullVersion }}
+          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip
+
+      - name: Copy .app into repo Release folder
+        if: github.ref == 'refs/heads/main'
+        run: |
+          APP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
+          RELEASE_DIR="FlashcardApp/Release"
+          APP_DEST="$RELEASE_DIR/${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.app"
+          mkdir -p "$RELEASE_DIR"
+          rm -rf "$APP_DEST"
+          cp -R "$APP_SRC" "$APP_DEST"
+
+      - name: Commit macOS release artifact
+        if: github.ref == 'refs/heads/main'
+        run: |
+          branch="${GITHUB_REF_NAME}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash origin "$branch"
+          git add FlashcardApp/Release
+          if git diff --cached --quiet; then
+            echo "No release changes to commit."
+            exit 0
+          fi
+          git commit -m "Add macOS app release ${{ steps.version.outputs.fullVersion }} [skip ci]"
+          git push origin HEAD:"$branch"
