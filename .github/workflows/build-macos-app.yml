@@ -92,23 +92,31 @@ jobs:
           mkdir -p "$BACKGROUND_DIR"
           BACKGROUND_IMG="$BACKGROUND_DIR/instructions.png"
 
-          magick -size 660x400 xc:'#1f1f24' \
-            -fill '#f5f5f7' -font 'Helvetica' -pointsize 28 -annotate +40+80 "1. Ziehe \"${{ env.AppBundleName }}.app\" in den Ordner \"Applications\"." \
-            -pointsize 20 -annotate +40+150 "2. Oeffne das Terminal und fuehre aus:" \
-            -pointsize 20 -fill '#f0a500' -annotate +40+190 "xattr -cr /Applications/${{ env.AppBundleName }}.app" \
-            -fill '#f0a500' -stroke '#f0a500' -strokewidth 12 \
-            -draw 'line 260,260 440,260' -draw 'line 440,260 400,230' -draw 'line 440,260 400,290' \
+          HEADER_TEXT=$'1. Ziehe "${{ env.AppBundleName }}.app" in den Ordner "Applications".'
+          TERMINAL_TEXT=$'2. \u00D6ffne das Terminal und f\u00FChre aus:'
+          APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
+          BACKSLASH_SPACE=$'\\ '
+          ESCAPED_APP_BUNDLE=${APP_BUNDLE_DISPLAY// /$BACKSLASH_SPACE}
+          DISPLAY_COMMAND_TEXT=$'xattr -cr /Applications/'"$ESCAPED_APP_BUNDLE"
+
+          magick -size 720x460 xc:'#17171d' \
+            -fill '#f5f5f7' -font 'Helvetica' -pointsize 32 -annotate +40+90 "$HEADER_TEXT" \
+            -pointsize 22 -annotate +40+165 "$TERMINAL_TEXT" \
+            -pointsize 22 -fill '#f0a500' -annotate +40+205 "$DISPLAY_COMMAND_TEXT" \
+            -fill '#f0a500' -stroke '#f0a500' -strokewidth 20 \
+            -draw 'line 300,320 520,320' \
+            -draw 'line 520,320 470,280' -draw 'line 520,320 470,360' \
             "$BACKGROUND_IMG"
 
           create-dmg \
             --volname "${{ env.AppBundleName }}" \
             --window-pos 200 120 \
-            --window-size 660 400 \
-            --icon-size 120 \
+            --window-size 720 460 \
+            --icon-size 140 \
             --text-size 12 \
             --background "$BACKGROUND_IMG" \
-            --icon "${{ env.AppBundleName }}.app" 150 230 \
-            --icon "Applications" 470 230 \
+            --icon "${{ env.AppBundleName }}.app" 220 310 \
+            --icon "Applications" 520 310 \
             "$DMG_PATH" "$WORK_DIR"
 
           rm -rf "$WORK_DIR"
