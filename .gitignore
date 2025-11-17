@@ -85,3 +85,5 @@ Flashcard-App.sln
 FlashcardApp/Release/
 !Release/
 !Release/**/*
+Release/.DS_Store
+Release/**/.DS_Store

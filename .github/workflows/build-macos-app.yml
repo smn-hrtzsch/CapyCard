@@ -52,11 +52,11 @@ jobs:
         run: |
           publishDir="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
           appPath="$publishDir/${{ env.AppBundleName }}.app"
-          zipName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip"
+          dmgName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.dmg"
           {
             echo "publishDir=$publishDir"
             echo "appPath=$appPath"
-            echo "zipName=$zipName"
+            echo "dmgName=$dmgName"
           } >> "$GITHUB_OUTPUT"
 
       - name: Make build script executable
@@ -70,40 +70,45 @@ jobs:
         run: |
           xattr -cr "${{ steps.paths.outputs.appPath }}"
 
-      - name: Package .app as zip artifact
+      - name: Create DMG image
+        id: dmg
         run: |
           PUBLISH_DIR="${{ steps.paths.outputs.publishDir }}"
-          ZIP_NAME="${{ steps.paths.outputs.zipName }}"
           APP_PATH="${{ steps.paths.outputs.appPath }}"
-          rm -f "$PUBLISH_DIR/$ZIP_NAME"
-          /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$PUBLISH_DIR/$ZIP_NAME"
-          echo "packagePath=$PUBLISH_DIR/$ZIP_NAME" >> "$GITHUB_OUTPUT"
+          DMG_NAME="${{ steps.paths.outputs.dmgName }}"
+          DMG_PATH="$PUBLISH_DIR/$DMG_NAME"
+          rm -f "$DMG_PATH"
+          WORK_DIR="$(mktemp -d)"
+          cp -R "$APP_PATH" "$WORK_DIR/"
+          /usr/bin/hdiutil create -volname "${{ env.AppBundleName }}" -srcfolder "$WORK_DIR" -ov -format UDZO "$DMG_PATH"
+          rm -rf "$WORK_DIR"
+          echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload macOS app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-app-${{ steps.version.outputs.fullVersion }}
-          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ steps.paths.outputs.zipName }}
+          name: macos-dmg-${{ steps.version.outputs.fullVersion }}
+          path: ${{ steps.dmg.outputs.dmgPath }}
 
       - name: Clean previous macOS releases
         if: github.ref == 'refs/heads/main'
         run: |
           RELEASE_DIR="Release"
           APP_PATTERN="${{ env.AppBundleSlug }}-macos-*.app"
-          ZIP_PATTERN="${{ env.AppBundleSlug }}-macos-*.zip"
+          DMG_PATTERN="${{ env.AppBundleSlug }}-macos-*.dmg"
           if [ -d "$RELEASE_DIR" ]; then
             find "$RELEASE_DIR" -maxdepth 1 -type d -name "$APP_PATTERN" -exec rm -rf {} +
-            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$ZIP_PATTERN" -delete
+            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$DMG_PATTERN" -delete
           fi
           rm -f "$RELEASE_DIR/.gitkeep"
 
-      - name: Copy macOS zip into repo Release folder
+      - name: Copy macOS dmg into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
-          ZIP_SRC="${{ steps.paths.outputs.publishDir }}/${{ steps.paths.outputs.zipName }}"
-          ZIP_DEST="Release/${{ steps.paths.outputs.zipName }}"
-          mkdir -p "$(dirname "$ZIP_DEST")"
-          cp "$ZIP_SRC" "$ZIP_DEST"
+          DMG_SRC="${{ steps.dmg.outputs.dmgPath }}"
+          DMG_DEST="Release/${{ steps.paths.outputs.dmgName }}"
+          mkdir -p "$(dirname "$DMG_DEST")"
+          cp "$DMG_SRC" "$DMG_DEST"
 
       - name: Commit macOS release artifact
         if: github.ref == 'refs/heads/main'
