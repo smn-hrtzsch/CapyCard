@@ -98,11 +98,12 @@ jobs:
           COMMAND_TEXT=$'xattr -cr /Applications/'"$ESCAPED_APP_BUNDLE"
           HINT_TEXT="Nach dem Verschieben in Applications, bitte im Terminal ausführen:"
 
-          magick -size 550x150 xc:none \
+          # Create a background image with the text at the bottom
+          magick -size 550x420 xc:none \
             -font "Helvetica" -pointsize 14 -fill "black" \
-            -gravity center -annotate +0+0 "$HINT_TEXT" \
+            -gravity North -annotate +0+320 "$HINT_TEXT" \
             -font "Menlo" -pointsize 12 -fill "black" \
-            -gravity center -annotate +0+25 "$COMMAND_TEXT" \
+            -gravity North -annotate +0+350 "$COMMAND_TEXT" \
             "$BACKGROUND_IMG"
 
           create-dmg \
