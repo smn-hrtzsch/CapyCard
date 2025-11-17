@@ -54,10 +54,15 @@ jobs:
         working-directory: FlashcardApp
         run: ./scripts/build-macos.sh
 
+      - name: Remove extended attributes from bundle
+        run: |
+          APP_PATH="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
+          xattr -cr "$APP_PATH"
+
       - name: Package .app as zip artifact
         run: |
           PUBLISH_DIR="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
-          ZIP_NAME="${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip"
+          ZIP_NAME="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip"
           /usr/bin/ditto -c -k --sequesterRsrc --keepParent "$PUBLISH_DIR/${{ env.AppBundleName }}.app" "$PUBLISH_DIR/$ZIP_NAME"
           echo "packagePath=$PUBLISH_DIR/$ZIP_NAME" >> "$GITHUB_OUTPUT"
 
@@ -65,16 +70,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-app-${{ steps.version.outputs.fullVersion }}
-          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip
+          path: FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.zip
 
-      - name: Copy .app zip into repo Release folder
+      - name: Copy .app into repo Release folder
         if: github.ref == 'refs/heads/main'
         run: |
-          ZIP_NAME="${{ env.AppBundleSlug }}-${{ steps.version.outputs.fullVersion }}.zip"
-          ZIP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/$ZIP_NAME"
+          APP_SRC="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish/${{ env.AppBundleName }}.app"
+          APP_DEST="FlashcardApp/Release/${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.app"
           RELEASE_DIR="FlashcardApp/Release"
           mkdir -p "$RELEASE_DIR"
-          cp "$ZIP_SRC" "$RELEASE_DIR/$ZIP_NAME"
+          rm -rf "$APP_DEST"
+          cp -R "$APP_SRC" "$APP_DEST"
 
       - name: Commit macOS release artifact
         if: github.ref == 'refs/heads/main'
