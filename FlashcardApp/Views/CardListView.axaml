@@ -29,6 +29,12 @@
                             Spacing="8"
                             HorizontalAlignment="Right"
                             Margin="22,0,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding ShowPdfButton}">
+                        <TextBlock Text="Spalten:" VerticalAlignment="Center"/>
+                        <ComboBox ItemsSource="{Binding ColumnOptions}"
+                                  SelectedItem="{Binding SelectedColumnCount}"
+                                  Width="60"/>
+                    </StackPanel>
                     <Button Content="Auswahl als PDF speichern"
                             Command="{Binding GeneratePdfCommand}"
                             IsVisible="{Binding ShowPdfButton}"/>
