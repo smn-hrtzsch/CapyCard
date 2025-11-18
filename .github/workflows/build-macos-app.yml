@@ -93,7 +93,7 @@ jobs:
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
           APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
-          COMMAND_TEXT="xattr -cr '/Applications/${APP_BUNDLE_DISPLAY}'"
+          COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\ }"
           HINT_TEXT="Nach dem Verschieben in Applications, bitte im Terminal ausführen:"
 
           # Create a background image with the text at the bottom
