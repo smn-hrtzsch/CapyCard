@@ -5,6 +5,7 @@ using FlashcardApp.Models;
 using FlashcardApp.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -31,6 +32,12 @@ namespace FlashcardApp.ViewModels
         public string SelectAllButtonText => SelectedCardCount == Cards.Count && Cards.Count > 0
             ? "Alle abwählen"
             : "Alle auswählen";
+        
+        [ObservableProperty] 
+        private List<int> _columnOptions = new() { 1, 2, 3, 4, 5 };
+
+        [ObservableProperty] 
+        private int _selectedColumnCount = 3;
 
         public event Action? OnNavigateBack;
         public event Action<Deck, Card>? OnEditCardRequest;
@@ -136,7 +143,7 @@ namespace FlashcardApp.ViewModels
                 if (!string.IsNullOrEmpty(path))
                 {
                     // 5. PDF generieren und speichern
-                    PdfGenerationService.GeneratePdf(path, selectedCards);
+                    PdfGenerationService.GeneratePdf(path, selectedCards, SelectedColumnCount);
                 }
             }
             catch (Exception ex)

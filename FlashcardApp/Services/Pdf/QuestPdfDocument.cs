@@ -2,57 +2,62 @@ using FlashcardApp.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace FlashcardApp.Services.Pdf
 {
-    /// <summary>
-    /// Definiert das Layout für unser PDF-Dokument (DIN-A4, 3 Spalten, Duplex).
-    /// </summary>
     public class QuestPdfDocument : IDocument
     {
         private readonly List<Card> _cards;
-        
-        public QuestPdfDocument(List<Card> cards)
+        private readonly int _columnCount;
+        private readonly float _fontScale;
+        private readonly float _cellHeight;
+        private readonly int _rowCount;
+
+        public QuestPdfDocument(List<Card> cards, int columnCount)
         {
             _cards = cards;
+            _columnCount = columnCount;
+
+            // Basierend auf der Spaltenanzahl werden Zeilenanzahl, Schrifgröße und Zellenhöhe angepasst
+            (_rowCount, _fontScale, _cellHeight) = columnCount switch
+            {
+                1 => (4, 1.5f, 6.5f),  // 4 Zeilen, 150% Schrift, 6.5cm Höhe
+                2 => (5, 1.2f, 5.1f),  // 5 Zeilen, 120% Schrift, 5.1cm Höhe
+                3 => (6, 1.0f, 4.2f),  // 6 Zeilen, 100% Schrift, 4.2cm Höhe
+                4 => (6, 0.9f, 3.8f),  // 7 Zeilen, 90% Schrift, 3.7cm Höhe
+                5 => (7, 0.8f, 3.3f),  // 8 Zeilen, 80% Schrift, 3.3cm Höhe
+                _ => (6, 1.0f, 4.2f)   // Fallback auf 3 Spalten
+            };
         }
 
         public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
 
-        // Diese Methode definiert das gesamte Layout
         public void Compose(IDocumentContainer container)
         {
-            // Pro Seite passen 7 Reihen à 3 Karten = 21 Karten.
-            // Diese Zahl basiert auf der A4-Größe, den Rändern und der Kartenhöhe.
-            const int cardsPerPage = 21;
-
-            // Teilt die gesamte Kartenliste in Blöcke auf, die jeweils auf eine Seite passen.
+            var cardsPerPage = _rowCount * _columnCount;
             var cardChunks = _cards.Chunk(cardsPerPage);
 
-            // Iteriert über jeden Block von Karten, um Vorder- und Rückseiten-Paare zu erstellen.
             foreach (var chunk in cardChunks)
             {
                 var pageCards = chunk.ToList();
 
                 // --- SEITE 1: VORDERSEITEN ---
-                // Generiert eine Seite für die Vorderseiten der aktuellen Karten.
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
+                    page.Margin(1, Unit.Centimetre);
 
                     page.Content().Table(table =>
                     {
                         table.ColumnsDefinition(columns =>
                         {
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
+                            for (int i = 0; i < _columnCount; i++)
+                                columns.RelativeColumn();
                         });
 
-                        // Füllt die Tabelle mit den Vorderseiten der Karten.
                         foreach (var card in pageCards)
                         {
                             table.Cell()
@@ -60,78 +65,75 @@ namespace FlashcardApp.Services.Pdf
                                 .AlignCenter()
                                 .AlignMiddle()
                                 .ScaleToFit()
-                                .Text(card.Front);
+                                .Text(card.Front)
+                                .FontSize(12 * _fontScale);
+                        }
+                        
+                        // Leere Zellen auffüllen, um das Layout zu stabilisieren
+                        int emptyCells = cardsPerPage - pageCards.Count;
+                        for (int i = 0; i < emptyCells; i++)
+                        {
+                            table.Cell().Element(CardCellStyle);
                         }
                     });
                 });
 
                 // --- SEITE 2: RÜCKSEITEN ---
-                // Bereitet die Rückseiten vor, indem die Reihenfolge für den Duplexdruck gespiegelt wird.
                 var mirroredBacks = new List<Card?>();
-                for (int i = 0; i < pageCards.Count; i += 3)
+                for (int i = 0; i < pageCards.Count; i += _columnCount)
                 {
-                    var card1 = pageCards[i];
-                    var card2 = (i + 1 < pageCards.Count) ? pageCards[i + 1] : null;
-                    var card3 = (i + 2 < pageCards.Count) ? pageCards[i + 2] : null;
-
-                    mirroredBacks.Add(card3);
-                    mirroredBacks.Add(card2);
-                    mirroredBacks.Add(card1);
+                    var rowCards = pageCards.Skip(i).Take(_columnCount).ToList();
+                    // Die Karten in der Reihe umkehren
+                    rowCards.Reverse();
+                    mirroredBacks.AddRange(rowCards);
                 }
 
-                // Generiert eine separate Seite für die Rückseiten.
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
-                    page.Margin(2, Unit.Centimetre);
+                    page.Margin(1, Unit.Centimetre);
 
-                    // Fügt einen kleinen oberen Abstand hinzu, um die Position der Rückseiten
-                    // exakt an die der Vorderseiten für den Duplexdruck anzupassen.
                     page.Content()
                         .PaddingTop(2, Unit.Millimetre)
                         .Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
-                                columns.RelativeColumn();
+                                for (int i = 0; i < _columnCount; i++)
+                                    columns.RelativeColumn();
                             });
 
-                            // Füllt die Tabelle mit den gespiegelten Rückseiten.
                             foreach (var card in mirroredBacks)
                             {
                                 var cell = table.Cell().Element(CardCellStyle);
-
                                 if (card != null)
                                 {
                                     cell
                                         .AlignCenter()
                                         .AlignMiddle()
                                         .ScaleToFit()
-                                        .Text(card.Back);
+                                        .Text(card.Back)
+                                        .FontSize(12 * _fontScale);
                                 }
-                                else
-                                {
-                                    // Fügt eine leere Zelle hinzu, falls eine Reihe nicht vollständig ist.
-                                    cell.Text(string.Empty);
-                                }
+                            }
+                            
+                            // Leere Zellen auffüllen
+                            int emptyCells = cardsPerPage - mirroredBacks.Count;
+                            for (int i = 0; i < emptyCells; i++)
+                            {
+                                table.Cell().Element(CardCellStyle);
                             }
                         });
                 });
             }
         }
         
-        /// <summary>
-        /// Stil für die PDF-Zellen.
-        /// </summary>
-        static IContainer CardCellStyle(IContainer container)
+        private IContainer CardCellStyle(IContainer container)
         {
-            // Padding 5, Höhe 3cm (unverändert)
             return container
                 .Border(1)
-                .Padding(5) 
-                .Height(3, Unit.Centimetre);
+                .Padding(5)
+                .Height(_cellHeight, Unit.Centimetre);
         }
     }
 }

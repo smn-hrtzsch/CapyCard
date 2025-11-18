@@ -13,10 +13,10 @@ namespace FlashcardApp.Services
         /// <summary>
         /// Generiert eine PDF-Datei aus der gegebenen Kartenliste am Zielpfad.
         /// </summary>
-        public static void GeneratePdf(string filePath, List<Card> cards)
+        public static void GeneratePdf(string filePath, List<Card> cards, int columnCount)
         {
             // Erstellt eine Instanz unseres QuestPDF-Dokument-Layouts
-            var document = new QuestPdfDocument(cards);
+            var document = new QuestPdfDocument(cards, columnCount);
             
             // Generiert die PDF-Datei und speichert sie.
             // (Wirft eine Ausnahme, wenn die Datei gesperrt ist)
