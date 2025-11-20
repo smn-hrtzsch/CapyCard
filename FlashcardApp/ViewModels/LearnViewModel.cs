@@ -34,6 +34,7 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
+        [ObservableProperty] private string _deckName = string.Empty;
         private bool _isCurrentCardFromRandomOrder;
 
         public string ProgressText => $"{LearnedCount}/{TotalCount}";
@@ -56,12 +57,14 @@ namespace FlashcardApp.ViewModels
             if (_deck == null || !_deck.Cards.Any())
             {
                 _allCards = new List<Card>();
+                DeckName = _deck?.Name ?? "Unbekanntes Deck";
                 SetFinishedState("Keine Karten in diesem Fach.");
                 return;
             }
 
             _allCards = _deck.Cards.ToList();
             IsRandomOrder = _deck.IsRandomOrder;
+            DeckName = _deck.Name;
             
             UpdateProgressState();
             ShowCardAtCurrentProgress();
