@@ -97,30 +97,14 @@ namespace FlashcardApp
                             INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
                             VALUES ('20251120153557_AddLearningProgressState', '9.0.0');");
 
+                        // Wir versuchen die Migration erneut, damit die neue Migration (AddLastLearnedCardIndex)
+                        // auch auf reparierten Datenbanken angewendet wird.
+                        db.Database.Migrate();
                     }
                     catch (Exception retryEx)
                     {
                         LogException(retryEx, "DatabaseRepairFailed");
                     }
-                }
-
-                // Self-Healing: Fehlende Spalten IMMER prüfen und hinzufügen.
-                // Dies ist notwendig, weil LastLearnedCardIndex in keiner Migration enthalten ist
-                // und Migrate() daher erfolgreich sein kann, obwohl die Spalte fehlt.
-                try 
-                {
-                    // LastLearnedCardIndex (wurde in keiner Migration explizit hinzugefügt, fehlt daher oft)
-                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LastLearnedCardIndex"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
-
-                    // IsRandomOrder (aus Migration AddLearningProgressState)
-                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""IsRandomOrder"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
-
-                    // LearnedShuffleCardIdsJson (aus Migration AddLearningProgressState)
-                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LearnedShuffleCardIdsJson"" TEXT NOT NULL DEFAULT '[]';"); } catch { }
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, "SchemaCorrectionFailed");
                 }
 
                 // Überprüfen, ob bereits Decks vorhanden sind.
