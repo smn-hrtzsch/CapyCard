@@ -4,6 +4,7 @@ using QuestPDF.Infrastructure; // NEU: QuestPDF importieren
 using FlashcardApp.Data;
 using FlashcardApp.Models;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlashcardApp
 {
@@ -18,7 +19,7 @@ namespace FlashcardApp
             // NEU: QuestPDF-Lizenz setzen (erforderlich)
             QuestPDF.Settings.License = LicenseType.Community;
             
-            SeedDatabase();
+            InitializeDatabase();
 
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
@@ -31,12 +32,22 @@ namespace FlashcardApp
                 .WithInterFont()
                 .LogToTrace();
         
-        private static void SeedDatabase()
+        private static void InitializeDatabase()
         {
             using (var db = new FlashcardDbContext())
             {
-                // Stellen Sie sicher, dass die Datenbank erstellt ist.
-                db.Database.EnsureCreated();
+                try
+                {
+                    // Führt ausstehende Migrationen aus und erstellt die Datenbank, falls sie nicht existiert.
+                    db.Database.Migrate();
+                }
+                catch (Exception)
+                {
+                    // Falls die Migration fehlschlägt (z.B. weil die Datenbank mit EnsureCreated erstellt wurde
+                    // und keine Migrationshistorie hat), versuchen wir sicherzustellen, dass die DB zumindest existiert.
+                    // Das ist ein Fallback für alte Installationen.
+                    db.Database.EnsureCreated();
+                }
 
                 // Überprüfen, ob bereits Decks vorhanden sind.
                 if (!db.Decks.Any())
