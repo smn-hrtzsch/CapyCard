@@ -31,6 +31,12 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty] private string _reshuffleButtonText = "Neu mischen & Starten";
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] private Card? _currentCard;
 
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
+        [ObservableProperty] private string _progressModeLabel = string.Empty;
+
+        public string ProgressText => $"{LearnedCount}/{TotalCount}";
+
         public event Action? OnNavigateBack;
         public bool ShowEditButton => IsBackVisible && !IsEditing && CurrentCard != null;
 
@@ -56,7 +62,28 @@ namespace FlashcardApp.ViewModels
             _allCards = _deck.Cards.ToList();
             IsRandomOrder = _deck.IsRandomOrder;
             
+            UpdateProgressState();
             ShowCardAtCurrentProgress();
+        }
+
+        private void UpdateProgressState()
+        {
+            if (_deck == null) return;
+            TotalCount = _allCards.Count;
+
+            if (!IsRandomOrder)
+            {
+                ProgressModeLabel = "Sortiert";
+                LearnedCount = _deck.LastLearnedCardIndex;
+            }
+            else
+            {
+                ProgressModeLabel = "Zufall";
+                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                    ? new List<int>() 
+                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
+                LearnedCount = learnedIds.Count;
+            }
         }
 
         private void ShowCardAtCurrentProgress()
@@ -66,6 +93,8 @@ namespace FlashcardApp.ViewModels
                 SetFinishedState("Keine Karten in diesem Fach.");
                 return;
             }
+
+            UpdateProgressState();
 
             IsEditing = false;
             IsBackVisible = false;
@@ -89,6 +118,7 @@ namespace FlashcardApp.ViewModels
                 var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
                     ? new List<int>() 
                     : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
+                
                 var availableCards = _allCards.Where(c => !learnedIds.Contains(c.Id)).ToList();
 
                 if (!availableCards.Any())
@@ -172,6 +202,8 @@ namespace FlashcardApp.ViewModels
             _deck.IsRandomOrder = IsRandomOrder;
             await _dbContext.SaveChangesAsync();
             
+            UpdateProgressState();
+
             // Only refresh if we are NOT currently viewing a card (e.g. we are at the finish screen).
             // If we are viewing a card, we want to keep it visible and only switch logic for the NEXT card.
             if (CurrentCard == null)
