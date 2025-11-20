@@ -76,27 +76,12 @@ namespace FlashcardApp
                     LogException(ex, "DatabaseMigrationFailed");
                     
                     // Fallback: Versuchen, die Datenbank manuell zu reparieren, falls Migrationen fehlschlagen.
-                    // Dies ist notwendig, wenn die DB früher mit EnsureCreated erstellt wurde (ohne Migrationshistorie)
-                    // oder wenn Spalten fehlen, für die keine Migration existiert (z.B. LastLearnedCardIndex).
                     try 
                     {
                         // 1. Sicherstellen, dass die Tabellen existieren
                         db.Database.EnsureCreated();
 
-                        // 2. Fehlende Spalten manuell hinzufügen (Self-Healing)
-                        // Wir nutzen try-catch für jede Spalte, da SQLite keinen "ADD COLUMN IF NOT EXISTS" Befehl hat.
-                        // Wenn die Spalte schon existiert, wird eine Exception geworfen, die wir ignorieren.
-
-                        // LastLearnedCardIndex (wurde in keiner Migration explizit hinzugefügt, fehlt daher oft)
-                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LastLearnedCardIndex"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
-
-                        // IsRandomOrder (aus Migration AddLearningProgressState)
-                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""IsRandomOrder"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
-
-                        // LearnedShuffleCardIdsJson (aus Migration AddLearningProgressState)
-                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LearnedShuffleCardIdsJson"" TEXT NOT NULL DEFAULT '[]';"); } catch { }
-
-                        // 3. Migrations-Historie reparieren, damit zukünftige Migrationen funktionieren
+                        // 2. Migrations-Historie reparieren, damit zukünftige Migrationen funktionieren
                         db.Database.ExecuteSqlRaw(@"
                             CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
                                 ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
@@ -117,6 +102,25 @@ namespace FlashcardApp
                     {
                         LogException(retryEx, "DatabaseRepairFailed");
                     }
+                }
+
+                // Self-Healing: Fehlende Spalten IMMER prüfen und hinzufügen.
+                // Dies ist notwendig, weil LastLearnedCardIndex in keiner Migration enthalten ist
+                // und Migrate() daher erfolgreich sein kann, obwohl die Spalte fehlt.
+                try 
+                {
+                    // LastLearnedCardIndex (wurde in keiner Migration explizit hinzugefügt, fehlt daher oft)
+                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LastLearnedCardIndex"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+
+                    // IsRandomOrder (aus Migration AddLearningProgressState)
+                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""IsRandomOrder"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+
+                    // LearnedShuffleCardIdsJson (aus Migration AddLearningProgressState)
+                    try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LearnedShuffleCardIdsJson"" TEXT NOT NULL DEFAULT '[]';"); } catch { }
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, "SchemaCorrectionFailed");
                 }
 
                 // Überprüfen, ob bereits Decks vorhanden sind.
