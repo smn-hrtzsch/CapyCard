@@ -34,6 +34,7 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
+        private bool _isCurrentCardFromRandomOrder;
 
         public string ProgressText => $"{LearnedCount}/{TotalCount}";
 
@@ -96,6 +97,7 @@ namespace FlashcardApp.ViewModels
 
             UpdateProgressState();
 
+            _isCurrentCardFromRandomOrder = IsRandomOrder;
             IsEditing = false;
             IsBackVisible = false;
             Card? cardToShow = null;
@@ -137,7 +139,7 @@ namespace FlashcardApp.ViewModels
             if (_deck == null) return;
             IsBackVisible = false;
 
-            if (!IsRandomOrder)
+            if (!_isCurrentCardFromRandomOrder)
             {
                 _deck.LastLearnedCardIndex++;
             }
@@ -202,11 +204,10 @@ namespace FlashcardApp.ViewModels
             _deck.IsRandomOrder = IsRandomOrder;
             await _dbContext.SaveChangesAsync();
             
-            UpdateProgressState();
-
-            // Only refresh if we are NOT currently viewing a card (e.g. we are at the finish screen).
-            // If we are viewing a card, we want to keep it visible and only switch logic for the NEXT card.
-            if (CurrentCard == null)
+            // Only refresh if we are NOT currently viewing a card (e.g. we are at the finish screen)
+            // OR if the back is already visible (user wants to skip to next card in new mode).
+            // If we are viewing the front of a card, we want to keep it visible and only switch logic for the NEXT card.
+            if (CurrentCard == null || IsBackVisible)
             {
                 ShowCardAtCurrentProgress();
             }
