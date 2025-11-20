@@ -62,9 +62,9 @@ namespace FlashcardApp.ViewModels
             CurrentViewModel = _deckDetailViewModel;
         }
         
-        private void NavigateToLearn(List<Card> cards)
+        private async void NavigateToLearn(Deck deck)
         {
-            _learnViewModel.LoadDeck(cards);
+            await _learnViewModel.LoadDeck(deck);
             CurrentViewModel = _learnViewModel;
         }
 

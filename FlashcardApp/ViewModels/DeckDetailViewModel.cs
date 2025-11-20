@@ -45,7 +45,7 @@ namespace FlashcardApp.ViewModels
 
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
-        public event Action<List<Card>>? OnNavigateToLearn;
+        public event Action<Deck>? OnNavigateToLearn; // Changed from List<Card>
         public event Action<Deck, int>? OnCardCountUpdated;
         public event Action? RequestFrontFocus;
 
@@ -190,7 +190,7 @@ namespace FlashcardApp.ViewModels
         {
             if (_currentDeck != null)
             {
-                OnNavigateToLearn?.Invoke(Cards.ToList());
+                OnNavigateToLearn?.Invoke(_currentDeck); // Changed to pass _currentDeck
             }
         }
         
