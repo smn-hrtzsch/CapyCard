@@ -28,6 +28,7 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty] private bool _showShowBackButton = false;
         [ObservableProperty] private bool _showNextCardButton = false;
         [ObservableProperty] private bool _showReshuffleButton = false;
+        [ObservableProperty] private string _reshuffleButtonText = "Neu mischen & Starten";
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] private Card? _currentCard;
 
         public event Action? OnNavigateBack;
@@ -79,13 +80,15 @@ namespace FlashcardApp.ViewModels
                 }
                 else
                 {
-                    SetFinishedState("Deck beendet!");
+                    SetFinishedState("Deck im Sortierten-Modus beendet!");
                     return;
                 }
             }
             else
             {
-                var learnedIds = JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>();
+                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                    ? new List<int>() 
+                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
                 var availableCards = _allCards.Where(c => !learnedIds.Contains(c.Id)).ToList();
 
                 if (!availableCards.Any())
@@ -110,7 +113,9 @@ namespace FlashcardApp.ViewModels
             }
             else
             {
-                var learnedIds = JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>();
+                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                    ? new List<int>() 
+                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
                 if (CurrentCard != null && !learnedIds.Contains(CurrentCard.Id))
                 {
                     learnedIds.Add(CurrentCard.Id);
@@ -139,7 +144,16 @@ namespace FlashcardApp.ViewModels
         private void SetFinishedState(string message)
         {
             CurrentCardFront = message;
-            CurrentCardBack = "Alle Karten gelernt. Nochmal mischen?";
+            if (IsRandomOrder)
+            {
+                CurrentCardBack = "Alle Karten gelernt. Nochmal mischen?";
+                ReshuffleButtonText = "Neu mischen & Starten";
+            }
+            else
+            {
+                CurrentCardBack = "Alle Karten gelernt. Nochmal von vorn anfangen?";
+                ReshuffleButtonText = "Deck von vorne starten";
+            }
             CurrentCard = null;
             IsBackVisible = true;
             IsDeckFinished = true;
@@ -158,8 +172,12 @@ namespace FlashcardApp.ViewModels
             _deck.IsRandomOrder = IsRandomOrder;
             await _dbContext.SaveChangesAsync();
             
-            // Show a card that reflects the new mode immediately.
-            ShowCardAtCurrentProgress();
+            // Only refresh if we are NOT currently viewing a card (e.g. we are at the finish screen).
+            // If we are viewing a card, we want to keep it visible and only switch logic for the NEXT card.
+            if (CurrentCard == null)
+            {
+                ShowCardAtCurrentProgress();
+            }
         }
 
         private bool CanToggleRandomOrder() => !IsEditing;

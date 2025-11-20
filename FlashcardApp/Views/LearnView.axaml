@@ -141,7 +141,7 @@
                                 HorizontalAlignment="Stretch"
                                 IsVisible="{Binding ShowNextCardButton}"/>
                         
-                        <Button Content="Neu mischen &amp; Starten"
+                        <Button Content="{Binding ReshuffleButtonText}"
                                 Command="{Binding NextCardCommand}"
                                 HorizontalAlignment="Stretch"
                                 IsVisible="{Binding ShowReshuffleButton}"/>
