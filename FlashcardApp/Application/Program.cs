@@ -74,10 +74,32 @@ namespace FlashcardApp
                 catch (Exception ex)
                 {
                     LogException(ex, "DatabaseMigrationFailed");
-                    // Falls die Migration fehlschlägt (z.B. weil die Datenbank mit EnsureCreated erstellt wurde
-                    // und keine Migrationshistorie hat), versuchen wir sicherzustellen, dass die DB zumindest existiert.
-                    // Das ist ein Fallback für alte Installationen.
-                    db.Database.EnsureCreated();
+                    
+                    try 
+                    {
+                        // Reparatur-Versuch für Datenbanken, die mit EnsureCreated erstellt wurden:
+                        // 1. Migrations-Historie-Tabelle manuell erstellen
+                        db.Database.ExecuteSqlRaw(@"
+                            CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+                                ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
+                                ""ProductVersion"" TEXT NOT NULL
+                            );");
+
+                        // 2. Die erste Migration als "bereits ausgeführt" markieren
+                        // (Damit EF Core nicht versucht, die Tabellen neu zu erstellen)
+                        db.Database.ExecuteSqlRaw(@"
+                            INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+                            VALUES ('20251111110823_InitialCreate', '9.0.0');");
+
+                        // 3. Migration erneut versuchen (jetzt sollte nur das Update laufen)
+                        db.Database.Migrate();
+                    }
+                    catch (Exception retryEx)
+                    {
+                        LogException(retryEx, "DatabaseMigrationRetryFailed");
+                        // Letzter Ausweg: EnsureCreated, damit die App zumindest startet (auch wenn Features fehlen könnten)
+                        db.Database.EnsureCreated();
+                    }
                 }
 
                 // Überprüfen, ob bereits Decks vorhanden sind.
