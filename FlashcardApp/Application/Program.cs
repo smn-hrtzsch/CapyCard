@@ -75,30 +75,47 @@ namespace FlashcardApp
                 {
                     LogException(ex, "DatabaseMigrationFailed");
                     
+                    // Fallback: Versuchen, die Datenbank manuell zu reparieren, falls Migrationen fehlschlagen.
+                    // Dies ist notwendig, wenn die DB früher mit EnsureCreated erstellt wurde (ohne Migrationshistorie)
+                    // oder wenn Spalten fehlen, für die keine Migration existiert (z.B. LastLearnedCardIndex).
                     try 
                     {
-                        // Reparatur-Versuch für Datenbanken, die mit EnsureCreated erstellt wurden:
-                        // 1. Migrations-Historie-Tabelle manuell erstellen
+                        // 1. Sicherstellen, dass die Tabellen existieren
+                        db.Database.EnsureCreated();
+
+                        // 2. Fehlende Spalten manuell hinzufügen (Self-Healing)
+                        // Wir nutzen try-catch für jede Spalte, da SQLite keinen "ADD COLUMN IF NOT EXISTS" Befehl hat.
+                        // Wenn die Spalte schon existiert, wird eine Exception geworfen, die wir ignorieren.
+
+                        // LastLearnedCardIndex (wurde in keiner Migration explizit hinzugefügt, fehlt daher oft)
+                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LastLearnedCardIndex"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+
+                        // IsRandomOrder (aus Migration AddLearningProgressState)
+                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""IsRandomOrder"" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+
+                        // LearnedShuffleCardIdsJson (aus Migration AddLearningProgressState)
+                        try { db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Decks"" ADD COLUMN ""LearnedShuffleCardIdsJson"" TEXT NOT NULL DEFAULT '[]';"); } catch { }
+
+                        // 3. Migrations-Historie reparieren, damit zukünftige Migrationen funktionieren
                         db.Database.ExecuteSqlRaw(@"
                             CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
                                 ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
                                 ""ProductVersion"" TEXT NOT NULL
                             );");
 
-                        // 2. Die erste Migration als "bereits ausgeführt" markieren
-                        // (Damit EF Core nicht versucht, die Tabellen neu zu erstellen)
+                        // Markieren, dass wir auf dem aktuellen Stand sind (Hack, um EF zu beruhigen)
                         db.Database.ExecuteSqlRaw(@"
                             INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
                             VALUES ('20251111110823_InitialCreate', '9.0.0');");
+                        
+                        db.Database.ExecuteSqlRaw(@"
+                            INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+                            VALUES ('20251120153557_AddLearningProgressState', '9.0.0');");
 
-                        // 3. Migration erneut versuchen (jetzt sollte nur das Update laufen)
-                        db.Database.Migrate();
                     }
                     catch (Exception retryEx)
                     {
-                        LogException(retryEx, "DatabaseMigrationRetryFailed");
-                        // Letzter Ausweg: EnsureCreated, damit die App zumindest startet (auch wenn Features fehlen könnten)
-                        db.Database.EnsureCreated();
+                        LogException(retryEx, "DatabaseRepairFailed");
                     }
                 }
 
