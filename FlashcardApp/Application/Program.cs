@@ -5,6 +5,7 @@ using FlashcardApp.Data;
 using FlashcardApp.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
 namespace FlashcardApp
 {
@@ -16,13 +17,42 @@ namespace FlashcardApp
         [STAThread]
         public static void Main(string[] args)
         {
-            // NEU: QuestPDF-Lizenz setzen (erforderlich)
-            QuestPDF.Settings.License = LicenseType.Community;
-            
-            InitializeDatabase();
+            // Global exception handler for UI thread exceptions
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => 
+            {
+                LogException(e.ExceptionObject as Exception, "UnhandledException");
+            };
 
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            try 
+            {
+                // NEU: QuestPDF-Lizenz setzen (erforderlich)
+                QuestPDF.Settings.License = LicenseType.Community;
+                
+                InitializeDatabase();
+
+                BuildAvaloniaApp()
+                    .StartWithClassicDesktopLifetime(args);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, "MainCrash");
+                throw; // Re-throw to let the OS handle the crash report if needed
+            }
+        }
+
+        private static void LogException(Exception? ex, string source)
+        {
+            if (ex == null) return;
+            try
+            {
+                var logPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "FlashcardApp_CrashLog.txt");
+                var message = $"[{DateTime.Now}] [{source}] {ex.ToString()}{Environment.NewLine}";
+                File.AppendAllText(logPath, message);
+            }
+            catch
+            {
+                // Failed to log... nothing we can do.
+            }
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
@@ -41,8 +71,9 @@ namespace FlashcardApp
                     // Führt ausstehende Migrationen aus und erstellt die Datenbank, falls sie nicht existiert.
                     db.Database.Migrate();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    LogException(ex, "DatabaseMigrationFailed");
                     // Falls die Migration fehlschlägt (z.B. weil die Datenbank mit EnsureCreated erstellt wurde
                     // und keine Migrationshistorie hat), versuchen wir sicherzustellen, dass die DB zumindest existiert.
                     // Das ist ein Fallback für alte Installationen.
