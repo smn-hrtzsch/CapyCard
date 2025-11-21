@@ -3,6 +3,7 @@ using System;
 using FlashcardApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashcardApp.Migrations
 {
     [DbContext(typeof(FlashcardDbContext))]
-    partial class FlashcardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121104009_AddLastAccessedToSession")]
+    partial class AddLastAccessedToSession
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -45,9 +48,6 @@ namespace FlashcardApp.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDefault")
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsRandomOrder")

@@ -48,6 +48,7 @@
             </ResourceDictionary.ThemeDictionaries>
 
             <converters:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
+            <converters:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

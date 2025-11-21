@@ -3,6 +3,7 @@ using System;
 using FlashcardApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlashcardApp.Migrations
 {
     [DbContext(typeof(FlashcardDbContext))]
-    partial class FlashcardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251121092315_AddSubDecks")]
+    partial class AddSubDecks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
@@ -47,9 +50,6 @@ namespace FlashcardApp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("INTEGER");
-
                     b.Property<bool>("IsRandomOrder")
                         .HasColumnType("INTEGER");
 
@@ -75,42 +75,6 @@ namespace FlashcardApp.Migrations
                     b.ToTable("Decks");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.LearningSession", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("DeckId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsRandomOrder")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("LastAccessed")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("LastLearnedIndex")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("LearnedCardIdsJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Mode")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("SelectedDeckIdsJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeckId");
-
-                    b.ToTable("LearningSessions");
-                });
-
             modelBuilder.Entity("FlashcardApp.Models.Card", b =>
                 {
                     b.HasOne("FlashcardApp.Models.Deck", "Deck")
@@ -129,17 +93,6 @@ namespace FlashcardApp.Migrations
                         .HasForeignKey("ParentDeckId");
 
                     b.Navigation("ParentDeck");
-                });
-
-            modelBuilder.Entity("FlashcardApp.Models.LearningSession", b =>
-                {
-                    b.HasOne("FlashcardApp.Models.Deck", "Deck")
-                        .WithMany()
-                        .HasForeignKey("DeckId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Deck");
                 });
 
             modelBuilder.Entity("FlashcardApp.Models.Deck", b =>

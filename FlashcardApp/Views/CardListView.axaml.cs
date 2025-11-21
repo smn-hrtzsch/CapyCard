@@ -13,10 +13,13 @@ namespace FlashcardApp.Views
     public partial class CardListView : UserControl
     {
         private CardListViewModel? _boundViewModel;
+        
+        // Selection state
         private bool _isPointerSelecting;
         private bool _selectionTargetState;
         private int _anchorIndex = -1;
         private List<bool>? _originalSelection;
+        private ListBox? _activeListBox; // The ListBox where selection started
 
         public CardListView()
         {
@@ -71,6 +74,7 @@ namespace FlashcardApp.Views
             return file?.TryGetLocalPath();
         }
 
+        // Attached to the Border (Card Tile) inside the ListBox
         private void CardTile_OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Control control && control.DataContext is CardItemViewModel item)
@@ -78,122 +82,148 @@ namespace FlashcardApp.Views
                 var point = e.GetCurrentPoint(this);
                 if (point.Properties.IsLeftButtonPressed)
                 {
-                    if (e.ClickCount >= 2)
-                    {
-                        item.IsSelected = !item.IsSelected;
-                        CardsListBox?.Focus();
-                        e.Handled = true;
-                        return;
-                    }
+                    // Find the parent ListBox
+                    var listBox = FindParentListBox(control);
+                    if (listBox == null) return;
 
-                    if (_boundViewModel?.Cards == null)
-                    {
-                        return;
-                    }
+                    _activeListBox = listBox;
+
+                    // Double click logic
+                    // if (e.ClickCount >= 2)
+                    // {
+                    //    item.IsSelected = !item.IsSelected;
+                    //    _activeListBox.Focus();
+                    //    e.Handled = true;
+                    //    return;
+                    // }
+
+                    // Start drag selection
+                    var itemsSource = _activeListBox.ItemsSource as IList<CardItemViewModel>;
+                    if (itemsSource == null) return;
 
                     _isPointerSelecting = true;
-                    _anchorIndex = _boundViewModel.Cards.IndexOf(item);
+                    _anchorIndex = itemsSource.IndexOf(item);
+                    
                     if (_anchorIndex < 0)
                     {
                         _isPointerSelecting = false;
                         return;
                     }
 
-                    _originalSelection = _boundViewModel.Cards.Select(c => c.IsSelected).ToList();
+                    _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
+                    
+                    // Toggle the clicked item immediately (Click to toggle behavior)
+                    // If it was selected, target state is unselected. If unselected, target is selected.
                     _selectionTargetState = !_originalSelection[_anchorIndex];
-                    ApplyRangeSelection(_anchorIndex);
+                    
+                    ApplyRangeSelection(itemsSource, _anchorIndex);
 
-                    CardsListBox?.Focus();
-                    e.Pointer.Capture(CardsListBox);
+                    _activeListBox.Focus();
+                    e.Pointer.Capture(_activeListBox);
                     e.Handled = true;
                 }
             }
         }
 
+        // Attached to the ListBox itself
         private void CardsListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
             if (_isPointerSelecting)
             {
-                if (CardsListBox != null && _boundViewModel?.Cards != null)
+                if (_activeListBox != null)
                 {
-                    var position = e.GetPosition(CardsListBox);
-                    var item = HitTestCardItem(position);
-                    if (item != null)
+                    var position = e.GetPosition(_activeListBox);
+                    var item = HitTestCardItem(_activeListBox, position);
+                    var itemsSource = _activeListBox.ItemsSource as IList<CardItemViewModel>;
+
+                    if (item != null && itemsSource != null)
                     {
-                        var index = _boundViewModel.Cards.IndexOf(item);
+                        var index = itemsSource.IndexOf(item);
                         if (index >= 0)
                         {
-                            ApplyRangeSelection(index);
+                            ApplyRangeSelection(itemsSource, index);
                         }
                     }
                 }
 
                 _isPointerSelecting = false;
-                if (e.Pointer.Captured == CardsListBox)
+                if (e.Pointer.Captured == _activeListBox)
                 {
                     e.Pointer.Capture(null);
                 }
 
                 _originalSelection = null;
                 _anchorIndex = -1;
+                _activeListBox = null;
             }
         }
 
+        // Attached to the ListBox itself
         private void CardsListBox_OnPointerMoved(object? sender, PointerEventArgs e)
         {
-            if (!_isPointerSelecting || CardsListBox == null)
+            if (!_isPointerSelecting || _activeListBox == null)
             {
                 return;
             }
 
-            var position = e.GetPosition(CardsListBox);
-            var item = HitTestCardItem(position);
-            if (item != null && _boundViewModel?.Cards != null)
+            // Ensure we are moving over the active listbox
+            if (sender != _activeListBox) return;
+
+            var position = e.GetPosition(_activeListBox);
+            var item = HitTestCardItem(_activeListBox, position);
+            var itemsSource = _activeListBox.ItemsSource as IList<CardItemViewModel>;
+
+            if (item != null && itemsSource != null)
             {
-                var index = _boundViewModel.Cards.IndexOf(item);
+                var index = itemsSource.IndexOf(item);
                 if (index >= 0)
                 {
-                    ApplyRangeSelection(index);
+                    ApplyRangeSelection(itemsSource, index);
                 }
             }
         }
 
+        // Attached to the ListBox itself
         private void CardsListBox_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
         {
             _isPointerSelecting = false;
             _originalSelection = null;
             _anchorIndex = -1;
+            _activeListBox = null;
         }
 
-        private CardItemViewModel? HitTestCardItem(Point position)
+        private ListBox? FindParentListBox(Control? control)
         {
-            if (CardsListBox == null)
+            while (control != null)
             {
-                return null;
+                if (control is ListBox lb) return lb;
+                control = control.Parent as Control;
             }
+            return null;
+        }
 
-            var control = CardsListBox.InputHitTest(position) as Control;
+        private CardItemViewModel? HitTestCardItem(ListBox listBox, Point position)
+        {
+            var control = listBox.InputHitTest(position) as Control;
             while (control != null)
             {
                 if (control.DataContext is CardItemViewModel item)
                 {
                     return item;
                 }
-
+                if (control == listBox) return null; // Don't go up past the listbox
                 control = control.Parent as Control;
             }
-
             return null;
         }
 
-        private void ApplyRangeSelection(int currentIndex)
+        private void ApplyRangeSelection(IList<CardItemViewModel> cards, int currentIndex)
         {
-            if (_boundViewModel?.Cards == null || _originalSelection == null || _anchorIndex < 0)
+            if (_originalSelection == null || _anchorIndex < 0)
             {
                 return;
             }
 
-            var cards = _boundViewModel.Cards;
             var min = Math.Min(_anchorIndex, currentIndex);
             var max = Math.Max(_anchorIndex, currentIndex);
 

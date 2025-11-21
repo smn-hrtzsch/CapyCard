@@ -12,8 +12,6 @@ namespace FlashcardApp.ViewModels
 {
     public partial class DeckListViewModel : ObservableObject
     {
-        private readonly FlashcardDbContext _dbContext;
-
         [ObservableProperty]
         private string _newDeckName = string.Empty;
 
@@ -54,31 +52,91 @@ namespace FlashcardApp.ViewModels
 
         public DeckListViewModel()
         {
-            _dbContext = new FlashcardDbContext();
+            // _dbContext removed
+            LoadDecks();
+        }
+
+        public void RefreshDecks()
+        {
             LoadDecks();
         }
 
         private async void LoadDecks()
         {
             Decks.Clear();
-            var decksFromDb = await _dbContext.Decks
-                .Select(d => new { Deck = d, CardCount = d.Cards.Count })
-                .ToListAsync();
-
-            foreach (var entry in decksFromDb)
+            
+            using (var context = new FlashcardDbContext())
             {
-                // KORREKTUR: Füge den Wrapper (DeckItemViewModel) zur Liste hinzu
-                Decks.Add(new DeckItemViewModel(entry.Deck, entry.CardCount));
+                // Load all decks to build hierarchy in memory (simpler for now than recursive SQL)
+                var allDecks = await context.Decks
+                    .AsNoTracking()
+                    .Include(d => d.Cards)
+                    .ToListAsync();
+
+                var rootDecks = allDecks.Where(d => d.ParentDeckId == null).ToList();
+
+                foreach (var deck in rootDecks)
+                {
+                    var vm = CreateDeckItemViewModel(deck, allDecks);
+                    Decks.Add(vm);
+                }
             }
+        }
+
+        private DeckItemViewModel CreateDeckItemViewModel(Deck deck, System.Collections.Generic.List<Deck> allDecks)
+        {
+            // Calculate total cards recursively
+            int totalCards = CalculateTotalCards(deck, allDecks);
+            var vm = new DeckItemViewModel(deck, totalCards);
+            
+            var subDecks = allDecks
+                .Where(d => d.ParentDeckId == deck.Id)
+                .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
+                .ThenBy(d => d.Id)
+                .ToList();
+
+            if (subDecks.Any())
+            {
+                vm.HasSubDecks = true;
+                foreach (var subDeck in subDecks)
+                {
+                    vm.SubDecks.Add(CreateDeckItemViewModel(subDeck, allDecks));
+                }
+            }
+            
+            return vm;
+        }
+
+        private int CalculateTotalCards(Deck deck, System.Collections.Generic.List<Deck> allDecks)
+        {
+            int count = deck.Cards.Count;
+            var subDecks = allDecks.Where(d => d.ParentDeckId == deck.Id);
+            foreach (var sub in subDecks)
+            {
+                count += CalculateTotalCards(sub, allDecks);
+            }
+            return count;
         }
 
         public void UpdateDeckCardCount(int deckId, int cardCount)
         {
-            var deckVm = Decks.FirstOrDefault(d => d.Deck.Id == deckId);
+            // Recursive search
+            var deckVm = FindDeckViewModel(Decks, deckId);
             if (deckVm != null)
             {
                 deckVm.CardCount = cardCount;
             }
+        }
+
+        private DeckItemViewModel? FindDeckViewModel(ObservableCollection<DeckItemViewModel> list, int deckId)
+        {
+            foreach (var item in list)
+            {
+                if (item.Deck.Id == deckId) return item;
+                var found = FindDeckViewModel(item.SubDecks, deckId);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         [RelayCommand]
@@ -89,8 +147,12 @@ namespace FlashcardApp.ViewModels
                 return;
             }
             var newDeck = new Deck { Name = NewDeckName };
-            _dbContext.Decks.Add(newDeck);
-            await _dbContext.SaveChangesAsync();
+            
+            using (var context = new FlashcardDbContext())
+            {
+                context.Decks.Add(newDeck);
+                await context.SaveChangesAsync();
+            }
             
             // KORREKTUR: Füge den Wrapper zur UI-Liste hinzu
             Decks.Add(new DeckItemViewModel(newDeck));
@@ -112,9 +174,17 @@ namespace FlashcardApp.ViewModels
         {
             if (_deckToConfirmDelete == null) return;
 
-            // KORREKTUR: Löscht das 'innere' Deck-Modell
-            _dbContext.Decks.Remove(_deckToConfirmDelete.Deck);
-            await _dbContext.SaveChangesAsync();
+            using (var context = new FlashcardDbContext())
+            {
+                // KORREKTUR: Löscht das 'innere' Deck-Modell
+                // Wir müssen es erst attachen oder finden
+                var deckToDelete = await context.Decks.FindAsync(_deckToConfirmDelete.Deck.Id);
+                if (deckToDelete != null)
+                {
+                    context.Decks.Remove(deckToDelete);
+                    await context.SaveChangesAsync();
+                }
+            }
 
             // KORREKTUR: Entfernt das Wrapper-ViewModel aus der UI-Liste
             Decks.Remove(_deckToConfirmDelete);
@@ -141,28 +211,40 @@ namespace FlashcardApp.ViewModels
                 return;
             }
 
-            // Finde das Fach in der Datenbank
-            var trackedDeck = await _dbContext.Decks.FindAsync(itemVM.Deck.Id);
-            if (trackedDeck != null)
+            using (var context = new FlashcardDbContext())
             {
-                // 1. Aktualisiere die Datenbank
-                trackedDeck.Name = itemVM.EditText;
-                await _dbContext.SaveChangesAsync();
+                // Finde das Fach in der Datenbank
+                var trackedDeck = await context.Decks.FindAsync(itemVM.Deck.Id);
+                if (trackedDeck != null)
+                {
+                    // 1. Aktualisiere die Datenbank
+                    trackedDeck.Name = itemVM.EditText;
+                    await context.SaveChangesAsync();
 
-                // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
-                //    (Dadurch wird das TextBlock in der UI aktualisiert)
-                itemVM.Name = itemVM.EditText;
+                    // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
+                    //    (Dadurch wird das TextBlock in der UI aktualisiert)
+                    itemVM.Name = itemVM.EditText;
 
-                // 3. Beende den Bearbeiten-Modus
-                itemVM.IsEditing = false;
-            }
-            else
-            {
-                // Fach nicht gefunden? Breche den Editiermodus ab.
-                itemVM.CancelEdit();
+                    // 3. Beende den Bearbeiten-Modus
+                    itemVM.IsEditing = false;
+                }
+                else
+                {
+                    // Fach nicht gefunden? Breche den Editiermodus ab.
+                    itemVM.CancelEdit();
+                }
             }
 
             SelectedDeck = null;
+        }
+
+        [RelayCommand]
+        private void SelectSubDeck(DeckItemViewModel? subDeckVM)
+        {
+            if (subDeckVM != null)
+            {
+                OnDeckSelected?.Invoke(subDeckVM.Deck);
+            }
         }
     }
 }

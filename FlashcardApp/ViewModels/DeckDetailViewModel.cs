@@ -8,12 +8,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace FlashcardApp.ViewModels
 {
     public partial class DeckDetailViewModel : ObservableObject
     {
-        private readonly FlashcardDbContext _dbContext;
         private Deck? _currentDeck;
         private Card? _cardToEdit;
 
@@ -27,11 +27,13 @@ namespace FlashcardApp.ViewModels
         private string _deckName = "Fach laden...";
 
         [ObservableProperty]
+        private string _backButtonText = "Zurück zur Fächerliste";
+
+        [ObservableProperty]
         private string _cardCountText = "Karten anzeigen (0)";
         
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(GoToCardListCommand))] 
-        [NotifyCanExecuteChangedFor(nameof(GoToLearnCommand))]    
         private bool _hasCards = false;
 
         [ObservableProperty]
@@ -40,24 +42,60 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private bool _isEditing = false;
 
+        [ObservableProperty]
+        private string _newSubDeckName = string.Empty;
+
+        [ObservableProperty]
+        private bool _canAddSubDecks = false;
+
+        [ObservableProperty]
+        private bool _isSubDeckSelectionVisible = false;
+
+        [ObservableProperty]
+        private bool _isRootDeck = false;
+
+        [ObservableProperty]
+        private bool _isConfirmingDeleteSubDeck = false;
+
+        private DeckItemViewModel? _subDeckToConfirmDelete;
 
         public ObservableCollection<Card> Cards { get; } = new();
+        public ObservableCollection<DeckItemViewModel> SubDecks { get; } = new();
+        public ObservableCollection<SubDeckSelectionItem> SubDeckSelectionList { get; } = new();
 
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
-        public event Action<Deck>? OnNavigateToLearn; // Changed from List<Card>
+        public event Action<Deck, LearningMode, List<int>?>? OnNavigateToLearn; // Updated signature
+        public event Action<Deck>? OnNavigateToDeck; // New event for subdeck navigation
         public event Action<Deck, int>? OnCardCountUpdated;
+        public event Action? OnSubDeckAdded; // New event for subdeck addition
         public event Action? RequestFrontFocus;
 
         public DeckDetailViewModel()
         {
-            _dbContext = new FlashcardDbContext();
+            // _dbContext removed. We use short-lived contexts now.
         }
 
         public async Task LoadDeck(Deck deck)
         {
             _currentDeck = deck;
-            DeckName = deck.Name;
+            
+            using (var context = new FlashcardDbContext())
+            {
+                // Set Title and Back Button based on context
+                if (deck.ParentDeckId != null)
+                {
+                    var parent = await context.Decks.FindAsync(deck.ParentDeckId);
+                    DeckName = parent != null ? $"{parent.Name} > {deck.Name}" : deck.Name;
+                    BackButtonText = "Zurück zum Hauptfach";
+                }
+                else
+                {
+                    DeckName = deck.Name;
+                    BackButtonText = "Zurück zur Fächerliste";
+                }
+            }
+            
             ResetToAddingMode(); 
             await RefreshCardDataAsync();
         }
@@ -66,7 +104,22 @@ namespace FlashcardApp.ViewModels
         {
             _currentDeck = deck;
             _cardToEdit = card;
-            DeckName = deck.Name;
+            
+            using (var context = new FlashcardDbContext())
+            {
+                // Set Title based on context (same logic)
+                if (deck.ParentDeckId != null)
+                {
+                    var parent = await context.Decks.FindAsync(deck.ParentDeckId);
+                    DeckName = parent != null ? $"{parent.Name} > {deck.Name}" : deck.Name;
+                    BackButtonText = "Zurück zum Hauptfach";
+                }
+                else
+                {
+                    DeckName = deck.Name;
+                    BackButtonText = "Zurück zur Fächerliste";
+                }
+            }
 
             NewCardFront = card.Front;
             NewCardBack = card.Back;
@@ -81,35 +134,148 @@ namespace FlashcardApp.ViewModels
         {
             if (_currentDeck == null) return;
             
-            // --- HIER IST DIE KORREKTUR ---
-            // 'AsNoTracking()' zwingt EF Core, die Datenbank-Datei
-            // neu abzufragen (z.B. nach einem Löschvorgang im CardListViewModel)
-            // und nicht die veralteten Daten aus seinem eigenen Cache zu verwenden.
-            var deckFromDb = await _dbContext.Decks
-                                 .AsNoTracking() // <-- HINZUGEFÜGT
-                                 .Include(d => d.Cards)
-                                 .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id);
-            
-            // Wir müssen _currentDeck aktualisieren, falls es null war, 
-            // aber hauptsächlich brauchen wir die Kartenliste.
-            if (deckFromDb == null) 
+            using (var context = new FlashcardDbContext())
             {
-                // Das Deck selbst wurde gelöscht, gehe zurück
-                GoBack();
-                return; 
-            }
-            
-            _currentDeck = deckFromDb; 
+                var deckFromDb = await context.Decks
+                                     .AsNoTracking() 
+                                     .Include(d => d.Cards)
+                                     .Include(d => d.SubDecks)
+                                     .ThenInclude(sd => sd.Cards) // Include cards of subdecks for count
+                                     .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id);
+                
+                if (deckFromDb == null) 
+                {
+                    GoBack();
+                    return; 
+                }
+                
+                _currentDeck = deckFromDb; 
+                CanAddSubDecks = _currentDeck.ParentDeckId == null;
+                IsRootDeck = _currentDeck.ParentDeckId == null;
+                
+                if (!IsEditing)
+                {
+                    SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
+                }
 
-            Cards.Clear();
-            foreach (var card in deckFromDb.Cards.OrderBy(c => c.Id))
-            {
-                Cards.Add(card);
+                Cards.Clear();
+                foreach (var card in deckFromDb.Cards.OrderBy(c => c.Id))
+                {
+                    Cards.Add(card);
+                }
+
+                SubDecks.Clear();
+                var sortedSubDecks = deckFromDb.SubDecks
+                    .OrderByDescending(d => d.IsDefault)
+                    .ThenByDescending(d => d.Name == "Allgemein") 
+                    .ThenBy(d => d.Id);
+
+                foreach (var subDeck in sortedSubDecks)
+                {
+                    // Wrap in ViewModel
+                    SubDecks.Add(new DeckItemViewModel(subDeck, subDeck.Cards.Count));
+                }
+                
+                int totalCards = Cards.Count + SubDecks.Sum(sd => sd.Deck.Cards.Count);
+                UpdateCardCount(totalCards);
             }
-            
-            UpdateCardCount(Cards.Count);
         }
         
+        [RelayCommand]
+        private async Task AddSubDeck()
+        {
+            if (string.IsNullOrWhiteSpace(NewSubDeckName) || _currentDeck == null || _currentDeck.ParentDeckId != null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var newDeck = new Deck
+                {
+                    Name = NewSubDeckName,
+                    ParentDeckId = _currentDeck.Id
+                };
+                context.Decks.Add(newDeck);
+                await context.SaveChangesAsync();
+            }
+            
+            NewSubDeckName = string.Empty;
+            await RefreshCardDataAsync();
+            OnSubDeckAdded?.Invoke();
+        }
+
+        [RelayCommand]
+        private void OpenSubDeck(DeckItemViewModel subDeckVM)
+        {
+            OnNavigateToDeck?.Invoke(subDeckVM.Deck);
+        }
+
+        [RelayCommand]
+        private async Task SaveSubDeckEdit(DeckItemViewModel? itemVM)
+        {
+            if (itemVM == null || string.IsNullOrWhiteSpace(itemVM.EditText))
+            {
+                itemVM?.CancelEdit();
+                return;
+            }
+
+            using (var context = new FlashcardDbContext())
+            {
+                var trackedDeck = await context.Decks.FindAsync(itemVM.Deck.Id);
+                if (trackedDeck != null)
+                {
+                    trackedDeck.Name = itemVM.EditText;
+                    await context.SaveChangesAsync();
+                    
+                    itemVM.Name = itemVM.EditText;
+                    itemVM.IsEditing = false;
+                }
+                else
+                {
+                    itemVM.CancelEdit();
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void DeleteSubDeck(DeckItemViewModel? itemVM)
+        {
+            if (itemVM == null) return;
+            _subDeckToConfirmDelete = itemVM;
+            IsConfirmingDeleteSubDeck = true;
+        }
+
+        [RelayCommand]
+        private async Task ConfirmDeleteSubDeck()
+        {
+            if (_subDeckToConfirmDelete == null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var deckToDelete = await context.Decks.FindAsync(_subDeckToConfirmDelete.Deck.Id);
+                if (deckToDelete != null)
+                {
+                    context.Decks.Remove(deckToDelete);
+                    await context.SaveChangesAsync();
+                }
+            }
+
+            SubDecks.Remove(_subDeckToConfirmDelete);
+            _subDeckToConfirmDelete = null;
+            IsConfirmingDeleteSubDeck = false;
+            
+            // Update total count
+            if (_currentDeck != null)
+            {
+                await RefreshCardDataAsync();
+            }
+        }
+
+        [RelayCommand]
+        private void CancelDeleteSubDeck()
+        {
+            _subDeckToConfirmDelete = null;
+            IsConfirmingDeleteSubDeck = false;
+        }
+
         [RelayCommand]
         private async Task SaveCard()
         {
@@ -118,39 +284,73 @@ namespace FlashcardApp.ViewModels
                 return;
             }
 
-            if (_cardToEdit != null)
+            using (var context = new FlashcardDbContext())
             {
-                // FALL 1: WIR BEARBEITEN
-                var trackedCard = _dbContext.Cards.Find(_cardToEdit.Id);
-                if (trackedCard != null)
+                if (_cardToEdit != null)
                 {
-                    trackedCard.Front = NewCardFront;
-                    trackedCard.Back = NewCardBack;
+                    // FALL 1: WIR BEARBEITEN
+                    var trackedCard = await context.Cards.FindAsync(_cardToEdit.Id);
+                    if (trackedCard != null)
+                    {
+                        trackedCard.Front = NewCardFront;
+                        trackedCard.Back = NewCardBack;
+                        await context.SaveChangesAsync();
+                    }
+                    
+                    OnNavigateToCardList?.Invoke(_currentDeck);
+                    ResetToAddingMode();
                 }
                 else
                 {
-                    _cardToEdit.Front = NewCardFront; 
-                    _cardToEdit.Back = NewCardBack;
-                    _dbContext.Entry(_cardToEdit).State = EntityState.Modified;
+                    // FALL 2: WIR FÜGEN HINZU
+                    int targetDeckId = _currentDeck.Id;
+
+                    if (_currentDeck.ParentDeckId == null)
+                    {
+                        // 1. Suche nach markiertem Standard-Deck
+                        var generalDeck = await context.Decks
+                            .FirstOrDefaultAsync(d => d.ParentDeckId == _currentDeck.Id && d.IsDefault);
+
+                        // 2. Fallback: Suche nach Namen "Allgemein" (für alte Daten)
+                        if (generalDeck == null)
+                        {
+                            generalDeck = await context.Decks
+                                .FirstOrDefaultAsync(d => d.ParentDeckId == _currentDeck.Id && d.Name == "Allgemein");
+                            
+                            // Wenn gefunden, markiere es als Default für die Zukunft
+                            if (generalDeck != null)
+                            {
+                                generalDeck.IsDefault = true;
+                                await context.SaveChangesAsync();
+                            }
+                        }
+                        
+                        // 3. Wenn immer noch nicht gefunden, erstelle neu
+                        if (generalDeck == null)
+                        {
+                            generalDeck = new Deck 
+                            { 
+                                Name = "Allgemein", 
+                                ParentDeckId = _currentDeck.Id,
+                                IsDefault = true 
+                            };
+                            context.Decks.Add(generalDeck);
+                            await context.SaveChangesAsync();
+                        }
+                        targetDeckId = generalDeck.Id;
+                    }
+
+                    var newCard = new Card
+                    {
+                        Front = NewCardFront,
+                        Back = NewCardBack,
+                        DeckId = targetDeckId
+                    };
+                    context.Cards.Add(newCard);
+                    await context.SaveChangesAsync();
+                    await RefreshCardDataAsync(); 
+                    RequestFrontFocus?.Invoke();
                 }
-                await _dbContext.SaveChangesAsync();
-                
-                OnNavigateToCardList?.Invoke(_currentDeck);
-                ResetToAddingMode();
-            }
-            else
-            {
-                // FALL 2: WIR FÜGEN HINZU
-                var newCard = new Card
-                {
-                    Front = NewCardFront,
-                    Back = NewCardBack,
-                    DeckId = _currentDeck.Id
-                };
-                _dbContext.Cards.Add(newCard);
-                await _dbContext.SaveChangesAsync();
-                await RefreshCardDataAsync(); 
-                RequestFrontFocus?.Invoke();
             }
 
             if(_cardToEdit == null) 
@@ -173,6 +373,18 @@ namespace FlashcardApp.ViewModels
         [RelayCommand]
         private void GoBack()
         {
+            if (_currentDeck?.ParentDeckId != null)
+            {
+                using (var context = new FlashcardDbContext())
+                {
+                    var parentDeck = context.Decks.Find(_currentDeck.ParentDeckId);
+                    if (parentDeck != null)
+                    {
+                        OnNavigateToDeck?.Invoke(parentDeck);
+                        return;
+                    }
+                }
+            }
             OnNavigateBack?.Invoke();
         }
         
@@ -184,14 +396,95 @@ namespace FlashcardApp.ViewModels
                 OnNavigateToCardList?.Invoke(_currentDeck);
             }
         }
-        
-        [RelayCommand(CanExecute = nameof(HasCards))]
-        private void GoToLearn()
+
+        [RelayCommand]
+        private void StartLearningAll()
         {
             if (_currentDeck != null)
             {
-                OnNavigateToLearn?.Invoke(_currentDeck); // Changed to pass _currentDeck
+                OnNavigateToLearn?.Invoke(_currentDeck, LearningMode.AllRecursive, null);
             }
+        }
+
+        [RelayCommand]
+        private void StartLearningMain()
+        {
+            if (_currentDeck != null)
+            {
+                // Find "Allgemein" subdeck (Default or by Name)
+                var generalDeckVM = SubDecks.FirstOrDefault(d => d.Deck.IsDefault) 
+                                    ?? SubDecks.FirstOrDefault(d => d.Name == "Allgemein");
+                                    
+                if (generalDeckVM != null)
+                {
+                    // Learn the "Allgemein" deck. 
+                    OnNavigateToLearn?.Invoke(generalDeckVM.Deck, LearningMode.AllRecursive, null);
+                }
+                else
+                {
+                    // Fallback if no Allgemein deck exists (e.g. empty root deck)
+                    OnNavigateToLearn?.Invoke(_currentDeck, LearningMode.MainOnly, null);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private async Task OpenSubDeckSelection()
+        {
+            if (_currentDeck == null) return;
+
+            IsSubDeckSelectionVisible = true;
+            SubDeckSelectionList.Clear();
+
+            foreach (var subDeckVM in SubDecks)
+            {
+                SubDeckSelectionList.Add(new SubDeckSelectionItem(subDeckVM.Deck));
+            }
+
+            using (var context = new FlashcardDbContext())
+            {
+                var lastSession = await context.LearningSessions
+                    .AsNoTracking()
+                    .Where(s => s.DeckId == _currentDeck.Id && s.Mode == LearningMode.CustomSelection)
+                    .OrderByDescending(s => s.LastAccessed)
+                    .FirstOrDefaultAsync();
+
+                if (lastSession != null && !string.IsNullOrEmpty(lastSession.SelectedDeckIdsJson))
+                {
+                    try 
+                    {
+                        var selectedIds = JsonSerializer.Deserialize<List<int>>(lastSession.SelectedDeckIdsJson);
+                        if (selectedIds != null)
+                        {
+                            foreach (var item in SubDeckSelectionList)
+                            {
+                                item.IsSelected = selectedIds.Contains(item.Deck.Id);
+                            }
+                        }
+                    }
+                    catch { /* Ignore json errors */ }
+                }
+            }
+        }        [RelayCommand]
+        private void StartLearningCustom()
+        {
+            if (_currentDeck == null) return;
+
+            var selectedIds = SubDeckSelectionList
+                .Where(i => i.IsSelected)
+                .Select(i => i.Deck.Id)
+                .ToList();
+
+            if (!selectedIds.Any()) return; // Or show error
+
+            IsSubDeckSelectionVisible = false;
+            OnNavigateToLearn?.Invoke(_currentDeck, LearningMode.CustomSelection, selectedIds);
+        }
+
+        [RelayCommand]
+        private void CancelSubDeckSelection()
+        {
+            IsSubDeckSelectionVisible = false;
         }
         
         private void UpdateCardCount(int count)
@@ -210,7 +503,7 @@ namespace FlashcardApp.ViewModels
             _cardToEdit = null;
             NewCardFront = string.Empty;
             NewCardBack = string.Empty;
-            SaveButtonText = "Karte hinzufügen";
+            SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
             IsEditing = false;
         }
     }
