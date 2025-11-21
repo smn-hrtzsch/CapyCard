@@ -26,7 +26,18 @@ namespace FlashcardApp
             try 
             {
                 // NEU: QuestPDF-Lizenz setzen (erforderlich)
-                QuestPDF.Settings.License = LicenseType.Community;
+                // Wir fangen Fehler hier ab, da QuestPDF auf manchen Plattformen (z.B. Windows ARM64)
+                // oder bei fehlenden Abhängigkeiten (VC++ Redist) abstürzen kann.
+                // Die App soll trotzdem starten, nur PDF-Export geht dann halt nicht.
+                try 
+                {
+                    QuestPDF.Settings.License = LicenseType.Community;
+                }
+                catch (Exception qEx)
+                {
+                    LogException(qEx, "QuestPDF_Initialization_Failed");
+                    // Wir könnten hier ein Flag setzen, dass PDF deaktiviert ist.
+                }
                 
                 InitializeDatabase();
 
@@ -66,48 +77,58 @@ namespace FlashcardApp
         {
             using (var db = new FlashcardDbContext())
             {
+                // 1. Inkonsistenzen beheben (Windows-Bug: Migration erledigt, aber Spalte fehlt)
                 try
                 {
-                    // Führt ausstehende Migrationen aus und erstellt die Datenbank, falls sie nicht existiert.
+                    var connection = db.Database.GetDbConnection();
+                    connection.Open();
+
+                    bool hasColumn = false;
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "PRAGMA table_info(Decks);";
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.GetString(1) == "LastLearnedCardIndex")
+                                {
+                                    hasColumn = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!hasColumn)
+                    {
+                        // Spalte fehlt -> Migration aus Historie löschen, damit Migrate() sie neu anwendet
+                        using (var command = connection.CreateCommand())
+                        {
+                            command.CommandText = "DELETE FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" LIKE '%_AddLastLearnedCardIndex';";
+                            command.ExecuteNonQuery();
+                        }
+                    }
+                    connection.Close();
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, "PreMigrationCheckFailed");
+                }
+
+                // 2. Migrationen ausführen
+                try
+                {
                     db.Database.Migrate();
                 }
                 catch (Exception ex)
                 {
                     LogException(ex, "DatabaseMigrationFailed");
-                    
-                    // Fallback: Versuchen, die Datenbank manuell zu reparieren, falls Migrationen fehlschlagen.
-                    try 
-                    {
-                        // 1. Sicherstellen, dass die Tabellen existieren
-                        db.Database.EnsureCreated();
-
-                        // 2. Migrations-Historie reparieren, damit zukünftige Migrationen funktionieren
-                        db.Database.ExecuteSqlRaw(@"
-                            CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
-                                ""MigrationId"" TEXT NOT NULL CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY,
-                                ""ProductVersion"" TEXT NOT NULL
-                            );");
-
-                        // Markieren, dass wir auf dem aktuellen Stand sind (Hack, um EF zu beruhigen)
-                        db.Database.ExecuteSqlRaw(@"
-                            INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                            VALUES ('20251111110823_InitialCreate', '9.0.0');");
-                        
-                        db.Database.ExecuteSqlRaw(@"
-                            INSERT OR IGNORE INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-                            VALUES ('20251120153557_AddLearningProgressState', '9.0.0');");
-
-                        // Wir versuchen die Migration erneut, damit die neue Migration (AddLastLearnedCardIndex)
-                        // auch auf reparierten Datenbanken angewendet wird.
-                        db.Database.Migrate();
-                    }
-                    catch (Exception retryEx)
-                    {
-                        LogException(retryEx, "DatabaseRepairFailed");
-                    }
+                    // Fallback für ganz kaputte DBs (optional, aber sicher ist sicher)
+                    try { db.Database.EnsureCreated(); } catch { }
                 }
 
-                // Überprüfen, ob bereits Decks vorhanden sind.
+                // 3. Seed Data
                 if (!db.Decks.Any())
                 {
                     var deck = new Deck { Name = "2 Jahre Beziehung <3" };
