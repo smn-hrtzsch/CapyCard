@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashcardApp.Models;
 using System;
+using System.Collections.ObjectModel;
 
 namespace FlashcardApp.ViewModels
 {
@@ -27,6 +28,14 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private int _cardCount;
 
+        [ObservableProperty]
+        private bool _isExpanded;
+
+        [ObservableProperty]
+        private bool _hasSubDecks;
+
+        public ObservableCollection<DeckItemViewModel> SubDecks { get; } = new();
+
         public DeckItemViewModel(Deck deck, int cardCount = 0)
         {
             Deck = deck;
@@ -36,7 +45,6 @@ namespace FlashcardApp.ViewModels
             _cardCount = cardCount;
         }
 
-        // KORREKTUR: Von 'private' zu 'public' geändert
         [RelayCommand]
         public void StartEdit()
         {
@@ -44,12 +52,16 @@ namespace FlashcardApp.ViewModels
             IsEditing = true;
         }
 
-        // KORREKTUR: Von 'private' zu 'public' geändert
-        // Dies behebt den CS0122 Build-Fehler.
         [RelayCommand]
         public void CancelEdit()
         {
             IsEditing = false;
+        }
+
+        [RelayCommand]
+        public void ToggleExpand()
+        {
+            IsExpanded = !IsExpanded;
         }
     }
 }

@@ -82,10 +82,20 @@ namespace FlashcardApp.Services.Pdf
                 var mirroredBacks = new List<Card?>();
                 for (int i = 0; i < pageCards.Count; i += _columnCount)
                 {
+                    // Get cards for this row
                     var rowCards = pageCards.Skip(i).Take(_columnCount).ToList();
-                    // Die Karten in der Reihe umkehren
-                    rowCards.Reverse();
-                    mirroredBacks.AddRange(rowCards);
+                    
+                    // Create a full row of size _columnCount, filling missing spots with null
+                    var fullRow = new List<Card?>(rowCards);
+                    while (fullRow.Count < _columnCount)
+                    {
+                        fullRow.Add(null);
+                    }
+                    
+                    // Reverse the full row to mirror it for the back page
+                    fullRow.Reverse();
+                    
+                    mirroredBacks.AddRange(fullRow);
                 }
 
                 container.Page(page =>

@@ -29,6 +29,7 @@ namespace FlashcardApp.ViewModels
             _deckDetailViewModel.OnNavigateToLearn += NavigateToLearn;
             _deckDetailViewModel.OnNavigateToDeck += NavigateToDeckDetail;
             _deckDetailViewModel.OnCardCountUpdated += UpdateDeckCardCount;
+            _deckDetailViewModel.OnSubDeckAdded += RefreshDeckList;
             
             _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
             _learnViewModel.OnNavigateBack += NavigateBackToDeckDetail;
@@ -63,15 +64,20 @@ namespace FlashcardApp.ViewModels
             CurrentViewModel = _deckDetailViewModel;
         }
         
-        private async void NavigateToLearn(Deck deck)
+        private async void NavigateToLearn(Deck deck, LearningMode mode, List<int>? selectedIds)
         {
-            await _learnViewModel.LoadDeck(deck);
+            await _learnViewModel.LoadSession(deck, mode, selectedIds);
             CurrentViewModel = _learnViewModel;
         }
 
         private void UpdateDeckCardCount(Deck deck, int count)
         {
             _deckListViewModel.UpdateDeckCardCount(deck.Id, count);
+        }
+
+        private void RefreshDeckList()
+        {
+            _deckListViewModel.RefreshDecks();
         }
 
         // NEU: Diese Methode wird vom 'OnEditCardRequest'-Event aufgerufen

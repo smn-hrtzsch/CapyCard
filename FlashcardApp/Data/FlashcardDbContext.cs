@@ -10,6 +10,7 @@ namespace FlashcardApp.Data
         // Diese Eigenschaften werden zu Tabellen in der Datenbank
         public DbSet<Deck> Decks { get; set; }
         public DbSet<Card> Cards { get; set; }
+        public DbSet<LearningSession> LearningSessions { get; set; }
 
         public string DbPath { get; }
 

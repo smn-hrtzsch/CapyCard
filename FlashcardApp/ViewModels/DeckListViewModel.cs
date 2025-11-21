@@ -58,28 +58,83 @@ namespace FlashcardApp.ViewModels
             LoadDecks();
         }
 
+        public void RefreshDecks()
+        {
+            LoadDecks();
+        }
+
         private async void LoadDecks()
         {
             Decks.Clear();
-            var decksFromDb = await _dbContext.Decks
-                .Where(d => d.ParentDeckId == null) // Only load root decks
-                .Select(d => new { Deck = d, CardCount = d.Cards.Count })
+            
+            // Load all decks to build hierarchy in memory (simpler for now than recursive SQL)
+            var allDecks = await _dbContext.Decks
+                .Include(d => d.Cards)
                 .ToListAsync();
 
-            foreach (var entry in decksFromDb)
+            var rootDecks = allDecks.Where(d => d.ParentDeckId == null).ToList();
+
+            foreach (var deck in rootDecks)
             {
-                // KORREKTUR: Füge den Wrapper (DeckItemViewModel) zur Liste hinzu
-                Decks.Add(new DeckItemViewModel(entry.Deck, entry.CardCount));
+                var vm = CreateDeckItemViewModel(deck, allDecks);
+                Decks.Add(vm);
             }
+        }
+
+        private DeckItemViewModel CreateDeckItemViewModel(Deck deck, System.Collections.Generic.List<Deck> allDecks)
+        {
+            // Calculate total cards recursively
+            int totalCards = CalculateTotalCards(deck, allDecks);
+            var vm = new DeckItemViewModel(deck, totalCards);
+            
+            var subDecks = allDecks
+                .Where(d => d.ParentDeckId == deck.Id)
+                .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
+                .ThenBy(d => d.Id)
+                .ToList();
+
+            if (subDecks.Any())
+            {
+                vm.HasSubDecks = true;
+                foreach (var subDeck in subDecks)
+                {
+                    vm.SubDecks.Add(CreateDeckItemViewModel(subDeck, allDecks));
+                }
+            }
+            
+            return vm;
+        }
+
+        private int CalculateTotalCards(Deck deck, System.Collections.Generic.List<Deck> allDecks)
+        {
+            int count = deck.Cards.Count;
+            var subDecks = allDecks.Where(d => d.ParentDeckId == deck.Id);
+            foreach (var sub in subDecks)
+            {
+                count += CalculateTotalCards(sub, allDecks);
+            }
+            return count;
         }
 
         public void UpdateDeckCardCount(int deckId, int cardCount)
         {
-            var deckVm = Decks.FirstOrDefault(d => d.Deck.Id == deckId);
+            // Recursive search
+            var deckVm = FindDeckViewModel(Decks, deckId);
             if (deckVm != null)
             {
                 deckVm.CardCount = cardCount;
             }
+        }
+
+        private DeckItemViewModel? FindDeckViewModel(ObservableCollection<DeckItemViewModel> list, int deckId)
+        {
+            foreach (var item in list)
+            {
+                if (item.Deck.Id == deckId) return item;
+                var found = FindDeckViewModel(item.SubDecks, deckId);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         [RelayCommand]
@@ -164,6 +219,15 @@ namespace FlashcardApp.ViewModels
             }
 
             SelectedDeck = null;
+        }
+
+        [RelayCommand]
+        private void SelectSubDeck(DeckItemViewModel? subDeckVM)
+        {
+            if (subDeckVM != null)
+            {
+                OnDeckSelected?.Invoke(subDeckVM.Deck);
+            }
         }
     }
 }

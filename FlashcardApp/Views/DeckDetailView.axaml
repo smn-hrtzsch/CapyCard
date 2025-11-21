@@ -16,6 +16,7 @@
       KORREKTUR (LAYOUT):
       HorizontalScrollBarVisibility="Disabled" erzwingt den Textumbruch.
     -->
+    <Grid>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="10">
             <!-- OBERER BEREICH -->
@@ -37,30 +38,6 @@
             
             <!-- MITTLERER BEREICH (unverändert) -->
             <StackPanel Spacing="10" Margin="0,15,0,0">
-                
-                <!-- SUBDECKS SECTION -->
-                <TextBlock Text="Themen:" FontWeight="Bold"/>
-                
-                <ItemsControl ItemsSource="{Binding SubDecks}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Content="{Binding Name}" 
-                                    Command="{Binding #Root.((vm:DeckDetailViewModel)DataContext).OpenSubDeckCommand}" 
-                                    CommandParameter="{Binding .}"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Left"
-                                    Margin="0,0,0,5"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
-                    <TextBox Text="{Binding NewSubDeckName}" Watermark="Neues Thema hinzufügen..." Margin="0,0,10,0"/>
-                    <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
-                </Grid>
-                
-                <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Margin="0,0,0,10"/>
-
                 <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
                 
                 <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
@@ -136,14 +113,100 @@
                                 IsEnabled="{Binding HasCards}"
                                 HorizontalAlignment="Stretch"/>
                                 
-                        <Button Content="Karteikarten lernen" 
-                                Command="{Binding GoToLearnCommand}"
+                        <Grid ColumnDefinitions="*,*,*" IsEnabled="{Binding HasCards}" IsVisible="{Binding IsRootDeck}">
+                            <Button Content="Alle lernen" 
+                                    Command="{Binding StartLearningAllCommand}"
+                                    HorizontalAlignment="Stretch" Margin="0,0,5,0"
+                                    ToolTip.Tip="Alle Karten lernen (inkl. Unterdecks)"/>
+                            <Button Content="Allgemeine Karten" 
+                                    Command="{Binding StartLearningMainCommand}"
+                                    HorizontalAlignment="Stretch" Grid.Column="1" Margin="2,0,2,0"
+                                    ToolTip.Tip="Nur Allgemeine Karten lernen"/>
+                            <Button Content="Auswahl..." 
+                                    Command="{Binding OpenSubDeckSelectionCommand}"
+                                    HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,0,0"
+                                    ToolTip.Tip="Bestimmte Themen lernen"/>
+                        </Grid>
+                        
+                        <Button Content="Alle Karteikarten des Themas lernen" 
+                                Command="{Binding StartLearningMainCommand}"
                                 IsEnabled="{Binding HasCards}"
+                                IsVisible="{Binding !IsRootDeck}"
                                 HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </Border>
+
+                <!-- SUBDECKS SECTION (Moved to bottom) -->
+                <StackPanel IsVisible="{Binding CanAddSubDecks}" Margin="0,20,0,0">
+                    <TextBlock Text="Themen:" FontWeight="Bold" Margin="0,0,0,10"/>
+                    
+                    <ItemsControl ItemsSource="{Binding SubDecks}" Grid.IsSharedSizeScope="True">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.OpenSubDeckCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                        CommandParameter="{Binding .}"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Stretch"
+                                        Margin="0,0,0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="BadgeColumn" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1"
+                                                Background="{DynamicResource BadgeBackgroundBrush}"
+                                                Padding="8,2"
+                                                CornerRadius="8">
+                                            <TextBlock Text="{Binding Cards.Count}" 
+                                                       FontSize="12"
+                                                       HorizontalAlignment="Center"
+                                                       TextAlignment="Center"
+                                                       Foreground="{DynamicResource BadgeForegroundBrush}"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,10,0,0">
+                        <TextBox Text="{Binding NewSubDeckName}" Watermark="Neues Thema hinzufügen..." Margin="0,0,10,0">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Command="{Binding AddSubDeckCommand}" Gesture="Enter"/>
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
+                    </Grid>
+                </StackPanel>
                 
             </StackPanel>
         </DockPanel>
     </ScrollViewer>
+
+    <!-- POPUP OVERLAY -->
+    <Grid IsVisible="{Binding IsSubDeckSelectionVisible}" Background="#AA000000">
+        <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 
+                CornerRadius="8" Padding="20" VerticalAlignment="Center" HorizontalAlignment="Center" MinWidth="300" MaxHeight="400">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <TextBlock Text="Themen auswählen" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+                
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl ItemsSource="{Binding SubDeckSelectionList}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}" Content="{Binding Name}" Margin="0,5"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+                    <Button Command="{Binding CancelSubDeckSelectionCommand}" Content="Abbrechen"/>
+                    <Button Command="{Binding StartLearningCustomCommand}" Content="Starten" Classes="accent"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+    </Grid>
 </UserControl>

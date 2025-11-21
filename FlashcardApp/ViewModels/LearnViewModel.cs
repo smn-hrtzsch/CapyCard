@@ -5,6 +5,7 @@ using FlashcardApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace FlashcardApp.ViewModels
     {
         private readonly FlashcardDbContext _dbContext;
         private Deck? _deck;
+        private LearningSession? _currentSession;
         private List<Card> _allCards = new();
 
         [ObservableProperty] private string _currentCardFront = string.Empty;
@@ -47,52 +49,116 @@ namespace FlashcardApp.ViewModels
             _dbContext = new FlashcardDbContext();
         }
 
-        public async Task LoadDeck(Deck deck)
+        public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)
         {
             var trackedDeck = _dbContext.Decks.Local.FirstOrDefault(d => d.Id == deck.Id);
             if (trackedDeck != null) _dbContext.Entry(trackedDeck).State = EntityState.Detached;
 
-            _deck = await _dbContext.Decks.Include(d => d.Cards).FirstOrDefaultAsync(d => d.Id == deck.Id);
+            _deck = await _dbContext.Decks
+                .Include(d => d.Cards)
+                .Include(d => d.SubDecks)
+                .ThenInclude(sd => sd.Cards)
+                .FirstOrDefaultAsync(d => d.Id == deck.Id);
 
-            if (_deck == null || !_deck.Cards.Any())
+            if (_deck == null) return;
+
+            DeckName = _deck.Name;
+
+            // Find or create session
+            string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";
+            
+            _currentSession = await _dbContext.LearningSessions
+                .FirstOrDefaultAsync(s => s.DeckId == _deck.Id && s.Mode == mode && s.SelectedDeckIdsJson == selectedIdsJson);
+
+            if (_currentSession == null)
             {
-                _allCards = new List<Card>();
-                DeckName = _deck?.Name ?? "Unbekanntes Deck";
-                SetFinishedState("Keine Karten in diesem Fach.");
-                return;
+                _currentSession = new LearningSession
+                {
+                    DeckId = _deck.Id,
+                    Mode = mode,
+                    SelectedDeckIdsJson = selectedIdsJson,
+                    LastLearnedIndex = 0,
+                    LearnedCardIdsJson = "[]",
+                    IsRandomOrder = false,
+                    LastAccessed = DateTime.Now
+                };
+                _dbContext.LearningSessions.Add(_currentSession);
+            }
+            else
+            {
+                _currentSession.LastAccessed = DateTime.Now;
+            }
+            await _dbContext.SaveChangesAsync();
+
+            IsRandomOrder = _currentSession.IsRandomOrder;
+
+            // Load cards based on mode
+            _allCards.Clear();
+            if (mode == LearningMode.MainOnly)
+            {
+                _allCards.AddRange(_deck.Cards);
+            }
+            else if (mode == LearningMode.AllRecursive)
+            {
+                _allCards.AddRange(GetAllCards(_deck));
+            }
+            else if (mode == LearningMode.CustomSelection && selectedIds != null)
+            {
+                // Add main deck if selected
+                if (selectedIds.Contains(_deck.Id))
+                {
+                    _allCards.AddRange(_deck.Cards);
+                }
+                
+                // Add subdecks
+                // Note: This only works for 1 level deep as loaded. For deeper, we need recursive loading logic in DB query or here.
+                // Assuming 1 level for now as per previous implementation.
+                foreach (var subDeck in _deck.SubDecks)
+                {
+                    if (selectedIds.Contains(subDeck.Id))
+                    {
+                        _allCards.AddRange(GetAllCards(subDeck));
+                    }
+                }
             }
 
-            _allCards = _deck.Cards.ToList();
-            IsRandomOrder = _deck.IsRandomOrder;
-            DeckName = _deck.Name;
-            
             UpdateProgressState();
             ShowCardAtCurrentProgress();
         }
 
+        private List<Card> GetAllCards(Deck deck)
+        {
+            var cards = deck.Cards.ToList();
+            foreach (var subDeck in deck.SubDecks)
+            {
+                cards.AddRange(GetAllCards(subDeck));
+            }
+            return cards;
+        }
+
         private void UpdateProgressState()
         {
-            if (_deck == null) return;
+            if (_currentSession == null) return;
             TotalCount = _allCards.Count;
 
             if (!IsRandomOrder)
             {
                 ProgressModeLabel = "Sortiert";
-                LearnedCount = _deck.LastLearnedCardIndex;
+                LearnedCount = _currentSession.LastLearnedIndex;
             }
             else
             {
                 ProgressModeLabel = "Zufall";
-                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
-                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
+                    : (JsonSerializer.Deserialize<List<int>>(_currentSession.LearnedCardIdsJson) ?? new List<int>());
                 LearnedCount = learnedIds.Count;
             }
         }
 
         private void ShowCardAtCurrentProgress()
         {
-            if (_deck == null || !_allCards.Any())
+            if (_currentSession == null || !_allCards.Any())
             {
                 SetFinishedState("Keine Karten in diesem Fach.");
                 return;
@@ -108,9 +174,9 @@ namespace FlashcardApp.ViewModels
             if (!IsRandomOrder)
             {
                 var sortedCards = _allCards.OrderBy(c => c.Id).ToList();
-                if (_deck.LastLearnedCardIndex < sortedCards.Count)
+                if (_currentSession.LastLearnedIndex < sortedCards.Count)
                 {
-                    cardToShow = sortedCards[_deck.LastLearnedCardIndex];
+                    cardToShow = sortedCards[_currentSession.LastLearnedIndex];
                 }
                 else
                 {
@@ -120,9 +186,9 @@ namespace FlashcardApp.ViewModels
             }
             else
             {
-                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
-                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
+                    : (JsonSerializer.Deserialize<List<int>>(_currentSession.LearnedCardIdsJson) ?? new List<int>());
                 
                 var availableCards = _allCards.Where(c => !learnedIds.Contains(c.Id)).ToList();
 
@@ -139,22 +205,22 @@ namespace FlashcardApp.ViewModels
 
         private async Task AdvanceAndShowNextCard()
         {
-            if (_deck == null) return;
+            if (_currentSession == null) return;
             IsBackVisible = false;
 
             if (!_isCurrentCardFromRandomOrder)
             {
-                _deck.LastLearnedCardIndex++;
+                _currentSession.LastLearnedIndex++;
             }
             else
             {
-                var learnedIds = string.IsNullOrEmpty(_deck.LearnedShuffleCardIdsJson) 
+                var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
-                    : (JsonSerializer.Deserialize<List<int>>(_deck.LearnedShuffleCardIdsJson) ?? new List<int>());
+                    : (JsonSerializer.Deserialize<List<int>>(_currentSession.LearnedCardIdsJson) ?? new List<int>());
                 if (CurrentCard != null && !learnedIds.Contains(CurrentCard.Id))
                 {
                     learnedIds.Add(CurrentCard.Id);
-                    _deck.LearnedShuffleCardIdsJson = JsonSerializer.Serialize(learnedIds);
+                    _currentSession.LearnedCardIdsJson = JsonSerializer.Serialize(learnedIds);
                 }
             }
             await _dbContext.SaveChangesAsync();
@@ -200,16 +266,11 @@ namespace FlashcardApp.ViewModels
         [RelayCommand(CanExecute = nameof(CanToggleRandomOrder))]
         private async Task ToggleRandomOrder()
         {
-            // The IsRandomOrder property is already updated by the TwoWay binding from the UI.
-            // This command just persists the change and updates the view.
-            if (_deck == null) return;
+            if (_currentSession == null) return;
 
-            _deck.IsRandomOrder = IsRandomOrder;
+            _currentSession.IsRandomOrder = IsRandomOrder;
             await _dbContext.SaveChangesAsync();
             
-            // Only refresh if we are NOT currently viewing a card (e.g. we are at the finish screen)
-            // OR if the back is already visible (user wants to skip to next card in new mode).
-            // If we are viewing the front of a card, we want to keep it visible and only switch logic for the NEXT card.
             if (CurrentCard == null || IsBackVisible)
             {
                 ShowCardAtCurrentProgress();
@@ -221,17 +282,15 @@ namespace FlashcardApp.ViewModels
         [RelayCommand]
         private async Task ResetDeckProgress()
         {
-            if (_deck == null) return;
+            if (_currentSession == null) return;
 
             if (IsRandomOrder)
             {
-                // If we are in random mode, only reset the shuffle progress.
-                _deck.LearnedShuffleCardIdsJson = "[]";
+                _currentSession.LearnedCardIdsJson = "[]";
             }
             else
             {
-                // If we are in sorted mode, only reset the sorted progress.
-                _deck.LastLearnedCardIndex = 0;
+                _currentSession.LastLearnedIndex = 0;
             }
             
             await _dbContext.SaveChangesAsync();
