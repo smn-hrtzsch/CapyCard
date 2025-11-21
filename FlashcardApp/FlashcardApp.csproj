@@ -11,6 +11,15 @@
     <CFBundleName>Alinas Karteikarten</CFBundleName>
   </PropertyGroup>
 
+  <!-- 
+    FIX: QuestPDF unterstützt aktuell kein Windows ARM64 (z.B. Parallels auf Mac).
+    Wir erzwingen daher auf Windows immer x64 (läuft dann via Emulation auf ARM-Geräten).
+    Auf macOS (M1/M2) nutzen wir weiterhin nativ ARM64.
+  -->
+  <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Release' And '$(RuntimeIdentifier)'=='win-x64'">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
