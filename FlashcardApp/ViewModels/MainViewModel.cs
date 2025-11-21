@@ -27,6 +27,7 @@ namespace FlashcardApp.ViewModels
             _deckDetailViewModel.OnNavigateBack += NavigateToDeckList;
             _deckDetailViewModel.OnNavigateToCardList += NavigateToCardList;
             _deckDetailViewModel.OnNavigateToLearn += NavigateToLearn;
+            _deckDetailViewModel.OnNavigateToDeck += NavigateToDeckDetail;
             _deckDetailViewModel.OnCardCountUpdated += UpdateDeckCardCount;
             
             _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;

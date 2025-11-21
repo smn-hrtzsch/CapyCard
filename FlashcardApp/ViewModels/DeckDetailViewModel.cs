@@ -40,12 +40,16 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private bool _isEditing = false;
 
+        [ObservableProperty]
+        private string _newSubDeckName = string.Empty;
 
         public ObservableCollection<Card> Cards { get; } = new();
+        public ObservableCollection<Deck> SubDecks { get; } = new();
 
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
         public event Action<Deck>? OnNavigateToLearn; // Changed from List<Card>
+        public event Action<Deck>? OnNavigateToDeck; // New event for subdeck navigation
         public event Action<Deck, int>? OnCardCountUpdated;
         public event Action? RequestFrontFocus;
 
@@ -88,6 +92,7 @@ namespace FlashcardApp.ViewModels
             var deckFromDb = await _dbContext.Decks
                                  .AsNoTracking() // <-- HINZUGEFÜGT
                                  .Include(d => d.Cards)
+                                 .Include(d => d.SubDecks)
                                  .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id);
             
             // Wir müssen _currentDeck aktualisieren, falls es null war, 
@@ -106,10 +111,39 @@ namespace FlashcardApp.ViewModels
             {
                 Cards.Add(card);
             }
+
+            SubDecks.Clear();
+            foreach (var subDeck in deckFromDb.SubDecks.OrderBy(d => d.Name))
+            {
+                SubDecks.Add(subDeck);
+            }
             
             UpdateCardCount(Cards.Count);
         }
         
+        [RelayCommand]
+        private async Task AddSubDeck()
+        {
+            if (string.IsNullOrWhiteSpace(NewSubDeckName) || _currentDeck == null) return;
+
+            var newDeck = new Deck
+            {
+                Name = NewSubDeckName,
+                ParentDeckId = _currentDeck.Id
+            };
+            _dbContext.Decks.Add(newDeck);
+            await _dbContext.SaveChangesAsync();
+            
+            NewSubDeckName = string.Empty;
+            await RefreshCardDataAsync();
+        }
+
+        [RelayCommand]
+        private void OpenSubDeck(Deck subDeck)
+        {
+            OnNavigateToDeck?.Invoke(subDeck);
+        }
+
         [RelayCommand]
         private async Task SaveCard()
         {
@@ -173,6 +207,15 @@ namespace FlashcardApp.ViewModels
         [RelayCommand]
         private void GoBack()
         {
+            if (_currentDeck?.ParentDeckId != null)
+            {
+                var parentDeck = _dbContext.Decks.Find(_currentDeck.ParentDeckId);
+                if (parentDeck != null)
+                {
+                    OnNavigateToDeck?.Invoke(parentDeck);
+                    return;
+                }
+            }
             OnNavigateBack?.Invoke();
         }
         

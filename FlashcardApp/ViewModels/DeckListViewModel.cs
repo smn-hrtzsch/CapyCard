@@ -62,6 +62,7 @@ namespace FlashcardApp.ViewModels
         {
             Decks.Clear();
             var decksFromDb = await _dbContext.Decks
+                .Where(d => d.ParentDeckId == null) // Only load root decks
                 .Select(d => new { Deck = d, CardCount = d.Cards.Count })
                 .ToListAsync();
 

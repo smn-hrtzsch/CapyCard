@@ -15,6 +15,13 @@ namespace FlashcardApp.Models
         // Ein Fach kann viele Karten haben (1-zu-N-Beziehung)
         public virtual ICollection<Card> Cards { get; set; } = new List<Card>();
 
+        // Parent Deck for Subdecks
+        public int? ParentDeckId { get; set; }
+        public virtual Deck? ParentDeck { get; set; }
+
+        // Subdecks
+        public virtual ICollection<Deck> SubDecks { get; set; } = new List<Deck>();
+
         // Speichert den Index der zuletzt gelernten Karte in sequentieller Reihenfolge
         public int LastLearnedCardIndex { get; set; } = 0;
 

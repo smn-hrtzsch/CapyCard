@@ -5,7 +5,8 @@
              xmlns:vm="using:FlashcardApp.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardApp.Views.DeckDetailView"
-             x:DataType="vm:DeckDetailViewModel">
+             x:DataType="vm:DeckDetailViewModel"
+             x:Name="Root">
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Ctrl+Enter"/>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Meta+Enter"/>
@@ -36,6 +37,30 @@
             
             <!-- MITTLERER BEREICH (unverändert) -->
             <StackPanel Spacing="10" Margin="0,15,0,0">
+                
+                <!-- SUBDECKS SECTION -->
+                <TextBlock Text="Themen:" FontWeight="Bold"/>
+                
+                <ItemsControl ItemsSource="{Binding SubDecks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Content="{Binding Name}" 
+                                    Command="{Binding #Root.((vm:DeckDetailViewModel)DataContext).OpenSubDeckCommand}" 
+                                    CommandParameter="{Binding .}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Margin="0,0,0,5"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                    <TextBox Text="{Binding NewSubDeckName}" Watermark="Neues Thema hinzufügen..." Margin="0,0,10,0"/>
+                    <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
+                </Grid>
+                
+                <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Margin="0,0,0,10"/>
+
                 <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
                 
                 <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
