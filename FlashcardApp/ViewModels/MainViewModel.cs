@@ -48,6 +48,7 @@ namespace FlashcardApp.ViewModels
 
         private void NavigateToDeckList()
         {
+            _deckListViewModel.RefreshDecks();
             CurrentViewModel = _deckListViewModel; 
         }
         

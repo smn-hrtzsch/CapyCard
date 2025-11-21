@@ -12,8 +12,6 @@ namespace FlashcardApp.ViewModels
 {
     public partial class DeckListViewModel : ObservableObject
     {
-        private readonly FlashcardDbContext _dbContext;
-
         [ObservableProperty]
         private string _newDeckName = string.Empty;
 
@@ -54,7 +52,7 @@ namespace FlashcardApp.ViewModels
 
         public DeckListViewModel()
         {
-            _dbContext = new FlashcardDbContext();
+            // _dbContext removed
             LoadDecks();
         }
 
@@ -67,17 +65,21 @@ namespace FlashcardApp.ViewModels
         {
             Decks.Clear();
             
-            // Load all decks to build hierarchy in memory (simpler for now than recursive SQL)
-            var allDecks = await _dbContext.Decks
-                .Include(d => d.Cards)
-                .ToListAsync();
-
-            var rootDecks = allDecks.Where(d => d.ParentDeckId == null).ToList();
-
-            foreach (var deck in rootDecks)
+            using (var context = new FlashcardDbContext())
             {
-                var vm = CreateDeckItemViewModel(deck, allDecks);
-                Decks.Add(vm);
+                // Load all decks to build hierarchy in memory (simpler for now than recursive SQL)
+                var allDecks = await context.Decks
+                    .AsNoTracking()
+                    .Include(d => d.Cards)
+                    .ToListAsync();
+
+                var rootDecks = allDecks.Where(d => d.ParentDeckId == null).ToList();
+
+                foreach (var deck in rootDecks)
+                {
+                    var vm = CreateDeckItemViewModel(deck, allDecks);
+                    Decks.Add(vm);
+                }
             }
         }
 
@@ -145,8 +147,12 @@ namespace FlashcardApp.ViewModels
                 return;
             }
             var newDeck = new Deck { Name = NewDeckName };
-            _dbContext.Decks.Add(newDeck);
-            await _dbContext.SaveChangesAsync();
+            
+            using (var context = new FlashcardDbContext())
+            {
+                context.Decks.Add(newDeck);
+                await context.SaveChangesAsync();
+            }
             
             // KORREKTUR: Füge den Wrapper zur UI-Liste hinzu
             Decks.Add(new DeckItemViewModel(newDeck));
@@ -168,9 +174,17 @@ namespace FlashcardApp.ViewModels
         {
             if (_deckToConfirmDelete == null) return;
 
-            // KORREKTUR: Löscht das 'innere' Deck-Modell
-            _dbContext.Decks.Remove(_deckToConfirmDelete.Deck);
-            await _dbContext.SaveChangesAsync();
+            using (var context = new FlashcardDbContext())
+            {
+                // KORREKTUR: Löscht das 'innere' Deck-Modell
+                // Wir müssen es erst attachen oder finden
+                var deckToDelete = await context.Decks.FindAsync(_deckToConfirmDelete.Deck.Id);
+                if (deckToDelete != null)
+                {
+                    context.Decks.Remove(deckToDelete);
+                    await context.SaveChangesAsync();
+                }
+            }
 
             // KORREKTUR: Entfernt das Wrapper-ViewModel aus der UI-Liste
             Decks.Remove(_deckToConfirmDelete);
@@ -197,25 +211,28 @@ namespace FlashcardApp.ViewModels
                 return;
             }
 
-            // Finde das Fach in der Datenbank
-            var trackedDeck = await _dbContext.Decks.FindAsync(itemVM.Deck.Id);
-            if (trackedDeck != null)
+            using (var context = new FlashcardDbContext())
             {
-                // 1. Aktualisiere die Datenbank
-                trackedDeck.Name = itemVM.EditText;
-                await _dbContext.SaveChangesAsync();
+                // Finde das Fach in der Datenbank
+                var trackedDeck = await context.Decks.FindAsync(itemVM.Deck.Id);
+                if (trackedDeck != null)
+                {
+                    // 1. Aktualisiere die Datenbank
+                    trackedDeck.Name = itemVM.EditText;
+                    await context.SaveChangesAsync();
 
-                // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
-                //    (Dadurch wird das TextBlock in der UI aktualisiert)
-                itemVM.Name = itemVM.EditText;
+                    // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
+                    //    (Dadurch wird das TextBlock in der UI aktualisiert)
+                    itemVM.Name = itemVM.EditText;
 
-                // 3. Beende den Bearbeiten-Modus
-                itemVM.IsEditing = false;
-            }
-            else
-            {
-                // Fach nicht gefunden? Breche den Editiermodus ab.
-                itemVM.CancelEdit();
+                    // 3. Beende den Bearbeiten-Modus
+                    itemVM.IsEditing = false;
+                }
+                else
+                {
+                    // Fach nicht gefunden? Breche den Editiermodus ab.
+                    itemVM.CancelEdit();
+                }
             }
 
             SelectedDeck = null;

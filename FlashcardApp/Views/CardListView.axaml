@@ -40,7 +40,7 @@
                             IsVisible="{Binding ShowPdfButton}"/>
                     <Button Content="{Binding SelectAllButtonText}"
                             Command="{Binding ToggleSelectAllCommand}"/>
-                    <Button Content="Zurück zum Fach" 
+                    <Button Content="{Binding BackButtonText}" 
                             Command="{Binding GoBackCommand}"/>
                 </StackPanel>
             </Grid>

@@ -141,7 +141,10 @@
                                                         Background="{DynamicResource BadgeBackgroundBrush}"
                                                         Padding="8,2"
                                                         Margin="10,0,0,0"
-                                                        CornerRadius="10"
+                                                        CornerRadius="12"
+                                                        MinWidth="24"
+                                                        Height="24"
+                                                        HorizontalAlignment="Center"
                                                         VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding CardCount}"
                                                                FontSize="12"
@@ -188,6 +191,8 @@
                                                         <KeyBinding Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
                                                                     CommandParameter="{Binding}"
                                                                     Gesture="Enter"/>
+                                                        <KeyBinding Command="{Binding CancelEditCommand}"
+                                                                    Gesture="Escape"/>
                                                     </TextBox.KeyBindings>
                                                 </TextBox>
 
@@ -242,10 +247,15 @@
                                                         <Border Grid.Column="1"
                                                                 Background="{DynamicResource BadgeBackgroundBrush}"
                                                                 Padding="8,2"
-                                                                CornerRadius="8">
+                                                                CornerRadius="12"
+                                                                MinWidth="24"
+                                                                Height="24"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding CardCount}" 
                                                                        FontSize="11"
                                                                        HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"
                                                                        TextAlignment="Center"/>
                                                         </Border>
                                                     </Grid>

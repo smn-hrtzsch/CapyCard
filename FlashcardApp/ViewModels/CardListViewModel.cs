@@ -30,7 +30,6 @@ namespace FlashcardApp.ViewModels
 
     public partial class CardListViewModel : ObservableObject
     {
-        private readonly FlashcardDbContext _dbContext;
         private Deck? _currentDeck;
 
         [ObservableProperty]
@@ -46,6 +45,9 @@ namespace FlashcardApp.ViewModels
         [NotifyPropertyChangedFor(nameof(ShowPdfButton))]
         [NotifyPropertyChangedFor(nameof(SelectAllButtonText))]
         private int _selectedCardCount = 0;
+
+        [ObservableProperty]
+        private string _backButtonText = "Zurück zum Fach";
 
         public bool ShowPdfButton => SelectedCardCount > 0;
         public string SelectAllButtonText
@@ -81,7 +83,7 @@ namespace FlashcardApp.ViewModels
 
         public CardListViewModel()
         {
-            _dbContext = new FlashcardDbContext();
+            // _dbContext removed
         }
 
         public async void LoadDeck(Deck deck)
@@ -103,6 +105,9 @@ namespace FlashcardApp.ViewModels
             _currentDeck = deck;
             DeckName = $"Karten für: {deck.Name}";
             
+            // Set Back Button Text based on context
+            BackButtonText = deck.ParentDeckId != null ? "Zurück zum Thema" : "Zurück zum Fach";
+
             // Cleanup old handlers
             foreach (var item in AllCards)
             {
@@ -117,53 +122,67 @@ namespace FlashcardApp.ViewModels
                 savedState = _deckExpansionStates[deck.Id];
             }
             
-            // Load current deck cards (General)
-            var currentDeckCards = await _dbContext.Cards
-                                .AsNoTracking() 
-                                .Where(c => c.DeckId == _currentDeck.Id)
-                                .ToListAsync();
-
-            if (currentDeckCards.Any())
+            using (var context = new FlashcardDbContext())
             {
-                var generalGroup = new CardGroupViewModel("Allgemein");
-                // Restore expansion state
-                generalGroup.IsExpanded = savedState.Contains(generalGroup.Title);
-                
-                foreach (var card in currentDeckCards)
-                {
-                    var itemVM = new CardItemViewModel(card);
-                    itemVM.PropertyChanged += CardItem_PropertyChanged;
-                    generalGroup.Cards.Add(itemVM);
-                }
-                CardGroups.Add(generalGroup);
-            }
+                // Load current deck cards (General)
+                var currentDeckCards = await context.Cards
+                                    .AsNoTracking() 
+                                    .Where(c => c.DeckId == _currentDeck.Id)
+                                    .ToListAsync();
 
-            // Load subdecks recursively (flattened for now or grouped by subdeck)
-            // Requirement: "When opening a main deck -> Show 'General Cards' section and then sections for each subdeck."
-            // We need to fetch subdecks.
-            var subDecks = await _dbContext.Decks
-                .AsNoTracking()
-                .Include(d => d.Cards)
-                .Where(d => d.ParentDeckId == _currentDeck.Id)
-                .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
-                .ThenBy(d => d.Id)
-                .ToListAsync();
-
-            foreach (var subDeck in subDecks)
-            {
-                if (subDeck.Cards.Any())
+                if (currentDeckCards.Any())
                 {
-                    var subGroup = new CardGroupViewModel(subDeck.Name);
+                    // If it is a subdeck, use the deck name as group title, otherwise "Allgemein"
+                    string groupTitle = (_currentDeck.ParentDeckId != null) ? _currentDeck.Name : "Allgemein";
+                    var generalGroup = new CardGroupViewModel(groupTitle);
+                    
                     // Restore expansion state
-                    subGroup.IsExpanded = savedState.Contains(subGroup.Title);
-
-                    foreach (var card in subDeck.Cards)
+                    // Force expansion if it is a subdeck (single group view)
+                    if (_currentDeck.ParentDeckId != null)
+                    {
+                        generalGroup.IsExpanded = true;
+                    }
+                    else
+                    {
+                        generalGroup.IsExpanded = savedState.Contains(generalGroup.Title);
+                    }
+                    
+                    foreach (var card in currentDeckCards)
                     {
                         var itemVM = new CardItemViewModel(card);
                         itemVM.PropertyChanged += CardItem_PropertyChanged;
-                        subGroup.Cards.Add(itemVM);
+                        generalGroup.Cards.Add(itemVM);
                     }
-                    CardGroups.Add(subGroup);
+                    CardGroups.Add(generalGroup);
+                }
+
+                // Load subdecks recursively (flattened for now or grouped by subdeck)
+                // Requirement: "When opening a main deck -> Show 'General Cards' section and then sections for each subdeck."
+                // We need to fetch subdecks.
+                var subDecks = await context.Decks
+                    .AsNoTracking()
+                    .Include(d => d.Cards)
+                    .Where(d => d.ParentDeckId == _currentDeck.Id)
+                    .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
+                    .ThenBy(d => d.Id)
+                    .ToListAsync();
+
+                foreach (var subDeck in subDecks)
+                {
+                    if (subDeck.Cards.Any())
+                    {
+                        var subGroup = new CardGroupViewModel(subDeck.Name);
+                        // Restore expansion state
+                        subGroup.IsExpanded = savedState.Contains(subGroup.Title);
+
+                        foreach (var card in subDeck.Cards)
+                        {
+                            var itemVM = new CardItemViewModel(card);
+                            itemVM.PropertyChanged += CardItem_PropertyChanged;
+                            subGroup.Cards.Add(itemVM);
+                        }
+                        CardGroups.Add(subGroup);
+                    }
                 }
             }
 
@@ -176,9 +195,14 @@ namespace FlashcardApp.ViewModels
             if (itemVM == null) return;
             
             itemVM.PropertyChanged -= CardItem_PropertyChanged;
-            _dbContext.Cards.Attach(itemVM.Card);
-            _dbContext.Cards.Remove(itemVM.Card);
-            await _dbContext.SaveChangesAsync();
+            
+            using (var context = new FlashcardDbContext())
+            {
+                // Attach and remove
+                context.Cards.Attach(itemVM.Card);
+                context.Cards.Remove(itemVM.Card);
+                await context.SaveChangesAsync();
+            }
             
             // Remove from UI
             foreach (var group in CardGroups)

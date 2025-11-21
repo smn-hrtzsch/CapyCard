@@ -4,7 +4,7 @@ Eine native Desktop-Karteikarten-App, entwickelt mit Avalonia und .NET.
 
 ## TO-DO
 
-- **Unterdecks hinzufügeen**: Möglichkeit zum Hinzufügen von einzelnen Themen innerhalb eines Fachs
+- [x] **Unterdecks hinzufügen**: Möglichkeit zum Hinzufügen von einzelnen Themen innerhalb eines Fachs
 - **Spaced Repetition:** Implementierung eines Algorithmus (z.B. SM-2), um Karten in optimalen Intervallen zur Wiederholung anzuzeigen.
 - **Statistiken:** Eine Ansicht mit Lernstatistiken, z.B. gelernte Karten pro Tag, Behaltensquote und Fortschrittsdiagramme.
 - **Bilder auf Karten:** Ermöglichen, Bilder zur Vorder- oder Rückseite von Karten hinzuzufügen.

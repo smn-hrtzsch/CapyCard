@@ -30,5 +30,8 @@ namespace FlashcardApp.Models
 
         // Speichert den zuletzt verwendeten Lernmodus (Zufall oder nicht)
         public bool IsRandomOrder { get; set; } = false;
+
+        // Markiert das Standard-Unterdeck (z.B. "Allgemein"), das automatisch erstellt wird
+        public bool IsDefault { get; set; } = false;
     }
 }
