@@ -173,7 +173,15 @@ namespace FlashcardApp.ViewModels
                 foreach (var subDeck in sortedSubDecks)
                 {
                     // Wrap in ViewModel
-                    SubDecks.Add(new DeckItemViewModel(subDeck, subDeck.Cards.Count));
+                    var vm = new DeckItemViewModel(subDeck, subDeck.Cards.Count);
+                    
+                    // "Allgemein" oder Default-Decks dürfen nicht bearbeitet/gelöscht werden
+                    if (subDeck.IsDefault || subDeck.Name == "Allgemein")
+                    {
+                        vm.IsStatic = true;
+                    }
+                    
+                    SubDecks.Add(vm);
                 }
                 
                 int totalCards = Cards.Count + SubDecks.Sum(sd => sd.Deck.Cards.Count);

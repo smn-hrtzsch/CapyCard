@@ -34,6 +34,9 @@ namespace FlashcardApp.ViewModels
         [ObservableProperty]
         private bool _hasSubDecks;
 
+        [ObservableProperty]
+        private bool _isStatic; // Wenn true, darf das Deck nicht bearbeitet oder gelöscht werden (z.B. "Allgemein")
+
         public ObservableCollection<DeckItemViewModel> SubDecks { get; } = new();
 
         public DeckItemViewModel(Deck deck, int cardCount = 0)
