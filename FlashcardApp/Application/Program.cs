@@ -26,7 +26,18 @@ namespace FlashcardApp
             try 
             {
                 // NEU: QuestPDF-Lizenz setzen (erforderlich)
-                QuestPDF.Settings.License = LicenseType.Community;
+                // Wir fangen Fehler hier ab, da QuestPDF auf manchen Plattformen (z.B. Windows ARM64)
+                // oder bei fehlenden Abhängigkeiten (VC++ Redist) abstürzen kann.
+                // Die App soll trotzdem starten, nur PDF-Export geht dann halt nicht.
+                try 
+                {
+                    QuestPDF.Settings.License = LicenseType.Community;
+                }
+                catch (Exception qEx)
+                {
+                    LogException(qEx, "QuestPDF_Initialization_Failed");
+                    // Wir könnten hier ein Flag setzen, dass PDF deaktiviert ist.
+                }
                 
                 InitializeDatabase();
 
