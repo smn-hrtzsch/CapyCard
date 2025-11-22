@@ -127,14 +127,11 @@
                                                         Grid.Column="0" 
                                                         Margin="0,0,8,0"/>
 
-                                                <Grid ColumnDefinitions="*,Auto"
-                                                      Grid.Column="1"
-                                                      VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}"
-                                                               FontWeight="SemiBold"
-                                                               TextWrapping="Wrap"
-                                                               VerticalAlignment="Center"/>
-                                                </Grid>
+                                                <TextBlock Text="{Binding Name}"
+                                                           Grid.Column="1"
+                                                           FontWeight="SemiBold"
+                                                           TextWrapping="Wrap"
+                                                           VerticalAlignment="Center"/>
                                                 
                                                 <!-- Badge Column with SharedSizeGroup -->
                                                 <Border Grid.Column="2"
@@ -227,7 +224,7 @@
                                                   Margin="20,5,0,0">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <!-- Recursive Template for Subdecks (simplified for now) -->
+                                                                                                <!-- Recursive Template for Subdecks (simplified for now) -->
                                                 <Button Command="{Binding $parent[ListBox].DataContext.SelectSubDeckCommand}" 
                                                         CommandParameter="{Binding}"
                                                         HorizontalAlignment="Stretch"
@@ -241,15 +238,16 @@
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*" />
-                                                            <ColumnDefinition Width="Auto" SharedSizeGroup="BadgeColumn" />
+                                                            <ColumnDefinition Width="Auto" />
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                                         <Border Grid.Column="1"
                                                                 Background="{DynamicResource BadgeBackgroundBrush}"
                                                                 Padding="8,2"
                                                                 CornerRadius="12"
                                                                 MinWidth="24"
                                                                 Height="24"
+                                                                Margin="10,0,0,0"
                                                                 HorizontalAlignment="Center"
                                                                 VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding CardCount}" 

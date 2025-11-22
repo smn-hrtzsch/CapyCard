@@ -8,7 +8,7 @@
         x:DataType="vm:MainViewModel" 
         Title="Alinas Karteikarten"
         Width="1000" 
-        Height="700"
+        Height="800"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/icon.ico">
             
