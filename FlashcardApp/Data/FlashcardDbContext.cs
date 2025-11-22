@@ -26,5 +26,14 @@ namespace FlashcardApp.Data
         // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
         protected override void OnConfiguring(DbContextOptionsBuilder options)
             => options.UseSqlite($"Data Source={DbPath}");
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Deck>()
+                .HasOne(d => d.ParentDeck)
+                .WithMany(d => d.SubDecks)
+                .HasForeignKey(d => d.ParentDeckId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
