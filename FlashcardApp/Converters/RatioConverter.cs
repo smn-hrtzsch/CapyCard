@@ -8,7 +8,17 @@ namespace FlashcardApp.Converters
     {
         public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (value is double d && parameter is string s && double.TryParse(s, NumberStyles.Any, culture, out double ratio))
+            double ratio = 0;
+            if (parameter is double r)
+            {
+                ratio = r;
+            }
+            else if (parameter is string s && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out double parsed))
+            {
+                ratio = parsed;
+            }
+
+            if (value is double d && ratio > 0)
             {
                 return d * ratio;
             }
