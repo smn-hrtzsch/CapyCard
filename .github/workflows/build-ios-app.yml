@@ -49,7 +49,9 @@ jobs:
       - name: Build iOS App
         run: |
           # Build for iOS Simulator (arm64) as requested, effectively bypassing device code signing requirements
-          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r iossimulator-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0"
+          # MtouchLink=SdkOnly and _SuppressSdkVersionCheck=true are added to handle potential version mismatches
+          # between the .NET iOS SDK (targeting future Xcode versions) and the available Xcode on the runner.
+          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r iossimulator-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0" /p:MtouchLink=SdkOnly /p:_SuppressSdkVersionCheck=true
 
       - name: Zip App Bundle
         id: zip
