@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build-ios:
-    runs-on: macos-latest
+    runs-on: macos-13
 
     env:
       Configuration: Release
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: latest-stable
+          xcode-version: '15.2'
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
