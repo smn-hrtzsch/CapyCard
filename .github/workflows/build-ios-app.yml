@@ -1,0 +1,98 @@
+name: Build iOS App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    env:
+      Configuration: Release
+      ProjectSlug: "CapyCard"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Install iOS workload
+        run: dotnet workload install ios
+
+      - name: Calculate version
+        id: version
+        working-directory: FlashcardMobile/FlashcardMobile.iOS
+        run: |
+          year=$(date -u +%Y)
+          dayOfYear=$(date -u +%j)
+          versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+          versionRevision=$(date -u +%H%M)
+          fullVersion="1.0.$versionBuild.$versionRevision"
+          echo "fullVersion=$fullVersion" >> "$GITHUB_OUTPUT"
+
+      - name: Build iOS App
+        run: |
+          # We build the .app for arm64 (device). Without signing, generating an IPA via Publish will fail.
+          # We build the AppBundle instead and zip it.
+          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r ios-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0"
+
+      - name: Zip App Bundle
+        id: zip
+        run: |
+          # Find the .app bundle
+          APP_PATH=$(find FlashcardMobile/FlashcardMobile.iOS/bin/Release/net9.0-ios/ios-arm64 -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+             echo "No .app bundle found!"
+             exit 1
+          fi
+          
+          ZIP_NAME="${{ env.ProjectSlug }}-ios-${{ steps.version.outputs.fullVersion }}.zip"
+          # Zip recursively
+          zip -r "$ZIP_NAME" "$APP_PATH"
+          
+          echo "zipName=$ZIP_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-${{ steps.version.outputs.fullVersion }}
+          path: ${{ steps.zip.outputs.zipName }}
+
+      - name: Clean previous iOS releases
+        if: github.ref == 'refs/heads/main'
+        run: |
+          RELEASE_DIR="Release"
+          if [ -d "$RELEASE_DIR" ]; then
+            find "$RELEASE_DIR" -maxdepth 1 -type f -name "${{ env.ProjectSlug }}-ios-*.zip" -delete
+          fi
+          rm -f "$RELEASE_DIR/.gitkeep"
+
+      - name: Copy Zip into repo Release folder
+        if: github.ref == 'refs/heads/main'
+        run: |
+          ZIP_SRC="${{ steps.zip.outputs.zipName }}"
+          ZIP_DEST="Release/${{ steps.zip.outputs.zipName }}"
+          mkdir -p "$(dirname "$ZIP_DEST")"
+          cp "$ZIP_SRC" "$ZIP_DEST"
+
+      - name: Commit iOS release artifact
+        if: github.ref == 'refs/heads/main'
+        run: |
+          branch="${GITHUB_REF_NAME}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase --autostash origin "$branch"
+          git add Release
+          if git diff --cached --quiet; then
+            echo "No release changes to commit."
+            exit 0
+          fi
+          git commit -m "Add iOS App release ${{ steps.version.outputs.fullVersion }} [skip ci]"
+          git push origin HEAD:"$branch"
