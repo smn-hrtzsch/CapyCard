@@ -30,6 +30,9 @@
 
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
 
+        <Icon Id="icon.ico" SourceFile="..\FlashcardMobile\Assets\icon.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+
     </Package> 
 
     <Fragment>
