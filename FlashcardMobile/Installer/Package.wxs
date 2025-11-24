@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+                <Package ProductCode="*"
+                                 Name="Alinas Karteikarten" 
+                             Manufacturer="Dein Name" 
+                             Version="$(var.ProductVersion)" 
+                             InstallerVersion="500"
+                             Scope="perMachine"
+                             Compressed="yes"
+                             UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
+
+            <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+            <MajorUpgrade Schedule="afterInstallValidate"
+                      DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />
+
+            <Feature Id="ProductFeature" Title="Alinas Karteikarten" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+            <ComponentGroupRef Id="PublishedContent" />
+            <ComponentRef Id="ApplicationShortcut" />
+            <Feature Id="DesktopShortcutFeature" Title="Desktop-Verknüpfung" Level="1" AllowAbsent="yes">
+                <ComponentRef Id="DesktopShortcut" />
+            </Feature>
+        </Feature>
+
+        <UI>
+            <ui:WixUI Id="WixUI_FeatureTree" />
+        </UI>
+
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    </Package> 
+
+    <Fragment>
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="Alinas Karteikarten" />
+        </StandardDirectory>
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="ApplicationProgramsFolder" Name="Alinas Karteikarten"/>
+        </StandardDirectory>
+        <StandardDirectory Id="DesktopFolder">
+            <Component Id="DesktopShortcut" Guid="7f85b720-89af-47d5-9f4c-0eea5aff4d9e">
+                <Shortcut Id="ApplicationDesktopShortcut"
+                          Name="Alinas Karteikarten"
+                          Description="Karteikarten-Anwendung"
+                          Target="[INSTALLFOLDER]FlashcardMobile.Desktop.exe"
+                          WorkingDirectory="INSTALLFOLDER"/>
+                <RegistryValue Root="HKCU" Key="Software\AlinasKarteikarten\Installer" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+        </StandardDirectory>
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="5a457ca4-3f4d-4143-8998-2b16b5f4e591">
+                <Shortcut Id="ApplicationStartMenuShortcut"
+                          Name="Alinas Karteikarten"
+                          Description="Karteikarten-Anwendung"
+                          Target="[INSTALLFOLDER]FlashcardMobile.Desktop.exe"
+                          WorkingDirectory="INSTALLFOLDER"/>
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                <RegistryValue Root="HKCU" Key="Software\AlinasKarteikarten\Installer" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="INSTALLFOLDER"/>
+    </Fragment>
+</Wix>
