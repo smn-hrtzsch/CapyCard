@@ -1,8 +1,6 @@
 name: Build macOS App
 
 on:
-  schedule:
-    - cron: "0 17 * * *"
   workflow_dispatch:
 
 permissions:
@@ -14,8 +12,9 @@ jobs:
     env:
       Configuration: Release
       RuntimeIdentifier: osx-arm64
-      AppBundleName: "Alinas Karteikarten"
-      AppBundleSlug: "Alinas-Karteikarten"
+      AppBundleName: "CapyCard"
+      AppBundleSlug: "CapyCard"
+      ProjectDir: "FlashcardMobile"
 
     steps:
       - name: Checkout repository
@@ -33,28 +32,32 @@ jobs:
       - name: Calculate version
         id: version
         run: |
-          cd FlashcardApp
-          versionMajor=$(dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMajor)
-          versionMinor=$(dotnet msbuild FlashcardApp.csproj -nologo -getProperty:VersionMinor)
+          cd FlashcardMobile/FlashcardMobile.Desktop
+          versionMajor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor || echo 1)
+          versionMinor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor || echo 0)
+          # Fallback if property is missing
+          if [ -z "$versionMajor" ]; then versionMajor=1; fi
+          if [ -z "$versionMinor" ]; then versionMinor=0; fi
+          
           year=$(date -u +%Y)
           dayOfYear=$(date -u +%j)
           versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
           versionRevision=$(date -u +%H%M)
-          msiVersion="$versionMajor.$versionMinor.$versionBuild"
-          fullVersion="$msiVersion.$versionRevision"
+          semVersion="$versionMajor.$versionMinor.$versionBuild"
+          fullVersion="$semVersion.$versionRevision"
           {
             echo "versionMajor=$versionMajor"
             echo "versionMinor=$versionMinor"
             echo "versionBuild=$versionBuild"
             echo "versionRevision=$versionRevision"
-            echo "msiVersion=$msiVersion"
+            echo "semVersion=$semVersion"
             echo "fullVersion=$fullVersion"
           } >> "$GITHUB_OUTPUT"
 
       - name: Prepare bundle paths
         id: paths
         run: |
-          publishDir="FlashcardApp/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
+          publishDir="FlashcardMobile/FlashcardMobile.Desktop/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
           appPath="$publishDir/${{ env.AppBundleName }}.app"
           dmgName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.dmg"
           {
@@ -64,10 +67,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Make build script executable
-        run: chmod +x FlashcardApp/scripts/build-macos.sh
+        run: chmod +x FlashcardMobile/scripts/build-macos.sh
 
       - name: Build macOS .app bundle
-        working-directory: FlashcardApp
+        working-directory: FlashcardMobile
         run: ./scripts/build-macos.sh
 
       - name: Remove extended attributes from bundle
@@ -93,7 +96,7 @@ jobs:
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
           APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
-          COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\\\ }"
+          COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\\ \\ }"
           HINT_TEXT="Nach dem Verschieben in Applications, bitte im Terminal ausführen:"
 
           # Create a background image with the text at the bottom
@@ -128,12 +131,13 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           RELEASE_DIR="Release"
-          APP_PATTERN="${{ env.AppBundleSlug }}-macos-*.app"
-          DMG_PATTERN="${{ env.AppBundleSlug }}-macos-*.dmg"
+          APP_PATTERN="${{ env.AppBundleSlug }}-macos-*.dmg"
           if [ -d "$RELEASE_DIR" ]; then
-            find "$RELEASE_DIR" -maxdepth 1 -type d -name "$APP_PATTERN" -exec rm -rf {} +
-            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$DMG_PATTERN" -delete
+            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$APP_PATTERN" -delete
           fi
+          # Also clean old naming convention if present
+          find "$RELEASE_DIR" -maxdepth 1 -type f -name "Alinas-Karteikarten-macos-*.dmg" -delete || true
+          
           rm -f "$RELEASE_DIR/.gitkeep"
 
       - name: Copy macOS dmg into repo Release folder
