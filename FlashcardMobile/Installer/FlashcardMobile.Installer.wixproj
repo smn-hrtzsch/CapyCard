@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" GeneratePathProperty="true" />
-    <PackageReference Include="WixToolset.Heat" Version="4.0.5" GeneratePathProperty="true" />
+    <PackageReference Include="WixToolset.UI.wixext" GeneratePathProperty="true" />
+    <PackageReference Include="WixToolset.Heat" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
