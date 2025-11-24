@@ -14,10 +14,16 @@ namespace FlashcardMobile.Data
 
         public string DbPath { get; }
 
-                        public FlashcardDbContext()
-                        {
-                            // Wir nutzen LocalApplicationData für alle Plattformen, aber in einem sauberen Unterordner 'CapyCard'.
-                            // Auf Mobile ist dies ein interner Pfad, auf Desktop ~/.local/share/CapyCard/ oder %LOCALAPPDATA%/CapyCard/
+        public FlashcardDbContext()
+        {
+            if (OperatingSystem.IsBrowser())
+            {
+                DbPath = "InMemory";
+                return;
+            }
+
+            // Wir nutzen LocalApplicationData für alle Plattformen, aber in einem sauberen Unterordner 'CapyCard'.
+            // Auf Mobile ist dies ein interner Pfad, auf Desktop ~/.local/share/CapyCard/ oder %LOCALAPPDATA%/CapyCard/
             var folder = Environment.SpecialFolder.LocalApplicationData;
             var basePath = Environment.GetFolderPath(folder);
             var appFolder = Path.Combine(basePath, "CapyCard");
@@ -30,9 +36,16 @@ namespace FlashcardMobile.Data
 
         // Konfiguriert EF Core, um unsere SQLite-Datenbank am o.g. Pfad zu nutzen
         protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlite($"Data Source={DbPath}");
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            if (OperatingSystem.IsBrowser())
+            {
+                options.UseInMemoryDatabase("FlashcardDb");
+            }
+            else
+            {
+                options.UseSqlite($"Data Source={DbPath}");
+            }
+        }        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Deck>()
                 .HasOne(d => d.ParentDeck)

@@ -74,6 +74,13 @@ public partial class App : Application
     {
         using (var db = new FlashcardDbContext())
         {
+            if (OperatingSystem.IsBrowser())
+            {
+                // In-Memory DB braucht keine Migrationen, aber das Schema muss erstellt werden
+                db.Database.EnsureCreated();
+                return;
+            }
+
             try
             {
                 db.Database.Migrate();
