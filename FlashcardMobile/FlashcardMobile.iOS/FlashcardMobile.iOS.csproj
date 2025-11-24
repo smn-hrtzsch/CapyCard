@@ -4,6 +4,9 @@
     <TargetFramework>net9.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
+    <!-- Disable strict Xcode version check -->
+    <ValidateXcodeVersion>false</ValidateXcodeVersion>
+    <UseInterpreter>true</UseInterpreter>
   </PropertyGroup>
 
   <ItemGroup>
