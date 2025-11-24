@@ -41,7 +41,7 @@ jobs:
         run: |
           # We build the .app for arm64 (device). Without signing, generating an IPA via Publish will fail.
           # We build the AppBundle instead and zip it.
-          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r ios-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0"
+          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r ios-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0" /p:EnableCodeSigning=false
 
       - name: Zip App Bundle
         id: zip

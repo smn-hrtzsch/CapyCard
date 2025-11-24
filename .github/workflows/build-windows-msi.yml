@@ -1,4 +1,4 @@
-name: Build Windows Desktop App
+name: Build Windows Installer
 
 on:
   workflow_dispatch:
@@ -7,13 +7,12 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
+  build-msi:
     runs-on: windows-latest
 
     env:
       Configuration: Release
       RuntimeIdentifier: win-x64
-      ProjectSlug: "CapyCard"
 
     steps:
       - name: Checkout repository
@@ -23,6 +22,9 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
+
+      - name: Install WiX Toolset
+        run: choco install wixtoolset --no-progress --yes
 
       - name: Calculate version
         id: version
@@ -37,52 +39,48 @@ jobs:
           $utcNow = [DateTime]::UtcNow
           $versionBuild = (($utcNow.Year - 2000) * 400) + $utcNow.DayOfYear
           $versionRevision = $utcNow.ToString('HHmm')
-          $semVersion = "$versionMajor.$versionMinor.$versionBuild"
-          $fullVersion = "$semVersion.$versionRevision"
+          $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
+          $fullVersion = "$msiVersion.$versionRevision"
           "versionMajor=$versionMajor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionMinor=$versionMinor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionBuild=$versionBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionRevision=$versionRevision" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "semVersion=$semVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "msiVersion=$msiVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "fullVersion=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Publish Windows build
-        run: dotnet publish FlashcardMobile/FlashcardMobile.Desktop/FlashcardMobile.Desktop.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true -p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -o published
+        run: dotnet publish FlashcardMobile/FlashcardMobile.Desktop/FlashcardMobile.Desktop.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }}
 
-      - name: Zip Release
-        shell: pwsh
+      - name: Build MSI installer
+        working-directory: FlashcardMobile/Installer
         run: |
-          $zipName = "${{ env.ProjectSlug }}-windows-${{ steps.version.outputs.fullVersion }}.zip"
-          Compress-Archive -Path published/* -DestinationPath $zipName
-          "zipName=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        id: zip
+          dotnet build FlashcardMobile.Installer.wixproj -c $env:Configuration -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -p:ProductVersion=${{ steps.version.outputs.msiVersion }}
 
-      - name: Archive Release artifact
+      - name: Archive MSI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-zip-${{ steps.version.outputs.fullVersion }}
-          path: ${{ steps.zip.outputs.zipName }}
+          name: windows-msi-${{ steps.version.outputs.fullVersion }}
+          path: FlashcardMobile/Installer/bin/${{ env.Configuration }}/*.msi
 
-      - name: Clean previous Windows releases
+      - name: Clean previous MSI releases
         if: github.ref == 'refs/heads/main'
         shell: pwsh
         run: |
           $releaseDir = "Release"
           if (Test-Path $releaseDir) {
-            Get-ChildItem $releaseDir -Filter "${{ env.ProjectSlug }}-windows-*.zip" | Remove-Item -Force
-            # Clean old ones too
             Get-ChildItem $releaseDir -Filter "Alinas-Karteikarten-*.msi" | Remove-Item -Force
           }
 
-      - name: Copy Zip into repo Release folder
+      - name: Copy MSI into repo Release folder
         if: github.ref == 'refs/heads/main'
         shell: pwsh
         run: |
-          $zipName = "${{ steps.zip.outputs.zipName }}"
+          $msi = Get-ChildItem "FlashcardMobile/Installer/bin/${{ env.Configuration }}" -Filter *.msi | Select-Object -First 1
+          if (-not $msi) { throw "No MSI output found" }
           $releaseDir = "Release"
           New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
-          $destination = Join-Path $releaseDir $zipName
-          Copy-Item $zipName $destination -Force
+          $destination = Join-Path $releaseDir "Alinas-Karteikarten-${{ steps.version.outputs.fullVersion }}.msi"
+          Copy-Item $msi.FullName $destination -Force
 
       - name: Commit release artifact
         if: github.ref == 'refs/heads/main'
@@ -97,5 +95,5 @@ jobs:
             Write-Host "No release changes to commit."
             exit 0
           }
-          git commit -m "Add Windows Desktop release ${{ steps.version.outputs.fullVersion }} [skip ci]"
+          git commit -m "Add Windows MSI release ${{ steps.version.outputs.fullVersion }} [skip ci]"
           git push origin HEAD:$branch
