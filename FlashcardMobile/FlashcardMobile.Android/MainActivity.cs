@@ -6,7 +6,7 @@ using Avalonia.Android;
 namespace FlashcardMobile.Android;
 
 [Activity(
-    Label = "FlashcardMobile.Android",
+    Label = "CapyCard",
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
