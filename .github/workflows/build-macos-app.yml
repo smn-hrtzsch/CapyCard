@@ -53,10 +53,13 @@ jobs:
             if [ -z "$versionMajor" ]; then versionMajor=1; fi
             if [ -z "$versionMinor" ]; then versionMinor=0; fi
             
-            year=$(date -u +%Y)
-            dayOfYear=$(date -u +%j)
+            # Convert to German Time (CET/CEST)
+            # We use TZ environment variable for date command
+            export TZ="Europe/Berlin"
+            year=$(date +%Y)
+            dayOfYear=$(date +%j)
             versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
-            versionRevision=$(date -u +%H%M)
+            versionRevision=$(date +%H%M)
             
             semVersion="$versionMajor.$versionMinor.$versionBuild"
             fullVersion="$semVersion.$versionRevision"

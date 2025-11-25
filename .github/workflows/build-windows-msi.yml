@@ -55,8 +55,12 @@ jobs:
              if (-not $versionMinor) { $versionMinor = 0 }
              
              $utcNow = [DateTime]::UtcNow
-             $versionBuild = (($utcNow.Year - 2000) * 400) + $utcNow.DayOfYear
-             $versionRevision = $utcNow.ToString('HHmm')
+             # Convert to German Time (CET/CEST)
+             $tz = [TimeZoneInfo]::FindSystemTimeZoneById("W. Europe Standard Time")
+             $germanTime = [TimeZoneInfo]::ConvertTimeFromUtc($utcNow, $tz)
+             
+             $versionBuild = (($germanTime.Year - 2000) * 400) + $germanTime.DayOfYear
+             $versionRevision = $germanTime.ToString('HHmm')
              $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
              $fullVersion = "$msiVersion.$versionRevision"
           }
