@@ -47,17 +47,27 @@ jobs:
              fullVersion="$inputVersion"
              # For versionCode, we use the run number to ensure it increases
              versionBuild=${{ github.run_number }}
+             filenameVersion="$fullVersion"
           else
              # Fallback logic
-             year=$(date -u +%Y)
-             dayOfYear=$(date -u +%j)
+             # Convert to German Time (CET/CEST)
+             export TZ="Europe/Berlin"
+             year=$(date +%Y)
+             dayOfYear=$(date +%j)
              versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
-             versionRevision=$(date -u +%H%M)
+             versionRevision=$(date +%H%M)
+             
+             # Internal version for Android (must be valid version string)
              fullVersion="1.0.$versionBuild.$versionRevision"
+             
+             # Readable filename for test builds
+             dateStr=$(date +%Y-%m-%d_%H-%M)
+             filenameVersion="1.0-dev-$dateStr"
           fi
 
           echo "fullVersion=$fullVersion" >> "$GITHUB_OUTPUT"
           echo "versionBuild=$versionBuild" >> "$GITHUB_OUTPUT"
+          echo "filenameVersion=$filenameVersion" >> "$GITHUB_OUTPUT"
 
       # GEÄNDERT: Signierungsparameter hinzugefügt
       - name: Publish Android
@@ -87,7 +97,7 @@ jobs:
       - name: Rename and Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ steps.version.outputs.fullVersion }}
+          name: android-apk-${{ steps.version.outputs.filenameVersion }}
           path: ${{ steps.apk.outputs.apkPath }}
 
       # (Rest deiner Steps für Git-Commits bleiben unverändert, habe sie hier gekürzt)
@@ -104,7 +114,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           APK_SRC="${{ steps.apk.outputs.apkPath }}"
-          APK_DEST="Release/${{ env.ProjectSlug }}-android-${{ steps.version.outputs.fullVersion }}.apk"
+          APK_DEST="Release/${{ env.ProjectSlug }}-android-${{ steps.version.outputs.filenameVersion }}.apk"
           mkdir -p "$(dirname "$APK_DEST")"
           cp "$APK_SRC" "$APK_DEST"
 
@@ -120,5 +130,5 @@ jobs:
             echo "No release changes to commit."
             exit 0
           fi
-          git commit -m "Add Android APK release ${{ steps.version.outputs.fullVersion }} [skip ci]"
+          git commit -m "Add Android APK release ${{ steps.version.outputs.filenameVersion }} [skip ci]"
           git push origin HEAD:"$branch"
