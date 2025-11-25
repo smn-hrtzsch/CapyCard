@@ -62,7 +62,10 @@ jobs:
              $versionBuild = (($germanTime.Year - 2000) * 400) + $germanTime.DayOfYear
              $versionRevision = $germanTime.ToString('HHmm')
              $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
-             $fullVersion = "$msiVersion.$versionRevision"
+             
+             # Readable filename for test builds
+             $dateStr = $germanTime.ToString('yyyy-MM-dd_HH-mm')
+             $fullVersion = "$versionMajor.$versionMinor-dev-$dateStr"
           }
           
           "versionMajor=$versionMajor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append

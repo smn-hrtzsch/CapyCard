@@ -62,7 +62,10 @@ jobs:
             versionRevision=$(date +%H%M)
             
             semVersion="$versionMajor.$versionMinor.$versionBuild"
-            fullVersion="$semVersion.$versionRevision"
+            
+            # Readable filename for test builds
+            dateStr=$(date +%Y-%m-%d_%H-%M)
+            fullVersion="$versionMajor.$versionMinor-dev-$dateStr"
           fi
 
           {
