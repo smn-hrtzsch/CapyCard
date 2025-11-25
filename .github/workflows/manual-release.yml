@@ -1,0 +1,95 @@
+name: Manual Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type of release"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  version-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_version: ${{ steps.bump_version.outputs.new_version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Bump Version
+        id: bump_version
+        shell: pwsh
+        run: |
+          $propsPath = "FlashcardMobile/Directory.Build.props"
+          [xml]$xml = Get-Content $propsPath
+          $version = [version]$xml.Project.PropertyGroup.Version
+
+          $major = $version.Major
+          $minor = $version.Minor
+          $build = $version.Build
+
+          $type = "${{ inputs.release_type }}"
+
+          if ($type -eq "major") {
+              $major++
+              $minor = 0
+              $build = 0
+          }
+          elseif ($type -eq "minor") {
+              $minor++
+              $build = 0
+          }
+          else {
+              $build++
+          }
+
+          $newVersion = "$major.$minor.$build"
+          $xml.Project.PropertyGroup.Version = $newVersion
+          $xml.Save($propsPath)
+
+          Write-Host "New Version: $newVersion"
+          "new_version=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Commit Version Bump
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add FlashcardMobile/Directory.Build.props
+          git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}"
+          git push
+
+  call-build-android:
+    needs: version-and-build
+    uses: ./.github/workflows/build-android-apk.yml
+    with:
+      version: ${{ needs.version-and-build.outputs.new_version }}
+    secrets: inherit
+
+  call-build-windows:
+    needs: version-and-build
+    uses: ./.github/workflows/build-windows-msi.yml
+    with:
+      version: ${{ needs.version-and-build.outputs.new_version }}
+    secrets: inherit
+
+  call-build-macos:
+    needs: version-and-build
+    uses: ./.github/workflows/build-macos-app.yml
+    with:
+      version: ${{ needs.version-and-build.outputs.new_version }}
+    secrets: inherit
