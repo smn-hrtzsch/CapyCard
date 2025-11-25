@@ -22,11 +22,26 @@ namespace FlashcardMobile.Views
         private List<bool>? _originalSelection;
         private ListBox? _activeListBox; // The ListBox where selection started
 
+        public static readonly StyledProperty<bool> IsCompactModeProperty =
+            AvaloniaProperty.Register<CardListView, bool>(nameof(IsCompactMode));
+
+        public bool IsCompactMode
+        {
+            get => GetValue(IsCompactModeProperty);
+            set => SetValue(IsCompactModeProperty, value);
+        }
+
         public CardListView()
         {
             InitializeComponent();
             
             this.DataContextChanged += OnDataContextChanged;
+            this.SizeChanged += OnSizeChanged;
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < 800;
         }
 
         /// <summary>

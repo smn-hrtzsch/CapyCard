@@ -12,11 +12,30 @@
     <UserControl.Resources>
         <converters:RatioConverter x:Key="RatioConverter"/>
         <converters:BoolToGridLengthConverter x:Key="BoolToGridLengthConverter"/>
+        
+        <!-- User provided Back Icon (Stroke-based: Circle + Arrow) -->
+        <StreamGeometry x:Key="IconBack">M 502 256 A 246 246 0 1 1 10 256 A 246 246 0 1 1 502 256 Z M 352.26 256 L 170.43 256 M 223.91 202.52 L 170.44 256 L 223.91 309.48</StreamGeometry>
     </UserControl.Resources>
 
     <UserControl.Styles>
         <Style Selector="ScrollViewer.rootDeck">
             <Setter Property="MaxHeight" Value="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=TopLevel}, Converter={StaticResource RatioConverter}, ConverterParameter=0.5}"/>
+        </Style>
+        
+        <!-- Style für die Buttons im Compact Mode (Icons): Transparent -->
+        <Style Selector="Button.compact-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6"/>
+        </Style>
+        <Style Selector="Button.compact-btn:pointerover /template/ ContentPresenter">
+             <Setter Property="Background" Value="#15000000"/>
+             <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        
+        <!-- Style für die Buttons im Normal Mode (Text) -->
+        <Style Selector="Button.normal-btn">
+            <Setter Property="Padding" Value="12,6"/>
         </Style>
     </UserControl.Styles>
 
@@ -26,16 +45,9 @@
     </UserControl.KeyBindings>
     
     <Grid>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="{Binding CanAddSubDecks, Converter={StaticResource BoolToGridLengthConverter}, ConverterParameter='Auto|*'}" />
-                <RowDefinition Height="{Binding CanAddSubDecks, Converter={StaticResource BoolToGridLengthConverter}, ConverterParameter='*|0'}" />
-                <RowDefinition Height="{Binding CanAddSubDecks, Converter={StaticResource BoolToGridLengthConverter}, ConverterParameter='Auto|0'}" />
-            </Grid.RowDefinitions>
-        
-        <!-- HEADER (Sticky) -->
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="10">
+    <DockPanel LastChildFill="True" VerticalAlignment="Stretch">
+        <!-- HEADER (Sticky Top) -->
+        <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="10">
             <TextBlock Text="{Binding DeckName}" 
                        FontSize="18" FontWeight="Bold" 
                        VerticalAlignment="Center"
@@ -43,19 +55,67 @@
                        Margin="0,0,12,0"
                        TextWrapping="Wrap"/>
             
-            <Button Content="{Binding BackButtonText}" 
-                    Command="{Binding GoBackCommand}" 
+            <Button Command="{Binding GoBackCommand}" 
+                    Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                    Classes.normal-btn="{Binding !#Root.IsCompactMode}"
                     Grid.Column="1"
                     HorizontalAlignment="Right"
-                    Margin="12,0,0,0"/>
+                    Margin="12,0,0,0"
+                    ToolTip.Tip="{Binding BackButtonText}">
+                 <Panel>
+                     <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                     <Path Data="{StaticResource IconBack}"
+                           Stroke="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                           StrokeThickness="2"
+                           Fill="Transparent"
+                           Stretch="Uniform"
+                           Width="24" Height="24"
+                           IsVisible="{Binding #Root.IsCompactMode}"/>
+                 </Panel>
+            </Button>
         </Grid>
+        
+        <!-- STICKY INPUT AREA (Sticky Bottom) -->
+        <Border x:Name="InputContainer"
+                DockPanel.Dock="Bottom" 
+                IsVisible="{Binding CanAddSubDecks}" 
+                Background="{DynamicResource SurfaceBackgroundBrush}"
+                BorderBrush="{DynamicResource DividerBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox x:Name="SubDeckTextBox" 
+                         Text="{Binding NewSubDeckName}" 
+                         Watermark="Neues Thema hinzufügen..." 
+                         Margin="0,0,10,0"
+                         AcceptsReturn="False"
+                         TextWrapping="NoWrap">
+                    <!-- KeyBinding removed, handled in CodeBehind for better control -->
+                </TextBox>
+                <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
+            </Grid>
+        </Border>
 
-        <!-- TOP PART: Card Inputs, Actions -->
-        <ScrollViewer Grid.Row="1" 
-                      Classes.rootDeck="{Binding CanAddSubDecks}"
-                      VerticalAlignment="Top"
-                      VerticalScrollBarVisibility="Auto" 
-                      HorizontalScrollBarVisibility="Disabled">
+        <!-- CONTENT AREA -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <!-- 
+                  Row 0: Card Inputs
+                  Row 1: SubDecks List
+                  Logic:
+                  If CanAddSubDecks (Root): Row 0 = Auto, Row 1 = * (List takes space)
+                  If !CanAddSubDecks (Leaf): Row 0 = *, Row 1 = 0 (Card Inputs take all space)
+                -->
+                <RowDefinition Height="{Binding CanAddSubDecks, Converter={StaticResource BoolToGridLengthConverter}, ConverterParameter='Auto|*'}" />
+                <RowDefinition Height="{Binding CanAddSubDecks, Converter={StaticResource BoolToGridLengthConverter}, ConverterParameter='*|0'}" />
+            </Grid.RowDefinitions>
+
+            <!-- TOP PART: Card Inputs, Actions -->
+            <ScrollViewer Grid.Row="0" 
+                          Classes.rootDeck="{Binding CanAddSubDecks}"
+                          VerticalAlignment="Top"
+                          VerticalScrollBarVisibility="Auto" 
+                          HorizontalScrollBarVisibility="Disabled">
             <DockPanel Margin="10,0,10,10">
                     
                     <!-- CARD EDITING & LEARNING BUTTONS -->
@@ -156,154 +216,138 @@
                             </StackPanel>
                         </Border>
                     </StackPanel>
-                </DockPanel>
+            </DockPanel>
             </ScrollViewer>
 
-        <!-- LIST PART: SubDecks List -->
-        <Grid Grid.Row="2" IsVisible="{Binding CanAddSubDecks}" RowDefinitions="Auto, *" Margin="10,0,10,0">
-            <TextBlock Text="Themen:" FontWeight="Bold" Margin="0,10,0,10" Grid.Row="0"/>
-            
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl ItemsSource="{Binding SubDecks}" Grid.IsSharedSizeScope="True">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,5"
-                                        Background="{DynamicResource SurfaceBackgroundBrush}"
-                                        BorderBrush="{DynamicResource DividerBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="4">
-                                    <Grid>
-                                        <!-- VIEW MODE -->
-                                        <Button Command="{Binding DataContext.OpenSubDeckCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                                x:CompileBindings="False"
-                                                CommandParameter="{Binding}"
-                                                HorizontalAlignment="Stretch"
-                                                HorizontalContentAlignment="Stretch"
-                                                Background="Transparent"
-                                                BorderThickness="0"
-                                                Padding="12"
-                                                IsVisible="{Binding !IsEditing}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="BadgeColumn" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                
-                                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                                
-                                                <Border Grid.Column="1"
-                                                        Background="{DynamicResource BadgeBackgroundBrush}"
-                                                        Padding="8,2"
-                                                        CornerRadius="12"
-                                                        MinWidth="24"
-                                                        Height="24"
-                                                        Margin="10,0,0,0"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding CardCount}" 
-                                                               FontSize="12"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"
-                                                               TextAlignment="Center"
-                                                               Foreground="{DynamicResource BadgeForegroundBrush}"/>
-                                                </Border>
+            <!-- LIST PART: SubDecks List -->
+            <Grid Grid.Row="1" IsVisible="{Binding CanAddSubDecks}" RowDefinitions="Auto, *" Margin="10,0,10,0">
+                <TextBlock Text="Themen:" FontWeight="Bold" Margin="0,10,0,10" Grid.Row="0"/>
+                
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding SubDecks}" Grid.IsSharedSizeScope="True">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,5"
+                                            Background="{DynamicResource SurfaceBackgroundBrush}"
+                                            BorderBrush="{DynamicResource DividerBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4">
+                                        <Grid>
+                                            <!-- VIEW MODE -->
+                                            <Button Command="{Binding DataContext.OpenSubDeckCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    x:CompileBindings="False"
+                                                    CommandParameter="{Binding}"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Padding="12"
+                                                    IsVisible="{Binding !IsEditing}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" SharedSizeGroup="BadgeColumn" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                    
+                                                    <Border Grid.Column="1"
+                                                            Background="{DynamicResource BadgeBackgroundBrush}"
+                                                            Padding="8,2"
+                                                            CornerRadius="12"
+                                                            MinWidth="24"
+                                                            Height="24"
+                                                            Margin="10,0,0,0"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding CardCount}" 
+                                                                   FontSize="12"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   TextAlignment="Center"
+                                                                   Foreground="{DynamicResource BadgeForegroundBrush}"/>
+                                                    </Border>
 
-                                                <Button Command="{Binding StartEditCommand}"
-                                                        Grid.Column="2"
+                                                    <Button Command="{Binding StartEditCommand}"
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            Background="Transparent" BorderThickness="0"
+                                                            Width="26" Height="26" Padding="4"
+                                                            Margin="12,0,6,0"
+                                                            IsVisible="{Binding !IsStatic}">
+                                                        <Path Data="M 3 17.25 V 21 H 6.75 L 17.81 9.94 L 14.06 6.19 L 3 17.25 Z M 20.71 7.04 C 21.1 6.65 21.1 6.02 20.71 5.63 L 18.37 3.29 C 17.98 2.9 17.35 2.9 16.96 3.29 L 15.13 5.12 L 18.88 8.87 L 20.71 7.04 Z"
+                                                              Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                              Stretch="Uniform"/>
+                                                    </Button>
+
+                                                    <Button Command="{Binding $parent[UserControl].DataContext.DeleteSubDeckCommand}"
+                                                            x:CompileBindings="False"
+                                                            CommandParameter="{Binding}"
+                                                            Grid.Column="3"
+                                                            VerticalAlignment="Center"
+                                                            Background="Transparent" BorderThickness="0"
+                                                            Width="26" Height="26" Padding="4"
+                                                            IsVisible="{Binding !IsStatic}">
+                                                        <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z"
+                                                              Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                              Stretch="Uniform"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Button>
+
+                                            <!-- EDIT MODE -->
+                                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                                  IsVisible="{Binding IsEditing}"
+                                                  Margin="12">
+                                                <TextBox Text="{Binding EditText, Mode=TwoWay}"
+                                                         VerticalAlignment="Center"
+                                                         Margin="0,0,12,0"
+                                                         Grid.Column="0"
+                                                         behaviors:FocusBehaviors.FocusOnTrue="{Binding IsEditing}">
+                                                    <TextBox.KeyBindings>
+                                                        <KeyBinding Command="{Binding $parent[UserControl].DataContext.SaveSubDeckEditCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Gesture="Enter"/>
+                                                        <KeyBinding Command="{Binding CancelEditCommand}"
+                                                                    Gesture="Escape"/>
+                                                    </TextBox.KeyBindings>
+                                                </TextBox>
+
+                                                <Button Command="{Binding $parent[UserControl].DataContext.SaveSubDeckEditCommand}"
+                                                        x:CompileBindings="False"
+                                                        CommandParameter="{Binding}"
+                                                        Grid.Column="1"
                                                         VerticalAlignment="Center"
                                                         Background="Transparent" BorderThickness="0"
                                                         Width="26" Height="26" Padding="4"
-                                                        Margin="12,0,6,0"
-                                                        IsVisible="{Binding !IsStatic}">
-                                                    <Path Data="M 3 17.25 V 21 H 6.75 L 17.81 9.94 L 14.06 6.19 L 3 17.25 Z M 20.71 7.04 C 21.1 6.65 21.1 6.02 20.71 5.63 L 18.37 3.29 C 17.98 2.9 17.35 2.9 16.96 3.29 L 15.13 5.12 L 18.88 8.87 L 20.71 7.04 Z"
+                                                        Margin="0,0,6,0">
+                                                    <Path Data="M 17 3 H 5 C 3.89 3 3 3.9 3 5 V 19 C 3 20.1 3.89 21 5 21 H 19 C 20.1 21 21 20.1 21 19 V 7 L 17 3 Z M 12 18 C 10.34 18 9 16.66 9 15 C 9 13.34 10.34 12 12 12 C 13.66 12 15 13.34 15 15 C 15 16.66 13.66 18 12 18 Z M 15 9 L 5 9 L 5 5 L 15 5 L 15 9 Z"
                                                           Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                                           Stretch="Uniform"/>
                                                 </Button>
 
-                                                <Button Command="{Binding $parent[UserControl].DataContext.DeleteSubDeckCommand}"
-                                                        x:CompileBindings="False"
-                                                        CommandParameter="{Binding}"
-                                                        Grid.Column="3"
+                                                <Button Command="{Binding CancelEditCommand}"
+                                                        Grid.Column="2"
                                                         VerticalAlignment="Center"
                                                         Background="Transparent" BorderThickness="0"
-                                                        Width="26" Height="26" Padding="4"
-                                                        IsVisible="{Binding !IsStatic}">
-                                                    <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z"
+                                                        Width="26" Height="26" Padding="4">
+                                                    <Path Data="M 19 6.41 L 17.59 5 L 12 10.59 L 6.41 5 L 5 6.41 L 10.59 12 L 5 17.59 L 6.41 19 L 12 13.41 L 17.59 19 L 19 17.59 L 13.41 12 L 19 6.41 Z"
                                                           Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                                           Stretch="Uniform"/>
                                                 </Button>
                                             </Grid>
-                                        </Button>
-
-                                        <!-- EDIT MODE -->
-                                        <Grid ColumnDefinitions="*,Auto,Auto"
-                                              IsVisible="{Binding IsEditing}"
-                                              Margin="12">
-                                            <TextBox Text="{Binding EditText, Mode=TwoWay}"
-                                                     VerticalAlignment="Center"
-                                                     Margin="0,0,12,0"
-                                                     Grid.Column="0"
-                                                     behaviors:FocusBehaviors.FocusOnTrue="{Binding IsEditing}">
-                                                <TextBox.KeyBindings>
-                                                    <KeyBinding Command="{Binding $parent[UserControl].DataContext.SaveSubDeckEditCommand}"
-                                                                CommandParameter="{Binding}"
-                                                                Gesture="Enter"/>
-                                                    <KeyBinding Command="{Binding CancelEditCommand}"
-                                                                Gesture="Escape"/>
-                                                </TextBox.KeyBindings>
-                                            </TextBox>
-
-                                            <Button Command="{Binding $parent[UserControl].DataContext.SaveSubDeckEditCommand}"
-                                                    x:CompileBindings="False"
-                                                    CommandParameter="{Binding}"
-                                                    Grid.Column="1"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent" BorderThickness="0"
-                                                    Width="26" Height="26" Padding="4"
-                                                    Margin="0,0,6,0">
-                                                <Path Data="M 17 3 H 5 C 3.89 3 3 3.9 3 5 V 19 C 3 20.1 3.89 21 5 21 H 19 C 20.1 21 21 20.1 21 19 V 7 L 17 3 Z M 12 18 C 10.34 18 9 16.66 9 15 C 9 13.34 10.34 12 12 12 C 13.66 12 15 13.34 15 15 C 15 16.66 13.66 18 12 18 Z M 15 9 L 5 9 L 5 5 L 15 5 L 15 9 Z"
-                                                      Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                      Stretch="Uniform"/>
-                                            </Button>
-
-                                            <Button Command="{Binding CancelEditCommand}"
-                                                    Grid.Column="2"
-                                                    VerticalAlignment="Center"
-                                                    Background="Transparent" BorderThickness="0"
-                                                    Width="26" Height="26" Padding="4">
-                                                <Path Data="M 19 6.41 L 17.59 5 L 12 10.59 L 6.41 5 L 5 6.41 L 10.59 12 L 5 17.59 L 6.41 19 L 12 13.41 L 17.59 19 L 19 17.59 L 13.41 12 L 19 6.41 Z"
-                                                      Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                      Stretch="Uniform"/>
-                                            </Button>
                                         </Grid>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
-
-        <!-- STICKY INPUT AREA -->
-        <Border Grid.Row="3" 
-                IsVisible="{Binding CanAddSubDecks}" 
-                Background="{DynamicResource SurfaceBackgroundBrush}"
-                BorderBrush="{DynamicResource DividerBrush}"
-                BorderThickness="0,1,0,0"
-                Padding="10">
-            <Grid ColumnDefinitions="*,Auto">
-                <TextBox Text="{Binding NewSubDeckName}" Watermark="Neues Thema hinzufügen..." Margin="0,0,10,0">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Command="{Binding AddSubDeckCommand}" Gesture="Enter"/>
-                    </TextBox.KeyBindings>
-                </TextBox>
-                <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
-            </Grid>
-        </Border>
-    </Grid>
-
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+        </Grid>
+    </DockPanel>
+    
     <!-- POPUP OVERLAY -->
     <Grid IsVisible="{Binding IsSubDeckSelectionVisible}" Background="#AA000000">
         <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}" 

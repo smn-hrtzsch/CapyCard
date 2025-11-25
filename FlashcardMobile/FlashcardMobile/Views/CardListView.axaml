@@ -4,44 +4,123 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:FlashcardMobile.ViewModels"
              xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
+             xmlns:conv="clr-namespace:FlashcardMobile.Converters"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardMobile.Views.CardListView"
-             x:DataType="vm:CardListViewModel">
+             x:DataType="vm:CardListViewModel"
+             x:Name="Root">
+
+    <UserControl.Resources>
+        <conv:SelectAllTextToIconConverter x:Key="SelectAllTextToIconConverter"/>
+        
+        <!-- User provided Columns Icon (Filled Rectangles) -->
+        <StreamGeometry x:Key="IconColumns">M0.048 46.744h223.104v16H0.048z M0 117.8h223.104v16H0z M0.048 212.504h223.104v16H0.048z M0 283.56h223.104v16H0z M0.048 378.296h223.104v16H0.048z M0 449.32h223.104v16H0z M288.96 46.744h223.104v16H288.96z M288.8 117.8h223.104v16H288.8z M288.96 212.504h223.104v16H288.96z M288.8 283.56h223.104v16H288.8z M288.96 378.296h223.104v16H288.96z M288.8 449.32h223.104v16H288.8z</StreamGeometry>
+        
+        <!-- User provided PDF Icon (Complex Paths) -->
+        <StreamGeometry x:Key="IconPdf">M160.381,282.225c0-14.832-10.299-23.684-28.474-23.684c-7.414,0-12.437,0.715-15.071,1.432V307.6c3.114,0.707,6.942,0.949,12.192,0.949C148.419,308.549,160.381,298.74,160.381,282.225z M272.875,259.019c-8.145,0-13.397,0.717-16.519,1.435v105.523c3.116,0.729,8.142,0.729,12.69,0.729c33.017,0.231,54.554-17.946,54.554-56.474C323.842,276.719,304.215,259.019,272.875,259.019z M488.426,197.019H475.2v-63.816c0-0.398-0.063-0.799-0.116-1.202c-0.021-2.534-0.827-5.023-2.562-6.995L366.325,3.694c-0.032-0.031-0.063-0.042-0.085-0.076c-0.633-0.707-1.371-1.295-2.151-1.804c-0.231-0.155-0.464-0.285-0.706-0.419c-0.676-0.369-1.393-0.675-2.131-0.896c-0.2-0.056-0.38-0.138-0.58-0.19C359.87,0.119,359.037,0,358.193,0H97.2c-11.918,0-21.6,9.693-21.6,21.601v175.413H62.377c-17.049,0-30.873,13.818-30.873,30.873v160.545c0,17.043,13.824,30.87,30.873,30.87h13.224V529.2c0,11.907,9.682,21.601,21.6,21.601h356.4c11.907,0,21.6-9.693,21.6-21.601V419.302h13.226c17.044,0,30.871-13.827,30.871-30.87v-160.54C519.297,210.838,505.47,197.019,488.426,197.019z M97.2,21.605h250.193v110.513c0,5.967,4.841,10.8,10.8,10.8h95.407v54.108H97.2V21.605z M362.359,309.023c0,30.876-11.243,52.165-26.82,65.333c-16.971,14.117-42.82,20.814-74.396,20.814c-18.9,0-32.297-1.197-41.401-2.389V234.365c13.399-2.149,30.878-3.346,49.304-3.346c30.612,0,50.478,5.508,66.039,17.226C351.828,260.69,362.359,280.547,362.359,309.023z M80.7,393.499V234.365c11.241-1.904,27.042-3.346,49.296-3.346c22.491,0,38.527,4.308,49.291,12.928c10.292,8.131,17.215,21.534,17.215,37.328c0,15.799-5.25,29.198-14.829,38.285c-12.442,11.728-30.865,16.996-52.407,16.996c-4.778,0-9.1-0.243-12.435-0.723v57.67H80.7V393.499z M453.601,523.353H97.2V419.302h356.4V523.353z M484.898,262.127h-61.989v36.851h57.913v29.674h-57.913v64.848h-36.593V232.216h98.582V262.127z</StreamGeometry>
+        
+        <!-- User provided Back Icon (Stroke-based: Circle + Arrow) -->
+        <StreamGeometry x:Key="IconBack">M 502 256 A 246 246 0 1 1 10 256 A 246 246 0 1 1 502 256 Z M 352.26 256 L 170.43 256 M 223.91 202.52 L 170.44 256 L 223.91 309.48</StreamGeometry>
+    </UserControl.Resources>
+    
+    <UserControl.Styles>
+        <!-- Style für die Buttons im Compact Mode (Icons): Transparent -->
+        <Style Selector="Button.compact-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6"/>
+        </Style>
+        <Style Selector="Button.compact-btn:pointerover /template/ ContentPresenter">
+             <Setter Property="Background" Value="#15000000"/>
+             <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        
+        <!-- Style für die Buttons im Normal Mode (Text) -->
+        <Style Selector="Button.normal-btn">
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+    </UserControl.Styles>
     
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="10">
             <!-- 
               OBERER BEREICH
-              NEU: "Alle auswählen"-Button hinzugefügt
             -->
             <Grid ColumnDefinitions="*,Auto" DockPanel.Dock="Top" Margin="0,0,0,10">
                 <TextBlock Text="{Binding DeckName}" 
                            FontSize="18" FontWeight="Bold" 
                            VerticalAlignment="Center"
                            HorizontalAlignment="Left"
-                           Margin="0,0,22,0"
+                           Margin="0,0,10,0"
                            TextWrapping="Wrap"
                            Grid.Column="0"/>
                 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
-                            Spacing="8"
+                            Spacing="2"
                             HorizontalAlignment="Right"
-                            Margin="22,0,0,0">
+                            Margin="10,0,0,0">
+                    
+                    <!-- Spalten Auswahl -->
                     <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding ShowPdfButton}">
-                        <TextBlock Text="Spalten:" VerticalAlignment="Center"/>
+                        <TextBlock Text="Spalten:" VerticalAlignment="Center" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                        <PathIcon Data="{StaticResource IconColumns}" 
+                                  Width="20" Height="20"
+                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                  IsVisible="{Binding #Root.IsCompactMode}"
+                                  VerticalAlignment="Center"
+                                  ToolTip.Tip="Spaltenanzahl"/>
                         <ComboBox ItemsSource="{Binding ColumnOptions}"
                                   SelectedItem="{Binding SelectedColumnCount}"
                                   Width="60"/>
                     </StackPanel>
-                    <Button Content="Auswahl als PDF speichern"
-                            Command="{Binding GeneratePdfCommand}"
-                            IsVisible="{Binding ShowPdfButton}"/>
-                    <Button Content="{Binding SelectAllButtonText}"
-                            Command="{Binding ToggleSelectAllCommand}"/>
-                    <Button Content="{Binding BackButtonText}" 
-                            Command="{Binding GoBackCommand}"/>
+                    
+                    <!-- PDF Button -->
+                    <Button Command="{Binding GeneratePdfCommand}"
+                            Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                            Classes.normal-btn="{Binding !#Root.IsCompactMode}"
+                            IsVisible="{Binding ShowPdfButton}"
+                            ToolTip.Tip="Auswahl als PDF speichern">
+                        <Panel>
+                             <TextBlock Text="Auswahl als PDF speichern" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                             <PathIcon Data="{StaticResource IconPdf}" 
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Width="22" Height="22" 
+                                       IsVisible="{Binding #Root.IsCompactMode}"/>
+                        </Panel>
+                    </Button>
+                    
+                    <!-- Select All Button -->
+                    <Button Command="{Binding ToggleSelectAllCommand}"
+                            Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                            Classes.normal-btn="{Binding !#Root.IsCompactMode}"
+                            ToolTip.Tip="{Binding SelectAllButtonText}">
+                        <Panel>
+                             <TextBlock Text="{Binding SelectAllButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                             <PathIcon Data="{Binding SelectAllButtonText, Converter={StaticResource SelectAllTextToIconConverter}}" 
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       Width="22" Height="22" 
+                                       IsVisible="{Binding #Root.IsCompactMode}"/>
+                        </Panel>
+                    </Button>
+                    
+                    <!-- Back Button (Stroke-based SVG needs Path instead of PathIcon) -->
+                    <Button Command="{Binding GoBackCommand}"
+                            Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                            Classes.normal-btn="{Binding !#Root.IsCompactMode}"
+                            ToolTip.Tip="{Binding BackButtonText}">
+                         <Panel>
+                             <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                             <Path Data="{StaticResource IconBack}"
+                                   Stroke="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   StrokeThickness="2"
+                                   Fill="Transparent"
+                                   Stretch="Uniform"
+                                   Width="24" Height="24"
+                                   IsVisible="{Binding #Root.IsCompactMode}"/>
+                         </Panel>
+                    </Button>
                 </StackPanel>
             </Grid>
             
