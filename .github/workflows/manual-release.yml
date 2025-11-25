@@ -79,6 +79,8 @@ jobs:
     with:
       version: ${{ needs.version-and-build.outputs.new_version }}
     secrets: inherit
+    permissions:
+      contents: write
 
   call-build-windows:
     needs: version-and-build
@@ -86,6 +88,8 @@ jobs:
     with:
       version: ${{ needs.version-and-build.outputs.new_version }}
     secrets: inherit
+    permissions:
+      contents: write
 
   call-build-macos:
     needs: version-and-build
@@ -93,3 +97,5 @@ jobs:
     with:
       version: ${{ needs.version-and-build.outputs.new_version }}
     secrets: inherit
+    permissions:
+      contents: write
