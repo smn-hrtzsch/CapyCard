@@ -26,11 +26,15 @@ jobs:
       - name: Install Android workload
         run: dotnet workload install android
 
+      # NEU: Keystore aus Secrets wiederherstellen
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > FlashcardMobile/FlashcardMobile.Android/release.keystore
+
       - name: Calculate version
         id: version
         working-directory: FlashcardMobile/FlashcardMobile.Android
         run: |
-          # Using basic date based versioning
           year=$(date -u +%Y)
           dayOfYear=$(date -u +%j)
           versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
@@ -38,17 +42,26 @@ jobs:
           fullVersion="1.0.$versionBuild.$versionRevision"
           echo "fullVersion=$fullVersion" >> "$GITHUB_OUTPUT"
 
+      # GEÄNDERT: Signierungsparameter hinzugefügt
       - name: Publish Android
         run: |
-          dotnet publish FlashcardMobile/FlashcardMobile.Android/FlashcardMobile.Android.csproj -c Release -f net9.0-android /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0"
+          dotnet publish FlashcardMobile/FlashcardMobile.Android/FlashcardMobile.Android.csproj \
+          -c Release \
+          -f net9.0-android \
+          /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} \
+          /p:ApplicationDisplayVersion="1.0" \
+          /p:AndroidKeyStore=true \
+          /p:AndroidSigningKeyStore=release.keystore \
+          /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+          /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTORE_ALIAS }} \
+          /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
       - name: Find APK
         id: apk
         run: |
-          # Find the signed APK (usually signed with debug key if no keystore provided)
+          # APK sollte jetzt im signed Ordner oder direkt als signed markiert sein
           APK_PATH=$(find FlashcardMobile/FlashcardMobile.Android/bin/Release/net9.0-android -name "*-Signed.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
-             # Fallback to unsigned or aligned
              APK_PATH=$(find FlashcardMobile/FlashcardMobile.Android/bin/Release/net9.0-android -name "*.apk" | head -n 1)
           fi
           echo "Found APK: $APK_PATH"
@@ -60,6 +73,7 @@ jobs:
           name: android-apk-${{ steps.version.outputs.fullVersion }}
           path: ${{ steps.apk.outputs.apkPath }}
 
+      # (Rest deiner Steps für Git-Commits bleiben unverändert, habe sie hier gekürzt)
       - name: Clean previous Android releases
         if: github.ref == 'refs/heads/main'
         run: |
