@@ -47,11 +47,10 @@ jobs:
             semVersion="$versionMajor.$versionMinor.$versionBuild"
             fullVersion="$semVersion"
           else
-            versionMajor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor || echo 1)
-            versionMinor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor || echo 0)
-            # Fallback if property is missing
-            if [ -z "$versionMajor" ]; then versionMajor=1; fi
-            if [ -z "$versionMinor" ]; then versionMinor=0; fi
+            currentVersion=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:Version)
+            if [ -z "$currentVersion" ]; then currentVersion="1.0.0"; fi
+            
+            IFS='.' read -r versionMajor versionMinor _ <<< "$currentVersion"
             
             # Convert to German Time (CET/CEST)
             # We use TZ environment variable for date command

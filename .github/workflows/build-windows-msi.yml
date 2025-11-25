@@ -49,10 +49,12 @@ jobs:
              $fullVersion = "$msiVersion"
           } else {
              # Fallback to project file if no input
-             $versionMajor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor)
-             if (-not $versionMajor) { $versionMajor = 1 }
-             $versionMinor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor)
-             if (-not $versionMinor) { $versionMinor = 0 }
+             $currentVersion = dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:Version
+             if (-not $currentVersion) { $currentVersion = "1.0.0" }
+             
+             $vParts = $currentVersion.Split('.')
+             $versionMajor = $vParts[0]
+             $versionMinor = $vParts[1]
              
              $utcNow = [DateTime]::UtcNow
              # Convert to German Time (CET/CEST)
