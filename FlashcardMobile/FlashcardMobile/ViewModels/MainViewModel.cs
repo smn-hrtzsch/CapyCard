@@ -92,5 +92,30 @@ namespace FlashcardMobile.ViewModels
             // Zeigt die Detail-Ansicht an (jetzt im "Bearbeiten"-Modus)
             CurrentViewModel = _deckDetailViewModel;
         }
+
+        public bool HandleHardwareBack()
+        {
+            if (CurrentViewModel is LearnViewModel)
+            {
+                NavigateBackToDeckDetail();
+                return true;
+            }
+            else if (CurrentViewModel is CardListViewModel)
+            {
+                NavigateBackToDeckDetail();
+                return true;
+            }
+            else if (CurrentViewModel is DeckDetailViewModel detailVm)
+            {
+                if (detailVm.GoBackCommand.CanExecute(null))
+                {
+                    detailVm.GoBackCommand.Execute(null);
+                    return true;
+                }
+            }
+            
+            // If in DeckListView, return false (let system exit)
+            return false;
+        }
     }
 }
