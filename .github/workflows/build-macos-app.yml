@@ -55,9 +55,11 @@ jobs:
             versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
           fi
 
-          versionRevision=$(date -u +%H%M)
+          # Revision is not needed anymore
+          versionRevision=0
           semVersion="$versionMajor.$versionMinor.$versionBuild"
-          fullVersion="$semVersion.$versionRevision"
+          # Full version is now just the 3-part version
+          fullVersion="$semVersion"
           {
             echo "versionMajor=$versionMajor"
             echo "versionMinor=$versionMinor"

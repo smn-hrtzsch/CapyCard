@@ -56,18 +56,18 @@ jobs:
           }
 
           $utcNow = [DateTime]::UtcNow
-          $versionRevision = $utcNow.ToString('HHmm')
+          # Revision is not needed anymore, we default to 0
+          $versionRevision = 0
           $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
-          $fullVersion = "$msiVersion.$versionRevision"
-
+          # Full version is now just the 3-part version
+          $fullVersion = "$msiVersion"
+          
           "versionMajor=$versionMajor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionMinor=$versionMinor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionBuild=$versionBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionRevision=$versionRevision" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "msiVersion=$msiVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "fullVersion=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
-      - name: Publish Windows build
+          "fullVersion=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append      - name: Publish Windows build
         run: dotnet publish FlashcardMobile/FlashcardMobile.Desktop/FlashcardMobile.Desktop.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }}
 
       - name: Build MSI installer
