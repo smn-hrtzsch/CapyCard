@@ -87,3 +87,7 @@ FlashcardApp/Release/
 !Release/**/*
 Release/.DS_Store
 Release/**/.DS_Store
+
+# Android Signing Keys
+*.keystore
+*.jks
