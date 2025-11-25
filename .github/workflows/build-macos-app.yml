@@ -146,41 +146,5 @@ jobs:
       - name: Upload macOS app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-dmg-${{ steps.version.outputs.fullVersion }}
+          name: macos-dmg
           path: ${{ steps.dmg.outputs.dmgPath }}
-
-      - name: Clean previous macOS releases
-        if: github.ref == 'refs/heads/main'
-        run: |
-          RELEASE_DIR="Release"
-          APP_PATTERN="${{ env.AppBundleSlug }}-macos-*.dmg"
-          if [ -d "$RELEASE_DIR" ]; then
-            find "$RELEASE_DIR" -maxdepth 1 -type f -name "$APP_PATTERN" -delete
-          fi
-          # Also clean old naming convention if present
-          find "$RELEASE_DIR" -maxdepth 1 -type f -name "Alinas-Karteikarten-macos-*.dmg" -delete || true
-
-          rm -f "$RELEASE_DIR/.gitkeep"
-
-      - name: Copy macOS dmg into repo Release folder
-        if: github.ref == 'refs/heads/main'
-        run: |
-          DMG_SRC="${{ steps.dmg.outputs.dmgPath }}"
-          DMG_DEST="Release/${{ steps.paths.outputs.dmgName }}"
-          mkdir -p "$(dirname "$DMG_DEST")"
-          cp "$DMG_SRC" "$DMG_DEST"
-
-      - name: Commit macOS release artifact
-        if: github.ref == 'refs/heads/main'
-        run: |
-          branch="${GITHUB_REF_NAME}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase --autostash origin "$branch"
-          git add Release
-          if git diff --cached --quiet; then
-            echo "No release changes to commit."
-            exit 0
-          fi
-          git commit -m "Add macOS app release ${{ steps.version.outputs.fullVersion }} [skip ci]"
-          git push origin HEAD:"$branch"

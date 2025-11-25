@@ -12,9 +12,13 @@ on:
           - patch
           - minor
           - major
+      release_title:
+        description: "Release Title (optional)"
+        required: false
+        type: string
 
 jobs:
-  version-and-build:
+  bump-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -60,37 +64,73 @@ jobs:
           Write-Host "New Version: $newVersion"
           "new_version=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
-      - name: Commit Version Bump
+      - name: Commit Version Bump & Tag
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
           git add FlashcardMobile/Directory.Build.props
           git commit -m "Bump version to ${{ steps.bump_version.outputs.new_version }}"
+          git tag "v${{ steps.bump_version.outputs.new_version }}"
           git push
+          git push origin "v${{ steps.bump_version.outputs.new_version }}"
 
   call-build-android:
-    needs: version-and-build
+    needs: bump-version
     uses: ./.github/workflows/build-android-apk.yml
     with:
-      version: ${{ needs.version-and-build.outputs.new_version }}
+      version: ${{ needs.bump-version.outputs.new_version }}
     secrets: inherit
     permissions:
       contents: write
 
   call-build-windows:
-    needs: version-and-build
+    needs: bump-version
     uses: ./.github/workflows/build-windows-msi.yml
     with:
-      version: ${{ needs.version-and-build.outputs.new_version }}
+      version: ${{ needs.bump-version.outputs.new_version }}
     secrets: inherit
     permissions:
       contents: write
 
   call-build-macos:
-    needs: version-and-build
+    needs: bump-version
     uses: ./.github/workflows/build-macos-app.yml
     with:
-      version: ${{ needs.version-and-build.outputs.new_version }}
+      version: ${{ needs.bump-version.outputs.new_version }}
     secrets: inherit
     permissions:
       contents: write
+
+  publish-release:
+    needs: [bump-version, call-build-android, call-build-windows, call-build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Android Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: release-assets
+
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-msi
+          path: release-assets
+
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-dmg
+          path: release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.bump-version.outputs.new_version }}
+          name: ${{ inputs.release_title != '' && inputs.release_title || format('Release v{0}', needs.bump-version.outputs.new_version) }}
+          files: release-assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

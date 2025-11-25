@@ -103,38 +103,5 @@ jobs:
       - name: Rename and Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ steps.version.outputs.filenameVersion }}
+          name: android-apk
           path: ${{ steps.apk.outputs.apkPath }}
-
-      # (Rest deiner Steps für Git-Commits bleiben unverändert, habe sie hier gekürzt)
-      - name: Clean previous Android releases
-        if: github.ref == 'refs/heads/main'
-        run: |
-          RELEASE_DIR="Release"
-          if [ -d "$RELEASE_DIR" ]; then
-            find "$RELEASE_DIR" -maxdepth 1 -type f -name "${{ env.ProjectSlug }}-android-*.apk" -delete
-          fi
-          rm -f "$RELEASE_DIR/.gitkeep"
-
-      - name: Copy APK into repo Release folder
-        if: github.ref == 'refs/heads/main'
-        run: |
-          APK_SRC="${{ steps.apk.outputs.apkPath }}"
-          APK_DEST="Release/${{ env.ProjectSlug }}-android-${{ steps.version.outputs.filenameVersion }}.apk"
-          mkdir -p "$(dirname "$APK_DEST")"
-          cp "$APK_SRC" "$APK_DEST"
-
-      - name: Commit Android release artifact
-        if: github.ref == 'refs/heads/main'
-        run: |
-          branch="${GITHUB_REF_NAME}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase --autostash origin "$branch"
-          git add Release
-          if git diff --cached --quiet; then
-            echo "No release changes to commit."
-            exit 0
-          fi
-          git commit -m "Add Android APK release ${{ steps.version.outputs.filenameVersion }} [skip ci]"
-          git push origin HEAD:"$branch"

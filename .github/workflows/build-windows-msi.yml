@@ -86,41 +86,5 @@ jobs:
       - name: Archive MSI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-msi-${{ steps.version.outputs.fullVersion }}
+          name: windows-msi
           path: FlashcardMobile/Installer/bin/${{ env.Configuration }}/*.msi
-
-      - name: Clean previous MSI releases
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
-        run: |
-          $releaseDir = "Release"
-          if (Test-Path $releaseDir) {
-            Get-ChildItem $releaseDir -Filter "Alinas-Karteikarten-*.msi" | Remove-Item -Force
-          }
-
-      - name: Copy MSI into repo Release folder
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
-        run: |
-          $msi = Get-ChildItem "FlashcardMobile/Installer/bin/${{ env.Configuration }}" -Filter *.msi | Select-Object -First 1
-          if (-not $msi) { throw "No MSI output found" }
-          $releaseDir = "Release"
-          New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
-          $destination = Join-Path $releaseDir "Alinas-Karteikarten-${{ steps.version.outputs.fullVersion }}.msi"
-          Copy-Item $msi.FullName $destination -Force
-
-      - name: Commit release artifact
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
-        run: |
-          $branch = "${{ github.ref_name }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase --autostash origin $branch
-          git add Release
-          if (git diff --cached --quiet) {
-            Write-Host "No release changes to commit."
-            exit 0
-          }
-          git commit -m "Add Windows MSI release ${{ steps.version.outputs.fullVersion }} [skip ci]"
-          git push origin HEAD:$branch
