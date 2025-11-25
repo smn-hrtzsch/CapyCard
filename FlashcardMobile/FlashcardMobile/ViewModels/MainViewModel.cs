@@ -67,8 +67,16 @@ namespace FlashcardMobile.ViewModels
         
         private async void NavigateToLearn(Deck deck, LearningMode mode, List<int>? selectedIds)
         {
-            await _learnViewModel.LoadSession(deck, mode, selectedIds);
-            CurrentViewModel = _learnViewModel;
+            try
+            {
+                await _learnViewModel.LoadSession(deck, mode, selectedIds);
+                CurrentViewModel = _learnViewModel;
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error navigating to learn view: {ex}");
+                // Optional: Show error message to user if possible, or just stay on current view
+            }
         }
 
         private void UpdateDeckCardCount(Deck deck, int count)
