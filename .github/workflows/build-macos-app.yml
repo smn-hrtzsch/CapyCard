@@ -43,6 +43,9 @@ jobs:
 
           if [ -n "$inputVersion" ]; then
             IFS='.' read -r versionMajor versionMinor versionBuild <<< "$inputVersion"
+            versionRevision=0
+            semVersion="$versionMajor.$versionMinor.$versionBuild"
+            fullVersion="$semVersion"
           else
             versionMajor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor || echo 1)
             versionMinor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor || echo 0)
@@ -53,13 +56,12 @@ jobs:
             year=$(date -u +%Y)
             dayOfYear=$(date -u +%j)
             versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+            versionRevision=$(date -u +%H%M)
+            
+            semVersion="$versionMajor.$versionMinor.$versionBuild"
+            fullVersion="$semVersion.$versionRevision"
           fi
 
-          # Revision is not needed anymore
-          versionRevision=0
-          semVersion="$versionMajor.$versionMinor.$versionBuild"
-          # Full version is now just the 3-part version
-          fullVersion="$semVersion"
           {
             echo "versionMajor=$versionMajor"
             echo "versionMinor=$versionMinor"
