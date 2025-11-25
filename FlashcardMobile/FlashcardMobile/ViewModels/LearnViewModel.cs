@@ -41,6 +41,7 @@ namespace FlashcardMobile.ViewModels
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
         [ObservableProperty] private string _deckName = string.Empty;
+        [ObservableProperty] private string _backButtonText = "Zurück zum Fach";
         private LearningOrderMode _currentCardFromOrderMode;
 
         public string ProgressText => OrderMode == LearningOrderMode.Smart ? $"{LearnedCount}% Mastery" : $"{LearnedCount}/{TotalCount}";
@@ -75,6 +76,7 @@ namespace FlashcardMobile.ViewModels
             if (_deck == null) return;
 
             DeckName = _deck.Name;
+            BackButtonText = _deck.ParentDeckId.HasValue ? "Zurück zum Thema" : "Zurück zum Fach";
 
             // Find or create session
             string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";

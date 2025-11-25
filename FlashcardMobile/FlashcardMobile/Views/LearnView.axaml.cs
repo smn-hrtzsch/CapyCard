@@ -10,9 +10,24 @@ namespace FlashcardMobile.Views
     {
         private TopLevel? _topLevel;
 
+        public static readonly StyledProperty<bool> IsCompactModeProperty =
+            AvaloniaProperty.Register<LearnView, bool>(nameof(IsCompactMode));
+
+        public bool IsCompactMode
+        {
+            get => GetValue(IsCompactModeProperty);
+            set => SetValue(IsCompactModeProperty, value);
+        }
+
         public LearnView()
         {
             InitializeComponent();
+            this.SizeChanged += OnSizeChanged;
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < 800;
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

@@ -5,9 +5,28 @@
              xmlns:vm="using:FlashcardMobile.ViewModels"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="FlashcardMobile.Views.LearnView"
-             x:DataType="vm:LearnViewModel">
+             x:DataType="vm:LearnViewModel"
+             x:Name="Root">
+
+    <UserControl.Resources>
+        <StreamGeometry x:Key="IconBack">M 502 256 A 246 246 0 1 1 10 256 A 246 246 0 1 1 502 256 Z M 352.26 256 L 170.43 256 M 223.91 202.52 L 170.44 256 L 223.91 309.48</StreamGeometry>
+        <StreamGeometry x:Key="IconRestart">M15.88 13.84c-1.68-3.48-5.44-5.24-9.040-4.6l0.96-1.8c0.24-0.4 0.080-0.92-0.32-1.12-0.4-0.24-0.92-0.080-1.12 0.32l-1.96 3.64c0 0-0.44 0.72 0.24 1.040l3.64 1.96c0.12 0.080 0.28 0.12 0.4 0.12 0.28 0 0.6-0.16 0.72-0.44 0.24-0.4 0.080-0.92-0.32-1.12l-1.88-1.040c2.84-0.48 5.8 0.96 7.12 3.68 1.6 3.32 0.2 7.32-3.12 8.88-1.6 0.76-3.4 0.88-5.080 0.28s-3.040-1.8-3.8-3.4c-0.76-1.6-0.88-3.4-0.28-5.080 0.16-0.44-0.080-0.92-0.52-1.080-0.4-0.080-0.88 0.16-1.040 0.6-0.72 2.12-0.6 4.36 0.36 6.36s2.64 3.52 4.76 4.28c0.92 0.32 1.84 0.48 2.76 0.48 1.24 0 2.48-0.28 3.6-0.84 4.16-2 5.92-7 3.92-11.12z</StreamGeometry>
+    </UserControl.Resources>
 
     <UserControl.Styles>
+        <Style Selector="Button.compact-btn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6"/>
+        </Style>
+        <Style Selector="Button.compact-btn:pointerover /template/ ContentPresenter">
+             <Setter Property="Background" Value="#15000000"/>
+             <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="Button.normal-btn">
+            <Setter Property="Padding" Value="12,6"/>
+        </Style>
+        
         <Style Selector="ToggleButton.shuffle-toggle">
             <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
         </Style>
@@ -167,18 +186,43 @@
                     </Panel>
                 </Button>
 
-                <Button Content="Von vorn beginnen" 
-                        Command="{Binding ResetDeckProgressCommand}" 
+                <!-- Restart Button -->
+                <Button Command="{Binding ResetDeckProgressCommand}" 
                         Grid.Column="2"
                         Margin="5,0,5,0"
                         HorizontalAlignment="Right"
-                        VerticalAlignment="Center"/>
+                        VerticalAlignment="Center"
+                        Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                        Classes.normal-btn="{Binding !#Root.IsCompactMode}"
+                        ToolTip.Tip="Von vorn beginnen">
+                    <Panel>
+                        <TextBlock Text="Von vorn beginnen" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                        <PathIcon Data="{StaticResource IconRestart}" 
+                                  Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                  Width="20" Height="20" 
+                                  IsVisible="{Binding #Root.IsCompactMode}"/>
+                    </Panel>
+                </Button>
                 
-                <Button Content="Zurück zum Fach" 
-                        Command="{Binding GoBackCommand}" 
+                <!-- Back Button -->
+                <Button Command="{Binding GoBackCommand}" 
                         Grid.Column="3"
                         HorizontalAlignment="Right"
-                        VerticalAlignment="Center"/>
+                        VerticalAlignment="Center"
+                        Classes.compact-btn="{Binding #Root.IsCompactMode}"
+                        Classes.normal-btn="{Binding !#Root.IsCompactMode}"
+                        ToolTip.Tip="{Binding BackButtonText}">
+                    <Panel>
+                        <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                        <Path Data="{StaticResource IconBack}"
+                              Stroke="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                              StrokeThickness="2"
+                              Fill="Transparent"
+                              Stretch="Uniform"
+                              Width="24" Height="24"
+                              IsVisible="{Binding #Root.IsCompactMode}"/>
+                    </Panel>
+                </Button>
             </Grid>
             
             <!-- MITTE (unverändert) -->
