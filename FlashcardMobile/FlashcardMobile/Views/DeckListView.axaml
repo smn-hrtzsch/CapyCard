@@ -21,11 +21,12 @@
                 <!-- OBERER BEREICH (unverändert) -->
                 <StackPanel DockPanel.Dock="Top" Spacing="5">
                     <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
-                    <TextBox Text="{Binding NewDeckName, Mode=TwoWay}"
-                             Watermark="Name des Fachs...">
-                        <TextBox.KeyBindings>
-                            <KeyBinding Command="{Binding AddDeckCommand}" Gesture="Enter"/>
-                        </TextBox.KeyBindings>
+                    <TextBox x:Name="NewDeckTextBox"
+                             Text="{Binding NewDeckName, Mode=TwoWay}"
+                             Watermark="Name des Fachs..."
+                             AcceptsReturn="False"
+                             TextWrapping="NoWrap">
+                        <!-- KeyBinding handled in CodeBehind to keep keyboard open -->
                     </TextBox>
                     <Button Content="Fach hinzufügen"
                             Command="{Binding AddDeckCommand}"

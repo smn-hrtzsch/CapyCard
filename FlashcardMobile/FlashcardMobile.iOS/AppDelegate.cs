@@ -6,6 +6,7 @@ using Avalonia.iOS;
 using Avalonia.Media;
 using FlashcardMobile.Services;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace FlashcardMobile.iOS;
 
@@ -28,6 +29,41 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
         // Subscribe to Keyboard Events
         NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, OnKeyboardNotification);
         NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillHideNotification, OnKeyboardNotification);
+
+        KeyboardService.RequestShowKeyboard = () =>
+        {
+            Task.Delay(100).ContinueWith(t =>
+            {
+                UIApplication.SharedApplication.InvokeOnMainThread(() =>
+                {
+                    var window = UIApplication.SharedApplication.ConnectedScenes
+                        .OfType<UIWindowScene>()
+                        .SelectMany(s => s.Windows)
+                        .FirstOrDefault(w => w.IsKeyWindow);
+
+                    if (window != null)
+                    {
+                        var firstResponder = FindFirstResponder(window);
+                        if (firstResponder != null)
+                        {
+                            firstResponder.ResignFirstResponder();
+                            firstResponder.BecomeFirstResponder();
+                        }
+                    }
+                });
+            });
+        };
+    }
+
+    private UIView? FindFirstResponder(UIView view)
+    {
+        if (view.IsFirstResponder) return view;
+        foreach (var sub in view.Subviews)
+        {
+            var found = FindFirstResponder(sub);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     private void OnKeyboardNotification(NSNotification notification)
@@ -39,16 +75,9 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
 
             if (isShowing)
             {
-                // Get Keyboard Frame
                 var frame = UIKeyboard.FrameEndFromNotification(notification);
                 height = frame.Height;
 
-                // Subtract Safe Area Bottom (Home Indicator)
-                // Avalonia usually pads the view for the Home Indicator.
-                // The keyboard sits on top of the Home Indicator area.
-                // If we push up by full Keyboard Height, we push up by (Keyboard + HomeIndicatorPadding).
-                // But we already have HomeIndicatorPadding in the view layout.
-                // So we should push up by (Keyboard - HomeIndicatorPadding).
                 var window = UIApplication.SharedApplication.ConnectedScenes
                     .OfType<UIWindowScene>()
                     .SelectMany(s => s.Windows)
@@ -70,3 +99,4 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
         }
     }
 }
+

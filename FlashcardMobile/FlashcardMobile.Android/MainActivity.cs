@@ -1,10 +1,13 @@
 ﻿using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Views;
+using Android.Views.InputMethods;
 using AndroidX.Core.View;
 using Avalonia;
 using Avalonia.Android;
+using FlashcardMobile.Services;
 
 namespace FlashcardMobile.Android;
 
@@ -38,5 +41,16 @@ public class MainActivity : AvaloniaMainActivity<App>
             var density = Resources?.DisplayMetrics?.Density ?? 1.0;
             ViewCompat.SetOnApplyWindowInsetsListener(contentView, new KeyboardInsetsListener(density));
         }
+
+        // --- KeyboardService.RequestShowKeyboard implementation for Android ---
+        KeyboardService.RequestShowKeyboard = () =>
+        {
+            var imm = (InputMethodManager?)GetSystemService(Context.InputMethodService);
+            var view = CurrentFocus ?? Window?.DecorView; // Try to get the current focused view, fallback to window decor
+            if (view != null && imm != null)
+            {
+                imm.ShowSoftInput(view, ShowFlags.Implicit);
+            }
+        };
     }
 }

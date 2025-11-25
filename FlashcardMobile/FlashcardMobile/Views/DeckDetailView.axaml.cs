@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using FlashcardMobile.Services;
 using FlashcardMobile.ViewModels;
 using System;
@@ -63,7 +64,8 @@ namespace FlashcardMobile.Views
                 KeyboardService.KeyboardHeightChanged += OnKeyboardHeightChanged;
                 SubDeckTextBox.GotFocus += OnSubDeckInputGotFocus;
                 SubDeckTextBox.LostFocus += OnSubDeckInputLostFocus;
-                SubDeckTextBox.KeyDown += OnInputKeyDown;
+                // Use Tunnel to catch Enter before TextBox inserts a newline
+                SubDeckTextBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
             }
     
             protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -73,7 +75,7 @@ namespace FlashcardMobile.Views
                 KeyboardService.KeyboardHeightChanged -= OnKeyboardHeightChanged;
                 SubDeckTextBox.GotFocus -= OnSubDeckInputGotFocus;
                 SubDeckTextBox.LostFocus -= OnSubDeckInputLostFocus;
-                SubDeckTextBox.KeyDown -= OnInputKeyDown;
+                SubDeckTextBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
     
                 if (_viewModel != null)
                 {
@@ -122,6 +124,11 @@ namespace FlashcardMobile.Views
                     }
                     
                     e.Handled = true;
+                    
+                    if (IsCompactMode)
+                    {
+                        KeyboardService.ShowKeyboard();
+                    }
                 }
             }
     

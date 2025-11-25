@@ -87,7 +87,9 @@
                 <TextBox x:Name="SubDeckTextBox" 
                          Text="{Binding NewSubDeckName}" 
                          Watermark="Neues Thema hinzufügen..." 
-                         Margin="0,0,10,0">
+                         Margin="0,0,10,0"
+                         AcceptsReturn="False"
+                         TextWrapping="NoWrap">
                     <!-- KeyBinding removed, handled in CodeBehind for better control -->
                 </TextBox>
                 <Button Content="+" Command="{Binding AddSubDeckCommand}" Grid.Column="1"/>
