@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using FlashcardMobile.ViewModels;
 
 namespace FlashcardMobile.Views
@@ -28,6 +29,25 @@ namespace FlashcardMobile.Views
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < 800;
+        }
+
+        private void OnNavigationButtonClick(object? sender, RoutedEventArgs e)
+        {
+            // Delay focus change slightly to allow UI to update (e.g. button visibility)
+            Dispatcher.UIThread.Post(() =>
+            {
+                var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
+                var btnSmart = this.FindControl<Button>("ShowBackBtnSmart");
+
+                if (btnStandard != null && btnStandard.IsEffectivelyVisible)
+                {
+                    btnStandard.Focus();
+                }
+                else if (btnSmart != null && btnSmart.IsEffectivelyVisible)
+                {
+                    btnSmart.Focus();
+                }
+            }, DispatcherPriority.Input);
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

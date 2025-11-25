@@ -63,6 +63,7 @@
 
                 <Button Grid.Column="1"
                         Command="{Binding CycleLearningModeCommand}"
+                        Click="OnNavigationButtonClick"
                         Background="Transparent" BorderThickness="0"
                         Width="30" Height="30" Padding="4"
                         VerticalAlignment="Center">
@@ -188,6 +189,7 @@
 
                 <!-- Restart Button -->
                 <Button Command="{Binding ResetDeckProgressCommand}" 
+                        Click="OnNavigationButtonClick"
                         Grid.Column="2"
                         Margin="5,0,5,0"
                         HorizontalAlignment="Right"
@@ -302,7 +304,8 @@
                     <Grid IsVisible="{Binding !IsEditing}">
                         <!-- Standard Navigation -->
                         <StackPanel IsVisible="{Binding !IsCurrentCardSmart}">
-                            <Button Content="Rückseite anzeigen"
+                            <Button x:Name="ShowBackBtnStandard"
+                                    Content="Rückseite anzeigen"
                                     Command="{Binding ShowBackCommand}"
                                     HorizontalAlignment="Stretch"
                                     IsVisible="{Binding ShowShowBackButton}"/>
@@ -320,7 +323,8 @@
 
                         <!-- Smart Mode Navigation -->
                         <StackPanel IsVisible="{Binding IsCurrentCardSmart}">
-                             <Button Content="Rückseite anzeigen"
+                             <Button x:Name="ShowBackBtnSmart"
+                                    Content="Rückseite anzeigen"
                                     Command="{Binding ShowBackCommand}"
                                     HorizontalAlignment="Stretch"
                                     IsVisible="{Binding ShowShowBackButton}"/>

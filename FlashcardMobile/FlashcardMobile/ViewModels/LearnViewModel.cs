@@ -23,7 +23,11 @@ namespace FlashcardMobile.ViewModels
 
         [ObservableProperty] private string _currentCardFront = string.Empty;
         [ObservableProperty] private string _currentCardBack = string.Empty;
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] private bool _isBackVisible = false;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))] 
+        [NotifyCanExecuteChangedFor(nameof(RateCardCommand))]
+        [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))]
+        private bool _isBackVisible = false;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsEditing))] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] private bool _isDeckFinished = false;
         
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] private LearningOrderMode _orderMode;
@@ -370,7 +374,7 @@ namespace FlashcardMobile.ViewModels
 
         private bool CanCycleLearningMode() => !IsEditing;
 
-        [RelayCommand]
+        [RelayCommand(CanExecute = nameof(CanRateCard))]
         private async Task RateCard(string ratingStr)
         {
             if (CurrentCard == null || _currentSession == null || !int.TryParse(ratingStr, out int rating)) return;
@@ -387,6 +391,13 @@ namespace FlashcardMobile.ViewModels
             await _dbContext.SaveChangesAsync();
 
             await AdvanceAndShowNextCard();
+        }
+
+        private bool CanRateCard(string ratingStr)
+        {
+            // Only allow rating if the back is visible (card has been revealed)
+            // and we are in Smart Mode (where rating buttons are used).
+            return IsBackVisible && IsCurrentCardSmart;
         }
 
         [RelayCommand]
