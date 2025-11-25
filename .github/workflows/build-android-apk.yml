@@ -2,6 +2,11 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -35,12 +40,24 @@ jobs:
         id: version
         working-directory: FlashcardMobile/FlashcardMobile.Android
         run: |
-          year=$(date -u +%Y)
-          dayOfYear=$(date -u +%j)
-          versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
-          versionRevision=$(date -u +%H%M)
-          fullVersion="1.0.$versionBuild.$versionRevision"
+          inputVersion="${{ inputs.version }}"
+
+          if [ -n "$inputVersion" ]; then
+             # Use provided version
+             fullVersion="$inputVersion"
+             # For versionCode, we use the run number to ensure it increases
+             versionBuild=${{ github.run_number }}
+          else
+             # Fallback logic
+             year=$(date -u +%Y)
+             dayOfYear=$(date -u +%j)
+             versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+             versionRevision=$(date -u +%H%M)
+             fullVersion="1.0.$versionBuild.$versionRevision"
+          fi
+
           echo "fullVersion=$fullVersion" >> "$GITHUB_OUTPUT"
+          echo "versionBuild=$versionBuild" >> "$GITHUB_OUTPUT"
 
       # GEÄNDERT: Signierungsparameter hinzugefügt
       - name: Publish Android
@@ -49,7 +66,7 @@ jobs:
           -c Release \
           -f net9.0-android \
           /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} \
-          /p:ApplicationDisplayVersion="1.0" \
+          /p:ApplicationDisplayVersion="${{ steps.version.outputs.fullVersion }}" \
           /p:AndroidKeyStore=true \
           /p:AndroidSigningKeyStore=release.keystore \
           /p:AndroidSigningStorePass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \

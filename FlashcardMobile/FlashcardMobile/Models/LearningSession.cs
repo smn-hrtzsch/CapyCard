@@ -28,7 +28,9 @@ namespace FlashcardMobile.Models
         // Progress
         public int LastLearnedIndex { get; set; } = 0;
         public string LearnedCardIdsJson { get; set; } = "[]"; // For random mode
-        public bool IsRandomOrder { get; set; } = false;
+        
+        // Replaces IsRandomOrder
+        public LearningOrderMode OrderMode { get; set; } = LearningOrderMode.Sequential;
 
         public DateTime LastAccessed { get; set; } = DateTime.Now;
     }

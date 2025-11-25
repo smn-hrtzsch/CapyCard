@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlashcardMobile.Data;
 using FlashcardMobile.Models;
+using FlashcardMobile.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,18 +16,25 @@ namespace FlashcardMobile.ViewModels
     public partial class LearnViewModel : ObservableObject
     {
         private readonly FlashcardDbContext _dbContext;
+        private readonly SmartQueueService _smartQueueService;
         private Deck? _deck;
         private LearningSession? _currentSession;
         private List<Card> _allCards = new();
 
         [ObservableProperty] private string _currentCardFront = string.Empty;
         [ObservableProperty] private string _currentCardBack = string.Empty;
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] private bool _isBackVisible = false;
+        [ObservableProperty] 
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))] 
+        [NotifyCanExecuteChangedFor(nameof(RateCardCommand))]
+        [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))]
+        private bool _isBackVisible = false;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsEditing))] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] private bool _isDeckFinished = false;
-        [ObservableProperty] private bool _isRandomOrder;
+        
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] private LearningOrderMode _orderMode;
+        
         [ObservableProperty] private string _editFrontText = string.Empty;
         [ObservableProperty] private string _editBackText = string.Empty;
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] [NotifyCanExecuteChangedFor(nameof(ToggleRandomOrderCommand))] private bool _isEditing = false;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] [NotifyCanExecuteChangedFor(nameof(CycleLearningModeCommand))] private bool _isEditing = false;
         [ObservableProperty] private bool _showShowBackButton = false;
         [ObservableProperty] private bool _showNextCardButton = false;
         [ObservableProperty] private bool _showReshuffleButton = false;
@@ -37,9 +45,17 @@ namespace FlashcardMobile.ViewModels
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
         [ObservableProperty] private string _deckName = string.Empty;
-        private bool _isCurrentCardFromRandomOrder;
+        [ObservableProperty] private string _backButtonText = "Zurück zum Fach";
+        private LearningOrderMode _currentCardFromOrderMode;
 
-        public string ProgressText => $"{LearnedCount}/{TotalCount}";
+        public string ProgressText => OrderMode == LearningOrderMode.Smart ? $"{LearnedCount}% Mastery" : $"{LearnedCount}/{TotalCount}";
+        
+        public bool IsSmartMode => OrderMode == LearningOrderMode.Smart;
+        public bool IsSequentialMode => OrderMode == LearningOrderMode.Sequential;
+        public bool IsRandomMode => OrderMode == LearningOrderMode.Random;
+
+        public bool IsCurrentCardSmart => _currentCardFromOrderMode == LearningOrderMode.Smart;
+        public bool IsCurrentCardStandard => _currentCardFromOrderMode != LearningOrderMode.Smart;
 
         public event Action? OnNavigateBack;
         public bool ShowEditButton => IsBackVisible && !IsEditing && CurrentCard != null;
@@ -47,6 +63,7 @@ namespace FlashcardMobile.ViewModels
         public LearnViewModel()
         {
             _dbContext = new FlashcardDbContext();
+            _smartQueueService = new SmartQueueService();
         }
 
         public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)
@@ -63,6 +80,7 @@ namespace FlashcardMobile.ViewModels
             if (_deck == null) return;
 
             DeckName = _deck.Name;
+            BackButtonText = _deck.ParentDeckId.HasValue ? "Zurück zum Thema" : "Zurück zum Fach";
 
             // Find or create session
             string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";
@@ -79,7 +97,7 @@ namespace FlashcardMobile.ViewModels
                     SelectedDeckIdsJson = selectedIdsJson,
                     LastLearnedIndex = 0,
                     LearnedCardIdsJson = "[]",
-                    IsRandomOrder = false,
+                    OrderMode = LearningOrderMode.Sequential,
                     LastAccessed = DateTime.Now
                 };
                 _dbContext.LearningSessions.Add(_currentSession);
@@ -90,7 +108,7 @@ namespace FlashcardMobile.ViewModels
             }
             await _dbContext.SaveChangesAsync();
 
-            IsRandomOrder = _currentSession.IsRandomOrder;
+            OrderMode = _currentSession.OrderMode;
 
             // Load cards based on mode
             _allCards.Clear();
@@ -139,20 +157,42 @@ namespace FlashcardMobile.ViewModels
         private void UpdateProgressState()
         {
             if (_currentSession == null) return;
-            TotalCount = _allCards.Count;
-
-            if (!IsRandomOrder)
+            
+            switch (OrderMode)
             {
-                ProgressModeLabel = "Sortiert";
-                LearnedCount = _currentSession.LastLearnedIndex;
-            }
-            else
-            {
-                ProgressModeLabel = "Zufall";
-                var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
-                    ? new List<int>() 
-                    : (JsonSerializer.Deserialize<List<int>>(_currentSession.LearnedCardIdsJson) ?? new List<int>());
-                LearnedCount = learnedIds.Count;
+                case LearningOrderMode.Sequential:
+                    TotalCount = _allCards.Count;
+                    ProgressModeLabel = "Sortiert";
+                    LearnedCount = _currentSession.LastLearnedIndex;
+                    break;
+                case LearningOrderMode.Random:
+                    TotalCount = _allCards.Count;
+                    ProgressModeLabel = "Zufall";
+                    var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
+                        ? new List<int>() 
+                        : (JsonSerializer.Deserialize<List<int>>(_currentSession.LearnedCardIdsJson) ?? new List<int>());
+                    LearnedCount = learnedIds.Count;
+                    break;
+                case LearningOrderMode.Smart:
+                    TotalCount = 100;
+                    ProgressModeLabel = "Smart";
+                    // Calculate mastery percentage
+                    // We need to fetch scores for all cards in _allCards
+                    var cardIds = _allCards.Select(c => c.Id).ToList();
+                    var scores = _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToList();
+                    
+                    if (!_allCards.Any())
+                    {
+                        LearnedCount = 0;
+                    }
+                    else
+                    {
+                        double totalBoxIndex = scores.Sum(s => s.BoxIndex);
+                        // Max possible score is 5 * count
+                        double maxScore = _allCards.Count * 5;
+                        LearnedCount = (int)((totalBoxIndex / maxScore) * 100);
+                    }
+                    break;
             }
         }
 
@@ -166,12 +206,15 @@ namespace FlashcardMobile.ViewModels
 
             UpdateProgressState();
 
-            _isCurrentCardFromRandomOrder = IsRandomOrder;
+            _currentCardFromOrderMode = OrderMode;
+            OnPropertyChanged(nameof(IsCurrentCardSmart));
+            OnPropertyChanged(nameof(IsCurrentCardStandard));
+
             IsEditing = false;
             IsBackVisible = false;
             Card? cardToShow = null;
 
-            if (!IsRandomOrder)
+            if (OrderMode == LearningOrderMode.Sequential)
             {
                 var sortedCards = _allCards.OrderBy(c => c.Id).ToList();
                 if (_currentSession.LastLearnedIndex < sortedCards.Count)
@@ -184,7 +227,7 @@ namespace FlashcardMobile.ViewModels
                     return;
                 }
             }
-            else
+            else if (OrderMode == LearningOrderMode.Random)
             {
                 var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
@@ -199,6 +242,19 @@ namespace FlashcardMobile.ViewModels
                 }
                 cardToShow = availableCards[Random.Shared.Next(availableCards.Count)];
             }
+            else if (OrderMode == LearningOrderMode.Smart)
+            {
+                var cardIds = _allCards.Select(c => c.Id).ToList();
+                var scores = _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToList();
+                cardToShow = _smartQueueService.GetNextCard(_allCards, scores);
+                
+                if (cardToShow == null)
+                {
+                     // Should not happen if there are cards, but just in case
+                     SetFinishedState("Keine Karten verfügbar.");
+                     return;
+                }
+            }
             
             DisplayCard(cardToShow);
         }
@@ -208,11 +264,11 @@ namespace FlashcardMobile.ViewModels
             if (_currentSession == null) return;
             IsBackVisible = false;
 
-            if (!_isCurrentCardFromRandomOrder)
+            if (_currentCardFromOrderMode == LearningOrderMode.Sequential)
             {
                 _currentSession.LastLearnedIndex++;
             }
-            else
+            else if (_currentCardFromOrderMode == LearningOrderMode.Random)
             {
                 var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
@@ -223,6 +279,8 @@ namespace FlashcardMobile.ViewModels
                     _currentSession.LearnedCardIdsJson = JsonSerializer.Serialize(learnedIds);
                 }
             }
+            // Smart mode doesn't advance index, it updates scores via RateCardCommand
+            
             await _dbContext.SaveChangesAsync();
 
             ShowCardAtCurrentProgress();
@@ -245,15 +303,20 @@ namespace FlashcardMobile.ViewModels
         private void SetFinishedState(string message)
         {
             CurrentCardFront = message;
-            if (IsRandomOrder)
+            if (OrderMode == LearningOrderMode.Random)
             {
                 CurrentCardBack = "Alle Karten gelernt. Nochmal mischen?";
                 ReshuffleButtonText = "Neu mischen & Starten";
             }
-            else
+            else if (OrderMode == LearningOrderMode.Sequential)
             {
                 CurrentCardBack = "Alle Karten gelernt. Nochmal von vorn anfangen?";
                 ReshuffleButtonText = "Deck von vorne starten";
+            }
+            else
+            {
+                CurrentCardBack = "Smart Learning Session beendet (sollte nicht passieren).";
+                ReshuffleButtonText = "Weiter lernen";
             }
             CurrentCard = null;
             IsBackVisible = true;
@@ -263,34 +326,105 @@ namespace FlashcardMobile.ViewModels
             ShowReshuffleButton = true;
         }
 
-        [RelayCommand(CanExecute = nameof(CanToggleRandomOrder))]
-        private async Task ToggleRandomOrder()
+        [RelayCommand(CanExecute = nameof(CanCycleLearningMode))]
+        private async Task CycleLearningMode()
         {
             if (_currentSession == null) return;
 
-            _currentSession.IsRandomOrder = IsRandomOrder;
-            await _dbContext.SaveChangesAsync();
-            
-            if (CurrentCard == null || IsBackVisible)
+            // Determine next mode
+            LearningOrderMode nextMode = OrderMode;
+            switch (OrderMode)
             {
+                case LearningOrderMode.Sequential:
+                    nextMode = LearningOrderMode.Random;
+                    break;
+                case LearningOrderMode.Random:
+                    nextMode = LearningOrderMode.Smart;
+                    break;
+                case LearningOrderMode.Smart:
+                    nextMode = LearningOrderMode.Sequential;
+                    break;
+            }
+
+            OrderMode = nextMode;
+            _currentSession.OrderMode = OrderMode;
+            await _dbContext.SaveChangesAsync();
+
+            // If we are currently viewing a card back
+            if (CurrentCard != null && IsBackVisible)
+            {
+                // If the CURRENT card was Smart, we MUST wait for rating.
+                // Do NOT advance. The UI will show the new mode icon (OrderMode updated),
+                // but the buttons will remain Rating buttons (IsCurrentCardSmart is still true).
+                if (_currentCardFromOrderMode == LearningOrderMode.Smart)
+                {
+                    return;
+                }
+                
+                // If the current card was NOT Smart (Sequential or Random),
+                // we should immediately advance to the next card in the NEW mode.
+                await NextCard();
+            }
+            else if (CurrentCard == null)
+            {
+                // If no card is currently shown (e.g. finished state), refresh to see if new mode has cards.
                 ShowCardAtCurrentProgress();
             }
         }
 
-        private bool CanToggleRandomOrder() => !IsEditing;
+        private bool CanCycleLearningMode() => !IsEditing;
+
+        [RelayCommand(CanExecute = nameof(CanRateCard))]
+        private async Task RateCard(string ratingStr)
+        {
+            if (CurrentCard == null || _currentSession == null || !int.TryParse(ratingStr, out int rating)) return;
+
+            // Find or create score
+            var score = await _dbContext.CardSmartScores.FirstOrDefaultAsync(s => s.CardId == CurrentCard.Id);
+            if (score == null)
+            {
+                score = new CardSmartScore { CardId = CurrentCard.Id, Score = 0, BoxIndex = 0, LastReviewed = DateTime.MinValue };
+                _dbContext.CardSmartScores.Add(score);
+            }
+
+            _smartQueueService.CalculateNewScore(score, rating);
+            await _dbContext.SaveChangesAsync();
+
+            await AdvanceAndShowNextCard();
+        }
+
+        private bool CanRateCard(string ratingStr)
+        {
+            // Only allow rating if the back is visible (card has been revealed)
+            // and we are in Smart Mode (where rating buttons are used).
+            return IsBackVisible && IsCurrentCardSmart;
+        }
 
         [RelayCommand]
         private async Task ResetDeckProgress()
         {
             if (_currentSession == null) return;
 
-            if (IsRandomOrder)
+            if (OrderMode == LearningOrderMode.Random)
             {
                 _currentSession.LearnedCardIdsJson = "[]";
             }
-            else
+            else if (OrderMode == LearningOrderMode.Sequential)
             {
                 _currentSession.LastLearnedIndex = 0;
+            }
+            else if (OrderMode == LearningOrderMode.Smart)
+            {
+                // Reset scores for all cards in this deck/session
+                var cardIds = _allCards.Select(c => c.Id).ToList();
+                var scores = await _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToListAsync();
+                
+                foreach (var score in scores)
+                {
+                    score.Score = 0;
+                    score.BoxIndex = 0;
+                    score.LastReviewed = DateTime.MinValue;
+                }
             }
             
             await _dbContext.SaveChangesAsync();
@@ -335,6 +469,11 @@ namespace FlashcardMobile.ViewModels
             }
             else
             {
+                // In Smart Mode, we must rate the card. "Enter" (which triggers Advance) should not skip rating.
+                if (IsCurrentCardSmart)
+                {
+                    return;
+                }
                 await NextCard();
             }
         }

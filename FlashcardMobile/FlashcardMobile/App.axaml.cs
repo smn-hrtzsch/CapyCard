@@ -37,7 +37,10 @@ public partial class App : Application
         }
         */
 
-        // 2. Datenbank Initialisierung
+        // 2. Datenbank Migration (Alte DB verschieben falls vorhanden)
+        MigrateOldDatabase();
+
+        // 3. Datenbank Initialisierung
         InitializeDatabase();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -67,6 +70,51 @@ public partial class App : Application
         foreach (var plugin in dataValidationPluginsToRemove)
         {
             BindingPlugins.DataValidators.Remove(plugin);
+        }
+    }
+
+    private void MigrateOldDatabase()
+    {
+        // Migration nur auf Desktop-Plattformen (Windows/macOS/Linux) sinnvoll,
+        // da auf Mobile die Pfade anders funktionieren und die alte App dort nicht existierte.
+        if (OperatingSystem.IsBrowser() || OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+        {
+            return;
+        }
+
+        try
+        {
+            var folder = Environment.SpecialFolder.LocalApplicationData;
+            var basePath = Environment.GetFolderPath(folder);
+            
+            // Alter Pfad: Direkt im LocalApplicationData Ordner
+            var oldDbPath = Path.Combine(basePath, "flashcards.db");
+            
+            // Neuer Pfad: Im Unterordner 'CapyCard'
+            var newDir = Path.Combine(basePath, "CapyCard");
+            var newDbPath = Path.Combine(newDir, "flashcards.db");
+
+            // Nur migrieren, wenn alte DB existiert und neue noch NICHT
+            if (File.Exists(oldDbPath) && !File.Exists(newDbPath))
+            {
+                Console.WriteLine($"[Migration] Found old database at {oldDbPath}. Moving to {newDbPath}...");
+
+                // Sicherstellen, dass der Zielordner existiert
+                if (!Directory.Exists(newDir))
+                {
+                    Directory.CreateDirectory(newDir);
+                }
+                
+                // Datei verschieben
+                File.Move(oldDbPath, newDbPath);
+                Console.WriteLine($"[Migration] Database moved successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Fehler loggen, aber App-Start nicht verhindern. 
+            // Im schlimmsten Fall wird eine neue DB erstellt.
+            Console.WriteLine($"[Migration] Failed to migrate database: {ex.Message}");
         }
     }
 

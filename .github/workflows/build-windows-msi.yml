@@ -2,6 +2,11 @@ name: Build Windows Installer
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -31,16 +36,30 @@ jobs:
         shell: pwsh
         working-directory: FlashcardMobile/FlashcardMobile.Desktop
         run: |
-          $versionMajor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor)
-          if (-not $versionMajor) { $versionMajor = 1 }
-          $versionMinor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor)
-          if (-not $versionMinor) { $versionMinor = 0 }
-          
+          # If version is passed from caller workflow, use it
+          $inputVersion = "${{ inputs.version }}"
+
+          if ($inputVersion) {
+             $versionParts = $inputVersion.Split('.')
+             $versionMajor = $versionParts[0]
+             $versionMinor = $versionParts[1]
+             $versionBuild = $versionParts[2]
+          } else {
+             # Fallback to project file if no input
+             $versionMajor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor)
+             if (-not $versionMajor) { $versionMajor = 1 }
+             $versionMinor = [int](dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor)
+             if (-not $versionMinor) { $versionMinor = 0 }
+             
+             $utcNow = [DateTime]::UtcNow
+             $versionBuild = (($utcNow.Year - 2000) * 400) + $utcNow.DayOfYear
+          }
+
           $utcNow = [DateTime]::UtcNow
-          $versionBuild = (($utcNow.Year - 2000) * 400) + $utcNow.DayOfYear
           $versionRevision = $utcNow.ToString('HHmm')
           $msiVersion = "$versionMajor.$versionMinor.$versionBuild"
           $fullVersion = "$msiVersion.$versionRevision"
+
           "versionMajor=$versionMajor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionMinor=$versionMinor" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "versionBuild=$versionBuild" | Out-File -FilePath $env:GITHUB_OUTPUT -Append

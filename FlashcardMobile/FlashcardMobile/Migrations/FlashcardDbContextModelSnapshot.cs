@@ -15,9 +15,9 @@ namespace FlashcardMobile.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.7");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
-            modelBuilder.Entity("FlashcardApp.Models.Card", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.Card", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,7 +41,32 @@ namespace FlashcardMobile.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.Deck", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.CardSmartScore", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BoxIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CardId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("LastReviewed")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Score")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardId");
+
+                    b.ToTable("CardSmartScores");
+                });
+
+            modelBuilder.Entity("FlashcardMobile.Models.Deck", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -75,16 +100,13 @@ namespace FlashcardMobile.Migrations
                     b.ToTable("Decks");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.LearningSession", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.LearningSession", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("DeckId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsRandomOrder")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("LastAccessed")
@@ -100,6 +122,9 @@ namespace FlashcardMobile.Migrations
                     b.Property<int>("Mode")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("OrderMode")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("SelectedDeckIdsJson")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -111,9 +136,9 @@ namespace FlashcardMobile.Migrations
                     b.ToTable("LearningSessions");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.Card", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.Card", b =>
                 {
-                    b.HasOne("FlashcardApp.Models.Deck", "Deck")
+                    b.HasOne("FlashcardMobile.Models.Deck", "Deck")
                         .WithMany("Cards")
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -122,9 +147,20 @@ namespace FlashcardMobile.Migrations
                     b.Navigation("Deck");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.Deck", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.CardSmartScore", b =>
                 {
-                    b.HasOne("FlashcardApp.Models.Deck", "ParentDeck")
+                    b.HasOne("FlashcardMobile.Models.Card", "Card")
+                        .WithMany()
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Card");
+                });
+
+            modelBuilder.Entity("FlashcardMobile.Models.Deck", b =>
+                {
+                    b.HasOne("FlashcardMobile.Models.Deck", "ParentDeck")
                         .WithMany("SubDecks")
                         .HasForeignKey("ParentDeckId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -132,9 +168,9 @@ namespace FlashcardMobile.Migrations
                     b.Navigation("ParentDeck");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.LearningSession", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.LearningSession", b =>
                 {
-                    b.HasOne("FlashcardApp.Models.Deck", "Deck")
+                    b.HasOne("FlashcardMobile.Models.Deck", "Deck")
                         .WithMany()
                         .HasForeignKey("DeckId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -143,7 +179,7 @@ namespace FlashcardMobile.Migrations
                     b.Navigation("Deck");
                 });
 
-            modelBuilder.Entity("FlashcardApp.Models.Deck", b =>
+            modelBuilder.Entity("FlashcardMobile.Models.Deck", b =>
                 {
                     b.Navigation("Cards");
 

@@ -2,6 +2,11 @@ name: Build macOS App
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -33,15 +38,23 @@ jobs:
         id: version
         run: |
           cd FlashcardMobile/FlashcardMobile.Desktop
-          versionMajor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor || echo 1)
-          versionMinor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor || echo 0)
-          # Fallback if property is missing
-          if [ -z "$versionMajor" ]; then versionMajor=1; fi
-          if [ -z "$versionMinor" ]; then versionMinor=0; fi
-          
-          year=$(date -u +%Y)
-          dayOfYear=$(date -u +%j)
-          versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+
+          inputVersion="${{ inputs.version }}"
+
+          if [ -n "$inputVersion" ]; then
+            IFS='.' read -r versionMajor versionMinor versionBuild <<< "$inputVersion"
+          else
+            versionMajor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMajor || echo 1)
+            versionMinor=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:VersionMinor || echo 0)
+            # Fallback if property is missing
+            if [ -z "$versionMajor" ]; then versionMajor=1; fi
+            if [ -z "$versionMinor" ]; then versionMinor=0; fi
+            
+            year=$(date -u +%Y)
+            dayOfYear=$(date -u +%j)
+            versionBuild=$(( ((year - 2000) * 400) + dayOfYear ))
+          fi
+
           versionRevision=$(date -u +%H%M)
           semVersion="$versionMajor.$versionMinor.$versionBuild"
           fullVersion="$semVersion.$versionRevision"
@@ -137,7 +150,7 @@ jobs:
           fi
           # Also clean old naming convention if present
           find "$RELEASE_DIR" -maxdepth 1 -type f -name "Alinas-Karteikarten-macos-*.dmg" -delete || true
-          
+
           rm -f "$RELEASE_DIR/.gitkeep"
 
       - name: Copy macOS dmg into repo Release folder
