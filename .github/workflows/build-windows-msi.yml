@@ -34,7 +34,7 @@ jobs:
       - name: Calculate version
         id: version
         shell: pwsh
-        working-directory: FlashcardMobile/FlashcardMobile.Desktop
+        working-directory: CapyCard/CapyCard.Desktop
         run: |
           # If version is passed from caller workflow, use it
           $inputVersion = "${{ inputs.version }}"
@@ -49,7 +49,7 @@ jobs:
              $fullVersion = "$msiVersion"
           } else {
              # Fallback to project file if no input
-             $currentVersion = dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:Version
+             $currentVersion = dotnet msbuild CapyCard.Desktop.csproj -nologo -getProperty:Version
              if (-not $currentVersion) { $currentVersion = "1.0.0" }
              
              $vParts = $currentVersion.Split('.')
@@ -78,17 +78,17 @@ jobs:
           "fullVersion=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Publish Windows build
-        run: dotnet publish FlashcardMobile/FlashcardMobile.Desktop/FlashcardMobile.Desktop.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }}
+        run: dotnet publish CapyCard/CapyCard.Desktop/CapyCard.Desktop.csproj -c $env:Configuration -r $env:RuntimeIdentifier --self-contained true /p:PublishSingleFile=true -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }}
 
       - name: Build MSI installer
-        working-directory: FlashcardMobile/Installer
+        working-directory: CapyCard/Installer
         run: |
-          dotnet build FlashcardMobile.Installer.wixproj -c $env:Configuration -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -p:ProductVersion=${{ steps.version.outputs.msiVersion }}
+          dotnet build CapyCard.Installer.wixproj -c $env:Configuration -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -p:ProductVersion=${{ steps.version.outputs.msiVersion }}
 
       - name: Rename MSI
         shell: pwsh
         run: |
-          $msiPath = Get-ChildItem "FlashcardMobile/Installer/bin/${{ env.Configuration }}/*.msi" | Select-Object -First 1
+          $msiPath = Get-ChildItem "CapyCard/Installer/bin/${{ env.Configuration }}/*.msi" | Select-Object -First 1
           $newName = "CapyCard-windows-${{ steps.version.outputs.fullVersion }}.msi"
           Rename-Item -Path $msiPath.FullName -NewName $newName
 
@@ -96,4 +96,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-msi
-          path: FlashcardMobile/Installer/bin/${{ env.Configuration }}/*.msi
+          path: CapyCard/Installer/bin/${{ env.Configuration }}/*.msi

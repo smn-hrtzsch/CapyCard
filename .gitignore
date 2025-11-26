@@ -454,18 +454,18 @@ $RECYCLE.BIN/
 
 # --- Project Specific (Merged from root .gitignore) ---
 CodeCoverage/
-FlashcardApp.App/
+CapyCard.App/
 
-FlashcardApp/FlashcardApp-Installer.msi
-FlashcardApp/FlashcardApp-Installer.wixpdb
-FlashcardApp/FlashcardApp.sln
-FlashcardApp/StartFlashcardApp.cmd
+CapyCard/CapyCard-Installer.msi
+CapyCard/CapyCard-Installer.wixpdb
+CapyCard/CapyCard.sln
+CapyCard/StartCapyCard.cmd
 .gemini/
 gha-creds-*.json
 Flashcard-App.sln
 
 # Track only root-level packaged releases
-FlashcardApp/Release/
+CapyCard/Release/
 !Release/
 !Release/**/*
 Release/.DS_Store

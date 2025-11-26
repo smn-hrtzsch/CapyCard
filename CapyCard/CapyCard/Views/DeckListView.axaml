@@ -1,0 +1,313 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:behaviors="using:CapyCard.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="CapyCard.Views.DeckListView"
+             x:DataType="vm:DeckListViewModel">
+    
+    <!-- 
+      KORREKTUR (LAYOUT):
+      HorizontalScrollBarVisibility="Disabled" erzwingt den Textumbruch.
+      VerticalScrollBarVisibility="Auto" bleibt für die Höhe.
+    -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        
+        <!-- MinWidth entfernt, da wir jetzt umbrechen -->
+        <Grid RowDefinitions="*">
+            <DockPanel Margin="10">
+                <!-- OBERER BEREICH (unverändert) -->
+                <StackPanel DockPanel.Dock="Top" Spacing="5">
+                    <TextBlock Text="Neues Fach erstellen:" FontWeight="Bold" FontSize="16"/>
+                    <TextBox x:Name="NewDeckTextBox"
+                             Text="{Binding NewDeckName, Mode=TwoWay}"
+                             Watermark="Name des Fachs..."
+                             AcceptsReturn="False"
+                             TextWrapping="NoWrap">
+                        <!-- KeyBinding handled in CodeBehind to keep keyboard open -->
+                    </TextBox>
+                    <Button Content="Fach hinzufügen"
+                            Command="{Binding AddDeckCommand}"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- UNTERER BEREICH: Liste aller Fächer -->
+                <Border BorderBrush="{DynamicResource SurfaceBorderBrush}"
+                    Background="{DynamicResource SurfaceBackgroundBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Margin="0,10,0,0">
+                    <ListBox ItemsSource="{Binding Decks}"
+                             SelectedItem="{Binding SelectedDeck, Mode=TwoWay}"
+                             Padding="12"
+                             Grid.IsSharedSizeScope="True">
+                        <ListBox.Styles>
+                            <Style Selector="ListBoxItem">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,12"/>
+                                <Setter Property="Focusable" Value="False"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:selected">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="Border.deck-card">
+                                <Setter Property="Background" Value="{DynamicResource TileBackgroundBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource TileBorderBrush}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Padding" Value="14"/>
+                                <Setter Property="CornerRadius" Value="10"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:pointerover Border.deck-card">
+                                <Setter Property="Background" Value="{DynamicResource TileHoverBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+                            </Style>
+                            <Style Selector="ListBoxItem:selected Border.deck-card">
+                                <Setter Property="Background" Value="{DynamicResource TileSelectedBrush}"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+                            </Style>
+                        </ListBox.Styles>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DeckItemViewModel">
+                                <StackPanel>
+                                    <Border Classes="deck-card">
+                                        <Grid>
+                                            <!-- MODUS 1: ANZEIGEN (Standard) -->
+                                            <Grid IsVisible="{Binding !IsEditing}"
+                                                  VerticalAlignment="Center">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="BadgeColumn" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                
+                                                <!-- Expand/Collapse Button -->
+                                                <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                              IsVisible="{Binding HasSubDecks}"
+                                                              Background="Transparent"
+                                                              BorderThickness="0"
+                                                              Padding="4"
+                                                              Margin="0,0,8,0"
+                                                              Grid.Column="0"
+                                                              VerticalAlignment="Center">
+                                                    <ToggleButton.Styles>
+                                                        <Style Selector="ToggleButton:checked /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                                        </Style>
+                                                        <Style Selector="ToggleButton:pointerover /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                        </Style>
+                                                        <Style Selector="ToggleButton:pressed /template/ ContentPresenter">
+                                                            <Setter Property="Background" Value="Transparent" />
+                                                        </Style>
+                                                    </ToggleButton.Styles>
+                                                    <Path Data="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
+                                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                          Stretch="Uniform"
+                                                          Width="12" Height="12"/>
+                                                </ToggleButton>
+                                                
+                                                <!-- Spacer if no subdecks to align text -->
+                                                <Border Width="20" Height="20" 
+                                                        IsVisible="{Binding !HasSubDecks}" 
+                                                        Grid.Column="0" 
+                                                        Margin="0,0,8,0"/>
+
+                                                <TextBlock Text="{Binding Name}"
+                                                           Grid.Column="1"
+                                                           FontWeight="SemiBold"
+                                                           TextWrapping="Wrap"
+                                                           VerticalAlignment="Center"/>
+                                                
+                                                <!-- Badge Column with SharedSizeGroup -->
+                                                <Border Grid.Column="2"
+                                                        Background="{DynamicResource BadgeBackgroundBrush}"
+                                                        Padding="8,2"
+                                                        Margin="10,0,0,0"
+                                                        CornerRadius="12"
+                                                        MinWidth="24"
+                                                        Height="24"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CardCount}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource BadgeForegroundBrush}"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Center"
+                                                               TextAlignment="Center"/>
+                                                </Border>
+
+                                                <Button Command="{Binding StartEditCommand}"
+                                                        Grid.Column="3"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Width="26" Height="26" Padding="4"
+                                                        Margin="12,0,6,0">
+                                                    <Path Data="M 3 17.25 V 21 H 6.75 L 17.81 9.94 L 14.06 6.19 L 3 17.25 Z M 20.71 7.04 C 21.1 6.65 21.1 6.02 20.71 5.63 L 18.37 3.29 C 17.98 2.9 17.35 2.9 16.96 3.29 L 15.13 5.12 L 18.88 8.87 L 20.71 7.04 Z"
+                                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                          Stretch="Uniform"/>
+                                                </Button>
+
+                                                <Button Command="{Binding $parent[ListBox].DataContext.DeleteDeckCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Grid.Column="4"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Width="26" Height="26" Padding="4">
+                                                    <Path Data="M 6 19 C 6 20.1 6.9 21 8 21 L 16 21 C 17.1 21 18 20.1 18 19 L 18 7 L 6 7 L 6 19 Z M 19 4 L 15.5 4 L 14.5 3 L 9.5 3 L 8.5 4 L 5 4 L 5 6 L 19 6 L 19 4 Z"
+                                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                          Stretch="Uniform"/>
+                                                </Button>
+                                            </Grid>
+
+                                            <!-- MODUS 2: BEARBEITEN -->
+                                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                                  IsVisible="{Binding IsEditing}"
+                                                  VerticalAlignment="Center">
+                                                <TextBox Text="{Binding EditText, Mode=TwoWay}"
+                                                         VerticalAlignment="Center"
+                                                         Margin="0,0,12,0"
+                                                         Grid.Column="0"
+                                                         behaviors:FocusBehaviors.FocusOnTrue="{Binding IsEditing}">
+                                                    <TextBox.KeyBindings>
+                                                        <KeyBinding Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Gesture="Enter"/>
+                                                        <KeyBinding Command="{Binding CancelEditCommand}"
+                                                                    Gesture="Escape"/>
+                                                    </TextBox.KeyBindings>
+                                                </TextBox>
+
+                                                <Button Command="{Binding $parent[ListBox].DataContext.SaveDeckEditCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Width="26" Height="26" Padding="4"
+                                                        Margin="0,0,6,0">
+                                                    <Path Data="M 17 3 H 5 C 3.89 3 3 3.9 3 5 V 19 C 3 20.1 3.89 21 5 21 H 19 C 20.1 21 21 20.1 21 19 V 7 L 17 3 Z M 12 18 C 10.34 18 9 16.66 9 15 C 9 13.34 10.34 12 12 12 C 13.66 12 15 13.34 15 15 C 15 16.66 13.66 18 12 18 Z M 15 9 L 5 9 L 5 5 L 15 5 L 15 9 Z"
+                                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                          Stretch="Uniform"/>
+                                                </Button>
+
+                                                <Button Command="{Binding CancelEditCommand}"
+                                                        Grid.Column="2"
+                                                        VerticalAlignment="Center"
+                                                        Background="Transparent" BorderThickness="0"
+                                                        Width="26" Height="26" Padding="4">
+                                                    <Path Data="M 19 6.41 L 17.59 5 L 12 10.59 L 6.41 5 L 5 6.41 L 10.59 12 L 5 17.59 L 6.41 19 L 12 13.41 L 17.59 19 L 19 17.59 L 13.41 12 L 19 6.41 Z"
+                                                          Fill="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                          Stretch="Uniform"/>
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                    
+                                    <!-- Subdecks List -->
+                                    <ItemsControl ItemsSource="{Binding SubDecks}"
+                                                  IsVisible="{Binding IsExpanded}"
+                                                  Margin="20,5,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                                                                <!-- Recursive Template for Subdecks (simplified for now) -->
+                                                <Button Command="{Binding $parent[ListBox].DataContext.SelectSubDeckCommand}" 
+                                                        CommandParameter="{Binding}"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        Background="{DynamicResource SurfaceBackgroundBrush}"
+                                                        BorderBrush="{DynamicResource DividerBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="10"
+                                                        Padding="14"
+                                                        Margin="0,0,0,5">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                                        <Border Grid.Column="1"
+                                                                Background="{DynamicResource BadgeBackgroundBrush}"
+                                                                Padding="8,2"
+                                                                CornerRadius="12"
+                                                                MinWidth="24"
+                                                                Height="24"
+                                                                Margin="10,0,0,0"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding CardCount}" 
+                                                                       FontSize="11"
+                                                                       HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"
+                                                                       TextAlignment="Center"/>
+                                                        </Border>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </DockPanel>
+            
+            <!-- Bestätigungs-Dialog (unverändert) -->
+            <Border Background="#AA000000"
+                    IsVisible="{Binding IsConfirmingDelete}"
+                    Grid.Row="0">
+                <Border Background="{DynamicResource SystemControlPageBackgroundAltHighBrush}" 
+                        Padding="20"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        CornerRadius="5"
+                        MinWidth="300"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        BorderThickness="1">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Löschen bestätigen" 
+                                   FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                        <TextBlock Text="Möchtest du dieses Fach und ALLE darin enthaltenen Karten wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"/>
+                        
+                        <Grid ColumnDefinitions="*,*" Margin="0,10,0,0">
+                            <Button Content="Abbrechen" 
+                                    Command="{Binding CancelDeleteCommand}"
+                                    Grid.Column="0"
+                                    Margin="0,0,5,0"
+                                    HorizontalAlignment="Stretch"/>
+                            
+                            <Button Content="Ja, löschen" 
+                                    Command="{Binding ConfirmDeleteCommand}"
+                                    Background="#E63946" 
+                                    Foreground="White"
+                                    Grid.Column="1"
+                                    Margin="5,0,0,0"
+                                    HorizontalAlignment="Stretch"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Border>
+            
+        </Grid>
+    </ScrollViewer>
+</UserControl>

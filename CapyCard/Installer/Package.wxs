@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+                <Package ProductCode="*"
+                                 Name="CapyCard" 
+                             Manufacturer="Simon Hörtzsch" 
+                             Version="$(var.ProductVersion)" 
+                             InstallerVersion="500"
+                             Scope="perMachine"
+                             Compressed="yes"
+                             UpgradeCode="5b852b9a-ee2b-4a8a-b4af-f3cedf86a4e9">
+
+            <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+            <MajorUpgrade Schedule="afterInstallValidate"
+                      DowngradeErrorMessage="Eine neuere Version von [ProductName] ist bereits installiert." />
+
+            <Feature Id="ProductFeature" Title="CapyCard" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+            <ComponentGroupRef Id="PublishedContent" />
+            <ComponentRef Id="ApplicationShortcut" />
+            <Feature Id="DesktopShortcutFeature" Title="Desktop-Verknüpfung" Level="1" AllowAbsent="yes">
+                <ComponentRef Id="DesktopShortcut" />
+            </Feature>
+        </Feature>
+
+        <UI>
+            <ui:WixUI Id="WixUI_FeatureTree" />
+        </UI>
+
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+        <Icon Id="icon.ico" SourceFile="..\CapyCard\Assets\icon.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+
+    </Package> 
+
+    <Fragment>
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="CapyCard" />
+        </StandardDirectory>
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="ApplicationProgramsFolder" Name="CapyCard"/>
+        </StandardDirectory>
+        <StandardDirectory Id="DesktopFolder">
+            <Component Id="DesktopShortcut" Guid="7f85b720-89af-47d5-9f4c-0eea5aff4d9e">
+                <Shortcut Id="ApplicationDesktopShortcut"
+                          Name="CapyCard"
+                          Description="Karteikarten-Anwendung"
+                          Target="[INSTALLFOLDER]CapyCard.Desktop.exe"
+                          WorkingDirectory="INSTALLFOLDER"/>
+                <RegistryValue Root="HKCU" Key="Software\CapyCard\Installer" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+        </StandardDirectory>
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="ApplicationShortcut" Guid="5a457ca4-3f4d-4143-8998-2b16b5f4e591">
+                <Shortcut Id="ApplicationStartMenuShortcut"
+                          Name="CapyCard"
+                          Description="Karteikarten-Anwendung"
+                          Target="[INSTALLFOLDER]CapyCard.Desktop.exe"
+                          WorkingDirectory="INSTALLFOLDER"/>
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                <RegistryValue Root="HKCU" Key="Software\CapyCard\Installer" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+            </Component>
+        </DirectoryRef>
+
+        <DirectoryRef Id="INSTALLFOLDER"/>
+    </Fragment>
+</Wix>

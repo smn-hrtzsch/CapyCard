@@ -19,7 +19,7 @@ jobs:
       RuntimeIdentifier: osx-arm64
       AppBundleName: "CapyCard"
       AppBundleSlug: "CapyCard"
-      ProjectDir: "FlashcardMobile"
+      ProjectDir: "CapyCard"
 
     steps:
       - name: Checkout repository
@@ -37,7 +37,7 @@ jobs:
       - name: Calculate version
         id: version
         run: |
-          cd FlashcardMobile/FlashcardMobile.Desktop
+          cd CapyCard/CapyCard.Desktop
 
           inputVersion="${{ inputs.version }}"
 
@@ -47,7 +47,7 @@ jobs:
             semVersion="$versionMajor.$versionMinor.$versionBuild"
             fullVersion="$semVersion"
           else
-            currentVersion=$(dotnet msbuild FlashcardMobile.Desktop.csproj -nologo -getProperty:Version)
+            currentVersion=$(dotnet msbuild CapyCard.Desktop.csproj -nologo -getProperty:Version)
             if [ -z "$currentVersion" ]; then currentVersion="1.0.0"; fi
             
             IFS='.' read -r versionMajor versionMinor _ <<< "$currentVersion"
@@ -79,7 +79,7 @@ jobs:
       - name: Prepare bundle paths
         id: paths
         run: |
-          publishDir="FlashcardMobile/FlashcardMobile.Desktop/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
+          publishDir="CapyCard/CapyCard.Desktop/bin/${{ env.Configuration }}/net9.0/${{ env.RuntimeIdentifier }}/publish"
           appPath="$publishDir/${{ env.AppBundleName }}.app"
           dmgName="${{ env.AppBundleSlug }}-macos-${{ steps.version.outputs.fullVersion }}.dmg"
           {
@@ -89,10 +89,10 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Make build script executable
-        run: chmod +x FlashcardMobile/scripts/build-macos.sh
+        run: chmod +x CapyCard/scripts/build-macos.sh
 
       - name: Build macOS .app bundle
-        working-directory: FlashcardMobile
+        working-directory: CapyCard
         run: ./scripts/build-macos.sh
 
       - name: Remove extended attributes from bundle

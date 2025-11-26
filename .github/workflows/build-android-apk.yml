@@ -34,11 +34,11 @@ jobs:
       # NEU: Keystore aus Secrets wiederherstellen
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > FlashcardMobile/FlashcardMobile.Android/release.keystore
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > CapyCard/CapyCard.Android/release.keystore
 
       - name: Calculate version
         id: version
-        working-directory: FlashcardMobile/FlashcardMobile.Android
+        working-directory: CapyCard/CapyCard.Android
         run: |
           inputVersion="${{ inputs.version }}"
 
@@ -50,7 +50,7 @@ jobs:
              filenameVersion="$fullVersion"
           else
              # Fallback logic: Read version from project
-             currentVersion=$(dotnet msbuild FlashcardMobile.Android.csproj -nologo -getProperty:Version)
+             currentVersion=$(dotnet msbuild CapyCard.Android.csproj -nologo -getProperty:Version)
              if [ -z "$currentVersion" ]; then currentVersion="1.0.0"; fi
              
              # Parse Major.Minor
@@ -78,7 +78,7 @@ jobs:
       # GEÄNDERT: Signierungsparameter hinzugefügt
       - name: Publish Android
         run: |
-          dotnet publish FlashcardMobile/FlashcardMobile.Android/FlashcardMobile.Android.csproj \
+          dotnet publish CapyCard/CapyCard.Android/CapyCard.Android.csproj \
           -c Release \
           -f net9.0-android \
           /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} \
@@ -93,9 +93,9 @@ jobs:
         id: apk
         run: |
           # APK sollte jetzt im signed Ordner oder direkt als signed markiert sein
-          APK_PATH=$(find FlashcardMobile/FlashcardMobile.Android/bin/Release/net9.0-android -name "*-Signed.apk" | head -n 1)
+          APK_PATH=$(find CapyCard/CapyCard.Android/bin/Release/net9.0-android -name "*-Signed.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
-             APK_PATH=$(find FlashcardMobile/FlashcardMobile.Android/bin/Release/net9.0-android -name "*.apk" | head -n 1)
+             APK_PATH=$(find CapyCard/CapyCard.Android/bin/Release/net9.0-android -name "*.apk" | head -n 1)
           fi
           
           # Rename to standard format

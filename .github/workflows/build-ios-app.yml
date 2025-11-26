@@ -37,7 +37,7 @@ jobs:
 
       - name: Calculate version
         id: version
-        working-directory: FlashcardMobile/FlashcardMobile.iOS
+        working-directory: CapyCard/CapyCard.iOS
         run: |
           year=$(date -u +%Y)
           dayOfYear=$(date -u +%j)
@@ -51,13 +51,13 @@ jobs:
           # Build for iOS Simulator (arm64) as requested, effectively bypassing device code signing requirements
           # MtouchLink=SdkOnly and _SuppressSdkVersionCheck=true are added to handle potential version mismatches
           # between the .NET iOS SDK (targeting future Xcode versions) and the available Xcode on the runner.
-          dotnet build FlashcardMobile/FlashcardMobile.iOS/FlashcardMobile.iOS.csproj -c Release -f net9.0-ios -r iossimulator-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0" /p:MtouchLink=SdkOnly /p:_SuppressSdkVersionCheck=true
+          dotnet build CapyCard/CapyCard.iOS/CapyCard.iOS.csproj -c Release -f net9.0-ios -r iossimulator-arm64 /p:ApplicationVersion=${{ steps.version.outputs.versionBuild }} /p:ApplicationDisplayVersion="1.0" /p:MtouchLink=SdkOnly /p:_SuppressSdkVersionCheck=true
 
       - name: Zip App Bundle
         id: zip
         run: |
           # Find the .app bundle in the iossimulator-arm64 directory
-          APP_PATH=$(find FlashcardMobile/FlashcardMobile.iOS/bin/Release/net9.0-ios/iossimulator-arm64 -name "*.app" | head -n 1)
+          APP_PATH=$(find CapyCard/CapyCard.iOS/bin/Release/net9.0-ios/iossimulator-arm64 -name "*.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
              echo "No .app bundle found!"
              exit 1
