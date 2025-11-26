@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ImageAsset Include="Assets.xcassets\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\CapyCard\CapyCard.csproj" />
   </ItemGroup>
 </Project>
