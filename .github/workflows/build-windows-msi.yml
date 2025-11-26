@@ -85,6 +85,13 @@ jobs:
         run: |
           dotnet build FlashcardMobile.Installer.wixproj -c $env:Configuration -p:VersionMajor=${{ steps.version.outputs.versionMajor }} -p:VersionMinor=${{ steps.version.outputs.versionMinor }} -p:VersionBuild=${{ steps.version.outputs.versionBuild }} -p:VersionRevision=${{ steps.version.outputs.versionRevision }} -p:ProductVersion=${{ steps.version.outputs.msiVersion }}
 
+      - name: Rename MSI
+        shell: pwsh
+        run: |
+          $msiPath = Get-ChildItem "FlashcardMobile/Installer/bin/${{ env.Configuration }}/*.msi" | Select-Object -First 1
+          $newName = "CapyCard-windows-${{ steps.version.outputs.fullVersion }}.msi"
+          Rename-Item -Path $msiPath.FullName -NewName $newName
+
       - name: Archive MSI artifact
         uses: actions/upload-artifact@v4
         with:

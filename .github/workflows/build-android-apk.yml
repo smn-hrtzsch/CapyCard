@@ -89,7 +89,7 @@ jobs:
           /p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEYSTORE_ALIAS }} \
           /p:AndroidSigningKeyPass=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
-      - name: Find APK
+      - name: Find and Rename APK
         id: apk
         run: |
           # APK sollte jetzt im signed Ordner oder direkt als signed markiert sein
@@ -97,8 +97,14 @@ jobs:
           if [ -z "$APK_PATH" ]; then
              APK_PATH=$(find FlashcardMobile/FlashcardMobile.Android/bin/Release/net9.0-android -name "*.apk" | head -n 1)
           fi
-          echo "Found APK: $APK_PATH"
-          echo "apkPath=$APK_PATH" >> "$GITHUB_OUTPUT"
+          
+          # Rename to standard format
+          NEW_NAME="CapyCard-android-${{ steps.version.outputs.filenameVersion }}.apk"
+          NEW_PATH="$(dirname "$APK_PATH")/$NEW_NAME"
+          mv "$APK_PATH" "$NEW_PATH"
+          
+          echo "Renamed APK to: $NEW_PATH"
+          echo "apkPath=$NEW_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Rename and Upload Artifact
         uses: actions/upload-artifact@v4
