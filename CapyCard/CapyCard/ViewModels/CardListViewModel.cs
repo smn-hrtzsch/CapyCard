@@ -290,16 +290,49 @@ namespace CapyCard.ViewModels
 
             // 2. Vorgeschlagenen Dateinamen festlegen
             string suggestedName = "Karten";
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
+
             if (_currentDeck != null && activeGroup != null)
             {
-                if (activeGroup.Title == "Allgemein")
+                string subjectName; // "Fach"
+                string topicName;   // "Thema"
+
+                using (var context = new FlashcardDbContext())
                 {
-                    suggestedName = $"{_currentDeck.Name}-Allgemein";
+                    // Wenn das aktuelle Deck ein Parent hat, ist es ein Unterdeck (Thema).
+                    // Das Parent ist das Fach.
+                    if (_currentDeck.ParentDeckId != null)
+                    {
+                        var parent = await context.Decks.FindAsync(_currentDeck.ParentDeckId);
+                        subjectName = parent?.Name ?? "Unbekannt";
+                        // Bei Unterdecks ist der DeckName das Thema
+                        topicName = _currentDeck.Name;
+                    }
+                    else
+                    {
+                        // Wir sind im Root-Deck (Fach).
+                        subjectName = _currentDeck.Name;
+
+                        // Thema ist entweder "Allgemein" oder der Name des Subdeck-Groups
+                        if (activeGroup.Title == "Allgemein")
+                        {
+                            topicName = "Allgemein";
+                        }
+                        else
+                        {
+                            topicName = activeGroup.Title;
+                        }
+                    }
                 }
-                else
-                {
-                    suggestedName = $"{activeGroup.Title}";
-                }
+
+                subjectName = SanitizeFileName(subjectName);
+                topicName = SanitizeFileName(topicName);
+
+                suggestedName = $"{subjectName}-{topicName}-{timestamp}";
+            }
+            else
+            {
+                suggestedName = $"Export-{timestamp}";
             }
 
             try
@@ -335,6 +368,12 @@ namespace CapyCard.ViewModels
                 Console.WriteLine($"[PDF] Outer ERROR: {ex.Message}");
                 Console.WriteLine($"[PDF] StackTrace: {ex.StackTrace}");
             }
+        }
+
+        private string SanitizeFileName(string name)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            return string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private void CardItem_PropertyChanged(object? sender, PropertyChangedEventArgs e)
