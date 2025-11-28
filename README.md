@@ -2,6 +2,10 @@
 
 Eine native Desktop-Karteikarten-App, entwickelt mit Avalonia und .NET.
 
+## FIX
+
+- Bennennung der PDF-Dateien mit Datum und Uhrzeit beim Exportieren für Eindeutigkeit und Vermeidung von fehlerhaften Dateien ohne .pdf-Endung.
+
 ## TO-DO
 
 - [x] **Unterdecks hinzufügen**: Möglichkeit zum Hinzufügen von einzelnen Themen innerhalb eines Fachs
