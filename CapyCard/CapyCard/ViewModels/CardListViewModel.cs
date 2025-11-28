@@ -290,7 +290,7 @@ namespace CapyCard.ViewModels
 
             // 2. Vorgeschlagenen Dateinamen festlegen
             string suggestedName = "Karten";
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm");
 
             if (_currentDeck != null && activeGroup != null)
             {
@@ -328,7 +328,7 @@ namespace CapyCard.ViewModels
                 subjectName = SanitizeFileName(subjectName);
                 topicName = SanitizeFileName(topicName);
 
-                suggestedName = $"{subjectName}-{topicName}-{timestamp}";
+                suggestedName = $"{subjectName}-{topicName}_{timestamp}";
             }
             else
             {
