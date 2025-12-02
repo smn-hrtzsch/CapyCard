@@ -70,6 +70,12 @@ namespace CapyCard.ViewModels
         public event Action<Deck, int>? OnCardCountUpdated;
         public event Action? OnSubDeckAdded; // New event for subdeck addition
         public event Action? RequestFrontFocus;
+        
+        /// <summary>
+        /// Func to get pending images from the View's RichTextEditors.
+        /// Returns a list of CardImage objects that need to be saved.
+        /// </summary>
+        public Func<List<CardImage>>? GetPendingImages;
 
         public DeckDetailViewModel()
         {
@@ -303,6 +309,18 @@ namespace CapyCard.ViewModels
                         trackedCard.Front = NewCardFront;
                         trackedCard.Back = NewCardBack;
                         await context.SaveChangesAsync();
+                        
+                        // Speichere neue Bilder für die bearbeitete Karte
+                        var pendingImages = GetPendingImages?.Invoke();
+                        if (pendingImages != null && pendingImages.Count > 0)
+                        {
+                            foreach (var image in pendingImages)
+                            {
+                                image.CardId = trackedCard.Id;
+                                context.CardImages.Add(image);
+                            }
+                            await context.SaveChangesAsync();
+                        }
                     }
                     
                     OnNavigateToCardList?.Invoke(_currentDeck);
@@ -356,6 +374,19 @@ namespace CapyCard.ViewModels
                     };
                     context.Cards.Add(newCard);
                     await context.SaveChangesAsync();
+                    
+                    // Speichere pending Bilder für die neue Karte
+                    var pendingImages = GetPendingImages?.Invoke();
+                    if (pendingImages != null && pendingImages.Count > 0)
+                    {
+                        foreach (var image in pendingImages)
+                        {
+                            image.CardId = newCard.Id;
+                            context.CardImages.Add(image);
+                        }
+                        await context.SaveChangesAsync();
+                    }
+                    
                     await RefreshCardDataAsync(); 
                     RequestFrontFocus?.Invoke();
                 }

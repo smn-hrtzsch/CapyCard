@@ -10,6 +10,7 @@ namespace CapyCard.Data
         // Diese Eigenschaften werden zu Tabellen in der Datenbank
         public DbSet<Deck> Decks { get; set; }
         public DbSet<Card> Cards { get; set; }
+        public DbSet<CardImage> CardImages { get; set; }
         public DbSet<CardSmartScore> CardSmartScores { get; set; }
         public DbSet<LearningSession> LearningSessions { get; set; }
 
@@ -52,6 +53,13 @@ namespace CapyCard.Data
                 .HasOne(d => d.ParentDeck)
                 .WithMany(d => d.SubDecks)
                 .HasForeignKey(d => d.ParentDeckId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // CardImage -> Card Beziehung
+            modelBuilder.Entity<CardImage>()
+                .HasOne(i => i.Card)
+                .WithMany(c => c.Images)
+                .HasForeignKey(i => i.CardId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:controls="using:CapyCard.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.LearnView"
              x:DataType="vm:LearnViewModel"
@@ -239,7 +240,9 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <TextBlock Text="{Binding CurrentCardFront}" TextWrapping="Wrap"/>
+                                <controls:RichTextViewer Markdown="{Binding CurrentCardFront}" 
+                                                         FontSize="14" 
+                                                         MaxImageHeight="150"/>
                             </ScrollViewer>
                             
                             <Button Command="{Binding StartEditCommand}"
@@ -274,7 +277,9 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <TextBlock Text="{Binding CurrentCardBack}" TextWrapping="Wrap"/>
+                                <controls:RichTextViewer Markdown="{Binding CurrentCardBack}" 
+                                                         FontSize="14" 
+                                                         MaxImageHeight="150"/>
                             </ScrollViewer>
                                  
                             <Button Command="{Binding StartEditCommand}"

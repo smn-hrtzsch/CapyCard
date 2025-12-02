@@ -5,6 +5,7 @@
              xmlns:vm="using:CapyCard.ViewModels"
              xmlns:behaviors="using:CapyCard.Behaviors"
              xmlns:converters="using:CapyCard.Converters"
+             xmlns:controls="using:CapyCard.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.DeckDetailView"
              x:DataType="vm:DeckDetailViewModel"
@@ -134,14 +135,11 @@
                                        Foreground="{DynamicResource MutedForegroundBrush}"
                                        Margin="0,0,0,10"/>
 
-                            <TextBox x:Name="FrontTextBox"
-                                     Text="{Binding NewCardFront, Mode=TwoWay}"
-                                     AcceptsReturn="True"
-                                     TextWrapping="Wrap"
-                                     Watermark="Text für Vorderseite..."
-                                     Height="150"
-                                     Grid.Row="1" Grid.Column="0"
-                                     BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
+                            <controls:RichTextEditor x:Name="FrontEditor"
+                                                     Text="{Binding NewCardFront, Mode=TwoWay}"
+                                                     Watermark="Text für Vorderseite..."
+                                                     Height="180"
+                                                     Grid.Row="1" Grid.Column="0"/>
 
                             <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
                                   Stroke="{DynamicResource MutedForegroundBrush}" 
@@ -151,14 +149,11 @@
                                   HorizontalAlignment="Center"
                                   Margin="10,0"/>
                             
-                            <TextBox x:Name="BackTextBox"
-                                     Text="{Binding NewCardBack, Mode=TwoWay}"
-                                     AcceptsReturn="True"
-                                     TextWrapping="Wrap"
-                                     Watermark="Text für Rückseite..."
-                                     Height="150"
-                                     Grid.Row="1" Grid.Column="2"
-                                     BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"/>
+                            <controls:RichTextEditor x:Name="BackEditor"
+                                                     Text="{Binding NewCardBack, Mode=TwoWay}"
+                                                     Watermark="Text für Rückseite..."
+                                                     Height="180"
+                                                     Grid.Row="1" Grid.Column="2"/>
                         </Grid>
                         
                         <!-- ACTION BUTTONS -->
