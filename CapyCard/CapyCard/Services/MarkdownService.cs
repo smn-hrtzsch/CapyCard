@@ -246,6 +246,16 @@ namespace CapyCard.Services
 
         private static string ApplyFormatting(string text, int selectionStart, int selectionLength, string prefix, string suffix)
         {
+            // Sicherheitsprüfung für negative oder ungültige Werte
+            selectionStart = Math.Max(0, Math.Min(selectionStart, text.Length));
+            selectionLength = Math.Max(0, selectionLength);
+            
+            // Stelle sicher, dass wir nicht über das Textende hinauslesen
+            if (selectionStart + selectionLength > text.Length)
+            {
+                selectionLength = text.Length - selectionStart;
+            }
+            
             if (selectionLength == 0)
             {
                 // Kein Text ausgewählt - füge Platzhalter ein

@@ -6,6 +6,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Styling;
 using CapyCard.Services;
 using System.IO;
 
@@ -172,9 +173,36 @@ namespace CapyCard.Controls
                 if (segment.IsUnderline)
                     run.TextDecorations = TextDecorations.Underline;
                 if (segment.IsHighlight)
-                    run.Background = new SolidColorBrush(Color.FromRgb(255, 235, 59)); // Yellow highlight
+                    run.Background = GetHighlightBrush();
                 
                 inlines.Add(run);
+            }
+        }
+
+        /// <summary>
+        /// Ermittelt die Highlight-Farbe basierend auf dem aktuellen Theme.
+        /// </summary>
+        private IBrush GetHighlightBrush()
+        {
+            // Versuche, die Theme-basierte Farbe zu verwenden
+            if (Application.Current?.TryGetResource("HighlightBackgroundBrush", ActualThemeVariant, out var resource) == true 
+                && resource is IBrush brush)
+            {
+                return brush;
+            }
+            
+            // Fallback: Ermittle ob Dark oder Light Mode
+            var isDarkMode = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Dark;
+            
+            if (isDarkMode)
+            {
+                // Dunkeleres Gelb für Dark Mode, das besser lesbar ist
+                return new SolidColorBrush(Color.FromRgb(120, 100, 0)); // Dunkles Gold
+            }
+            else
+            {
+                // Helles Gelb für Light Mode
+                return new SolidColorBrush(Color.FromRgb(255, 235, 59)); // Material Yellow
             }
         }
 

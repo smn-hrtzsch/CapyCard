@@ -123,22 +123,25 @@ namespace CapyCard.Controls
         private void ApplyBold()
         {
             var text = Text ?? string.Empty;
-            var newText = MarkdownService.ApplyBold(text, Editor.SelectionStart, Editor.SelectionEnd - Editor.SelectionStart);
-            UpdateTextAndCaret(newText, Editor.SelectionStart + 2);
+            var selectionLength = Math.Max(0, Editor.SelectionEnd - Editor.SelectionStart);
+            var newText = MarkdownService.ApplyBold(text, Editor.SelectionStart, selectionLength);
+            UpdateTextAndCaret(newText, Editor.SelectionStart + 2 + (selectionLength > 0 ? selectionLength : 4));
         }
 
         private void ApplyItalic()
         {
             var text = Text ?? string.Empty;
-            var newText = MarkdownService.ApplyItalic(text, Editor.SelectionStart, Editor.SelectionEnd - Editor.SelectionStart);
-            UpdateTextAndCaret(newText, Editor.SelectionStart + 1);
+            var selectionLength = Math.Max(0, Editor.SelectionEnd - Editor.SelectionStart);
+            var newText = MarkdownService.ApplyItalic(text, Editor.SelectionStart, selectionLength);
+            UpdateTextAndCaret(newText, Editor.SelectionStart + 1 + (selectionLength > 0 ? selectionLength : 4));
         }
 
         private void ApplyUnderline()
         {
             var text = Text ?? string.Empty;
-            var newText = MarkdownService.ApplyUnderline(text, Editor.SelectionStart, Editor.SelectionEnd - Editor.SelectionStart);
-            UpdateTextAndCaret(newText, Editor.SelectionStart + 2);
+            var selectionLength = Math.Max(0, Editor.SelectionEnd - Editor.SelectionStart);
+            var newText = MarkdownService.ApplyUnderline(text, Editor.SelectionStart, selectionLength);
+            UpdateTextAndCaret(newText, Editor.SelectionStart + 2 + (selectionLength > 0 ? selectionLength : 4));
         }
 
         private void ApplyBulletList()
@@ -158,8 +161,9 @@ namespace CapyCard.Controls
         private void ApplyHighlight()
         {
             var text = Text ?? string.Empty;
-            var newText = MarkdownService.ApplyHighlight(text, Editor.SelectionStart, Editor.SelectionEnd - Editor.SelectionStart);
-            UpdateTextAndCaret(newText, Editor.SelectionStart + 2);
+            var selectionLength = Math.Max(0, Editor.SelectionEnd - Editor.SelectionStart);
+            var newText = MarkdownService.ApplyHighlight(text, Editor.SelectionStart, selectionLength);
+            UpdateTextAndCaret(newText, Editor.SelectionStart + 2 + (selectionLength > 0 ? selectionLength : 4));
         }
 
         private async Task InsertImage()

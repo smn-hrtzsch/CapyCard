@@ -6,16 +6,33 @@ using QuestPDF.Drawing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CapyCard.Services.Pdf
 {
-    public class QuestPdfDocument : IDocument
+    public partial class QuestPdfDocument : IDocument
     {
         private readonly List<Card> _cards;
         private readonly int _columnCount;
         private readonly float _fontScale;
         private readonly float _cellHeight;
         private readonly int _rowCount;
+
+        // Regex-Patterns für Markdown
+        [GeneratedRegex(@"\*\*(.+?)\*\*", RegexOptions.Compiled)]
+        private static partial Regex BoldPattern();
+        
+        [GeneratedRegex(@"\*(.+?)\*", RegexOptions.Compiled)]
+        private static partial Regex ItalicPattern();
+        
+        [GeneratedRegex(@"__(.+?)__", RegexOptions.Compiled)]
+        private static partial Regex UnderlinePattern();
+        
+        [GeneratedRegex(@"==(.+?)==", RegexOptions.Compiled)]
+        private static partial Regex HighlightPattern();
+        
+        [GeneratedRegex(@"!\[([^\]]*)\]\(([^)]+)\)", RegexOptions.Compiled)]
+        private static partial Regex ImagePattern();
 
         public QuestPdfDocument(List<Card> cards, int columnCount)
         {
@@ -69,8 +86,7 @@ namespace CapyCard.Services.Pdf
                                 .AlignCenter()
                                 .AlignMiddle()
                                 .ScaleToFit()
-                                .Text(card.Front)
-                                .FontSize(12 * _fontScale);
+                                .Text(text => RenderMarkdownText(text, card.Front, 12 * _fontScale));
                         }
                         
                         // Leere Zellen auffüllen
@@ -120,8 +136,7 @@ namespace CapyCard.Services.Pdf
                                         .AlignCenter()
                                         .AlignMiddle()
                                         .ScaleToFit()
-                                        .Text(card.Back)
-                                        .FontSize(12 * _fontScale);
+                                        .Text(text => RenderMarkdownText(text, card.Back, 12 * _fontScale));
                                 }
                             }
                             
@@ -134,6 +149,96 @@ namespace CapyCard.Services.Pdf
                 });
             }
         }
+
+        /// <summary>
+        /// Rendert Markdown-formatierten Text mit QuestPDF Text-Spans.
+        /// Unterstützt: Fett (**), Kursiv (*), Unterstrichen (__), Hervorhebung (==).
+        /// </summary>
+        private void RenderMarkdownText(TextDescriptor text, string markdown, float fontSize)
+        {
+            if (string.IsNullOrEmpty(markdown))
+                return;
+
+            // Parse die Markdown-Segmente
+            var segments = ParseMarkdownSegments(markdown);
+            
+            foreach (var segment in segments)
+            {
+                var span = text.Span(segment.Text);
+                span.FontSize(fontSize);
+                
+                if (segment.IsBold)
+                    span.Bold();
+                if (segment.IsItalic)
+                    span.Italic();
+                if (segment.IsUnderline)
+                    span.Underline();
+                if (segment.IsHighlight)
+                    span.BackgroundColor(Colors.Yellow.Lighten2);
+            }
+        }
+
+        /// <summary>
+        /// Parst Markdown in Segmente mit Formatierungsinformationen.
+        /// </summary>
+        private List<MarkdownSegment> ParseMarkdownSegments(string markdown)
+        {
+            var segments = new List<MarkdownSegment>();
+            
+            // Ersetze Bilder durch [Bild]-Platzhalter
+            markdown = ImagePattern().Replace(markdown, "[Bild]");
+            
+            // Kombiniertes Pattern für alle Formatierungen
+            var pattern = new Regex(@"(\*\*(.+?)\*\*)|(__(.+?)__)|(\*(.+?)\*)|(==(.+?)==)", RegexOptions.Compiled);
+            
+            int lastIndex = 0;
+            foreach (Match match in pattern.Matches(markdown))
+            {
+                // Text vor dem Match hinzufügen
+                if (match.Index > lastIndex)
+                {
+                    var beforeText = markdown.Substring(lastIndex, match.Index - lastIndex);
+                    if (!string.IsNullOrEmpty(beforeText))
+                        segments.Add(new MarkdownSegment(beforeText));
+                }
+                
+                // Formatierten Text hinzufügen
+                if (match.Groups[1].Success) // Bold **text**
+                {
+                    segments.Add(new MarkdownSegment(match.Groups[2].Value, isBold: true));
+                }
+                else if (match.Groups[3].Success) // Underline __text__
+                {
+                    segments.Add(new MarkdownSegment(match.Groups[4].Value, isUnderline: true));
+                }
+                else if (match.Groups[5].Success) // Italic *text*
+                {
+                    segments.Add(new MarkdownSegment(match.Groups[6].Value, isItalic: true));
+                }
+                else if (match.Groups[7].Success) // Highlight ==text==
+                {
+                    segments.Add(new MarkdownSegment(match.Groups[8].Value, isHighlight: true));
+                }
+                
+                lastIndex = match.Index + match.Length;
+            }
+            
+            // Restlichen Text hinzufügen
+            if (lastIndex < markdown.Length)
+            {
+                var remainingText = markdown.Substring(lastIndex);
+                if (!string.IsNullOrEmpty(remainingText))
+                    segments.Add(new MarkdownSegment(remainingText));
+            }
+            
+            // Falls keine Segmente gefunden wurden, den ganzen Text hinzufügen
+            if (segments.Count == 0 && !string.IsNullOrEmpty(markdown))
+            {
+                segments.Add(new MarkdownSegment(markdown));
+            }
+            
+            return segments;
+        }
         
         private IContainer CardCellStyle(IContainer container)
         {
@@ -141,6 +246,28 @@ namespace CapyCard.Services.Pdf
                 .Border(1)
                 .Padding(5)
                 .Height(_cellHeight, Unit.Centimetre);
+        }
+
+        /// <summary>
+        /// Repräsentiert ein Text-Segment mit Formatierungsinformationen.
+        /// </summary>
+        private class MarkdownSegment
+        {
+            public string Text { get; }
+            public bool IsBold { get; }
+            public bool IsItalic { get; }
+            public bool IsUnderline { get; }
+            public bool IsHighlight { get; }
+
+            public MarkdownSegment(string text, bool isBold = false, bool isItalic = false, 
+                bool isUnderline = false, bool isHighlight = false)
+            {
+                Text = text;
+                IsBold = isBold;
+                IsItalic = isItalic;
+                IsUnderline = isUnderline;
+                IsHighlight = isHighlight;
+            }
         }
     }
 }
