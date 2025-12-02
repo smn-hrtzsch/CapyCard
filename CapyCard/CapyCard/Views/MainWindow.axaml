@@ -7,8 +7,6 @@
         x:Class="CapyCard.Views.MainWindow"
         x:DataType="vm:MainViewModel" 
         Title="CapyCard"
-        Width="1000" 
-        Height="800"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/icon.ico">
             
