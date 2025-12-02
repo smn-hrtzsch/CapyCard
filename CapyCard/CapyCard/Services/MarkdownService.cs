@@ -148,19 +148,27 @@ namespace CapyCard.Services
             if (lineEnd == -1) lineEnd = text.Length;
             
             string currentLine = text.Substring(lineStart, lineEnd - lineStart);
+            
+            // Ermittle die Einrückung der aktuellen Zeile
+            int indentLength = currentLine.Length - currentLine.TrimStart().Length;
+            string indent = currentLine.Substring(0, indentLength);
 
-            // Prüfe auf Bullet Point
-            if (currentLine.TrimStart().StartsWith("• "))
+            // Prüfe auf Bullet Point (•, -, *)
+            var bulletMatch = Regex.Match(currentLine.TrimStart(), @"^([•\-\*])\s");
+            if (bulletMatch.Success)
             {
-                // Wenn die Zeile nur "• " ist, entferne sie
-                if (currentLine.Trim() == "•")
+                string bulletChar = bulletMatch.Groups[1].Value;
+                string lineContent = currentLine.TrimStart().Substring(bulletMatch.Length).Trim();
+                
+                // Wenn die Zeile nur das Bullet ist (kein Inhalt), entferne sie und beende die Liste
+                if (string.IsNullOrEmpty(lineContent))
                 {
                     var newText = text.Remove(lineStart, currentLine.Length);
                     return (true, newText, lineStart);
                 }
 
-                // Füge neue Zeile mit Bullet Point ein
-                string newLine = "\n• ";
+                // Füge neue Zeile mit gleichem Bullet Point und Einrückung ein
+                string newLine = $"\n{indent}{bulletChar} ";
                 var result = text.Insert(caretPosition, newLine);
                 return (true, result, caretPosition + newLine.Length);
             }
@@ -170,19 +178,70 @@ namespace CapyCard.Services
             if (numberMatch.Success)
             {
                 int currentNumber = int.Parse(numberMatch.Groups[1].Value);
+                string lineContent = currentLine.TrimStart().Substring(numberMatch.Length).Trim();
                 
-                // Wenn die Zeile nur die Nummer ist, entferne sie
-                if (currentLine.Trim() == $"{currentNumber}.")
+                // Wenn die Zeile nur die Nummer ist (kein Inhalt), entferne sie und beende die Liste
+                if (string.IsNullOrEmpty(lineContent))
                 {
                     var newText = text.Remove(lineStart, currentLine.Length);
                     return (true, newText, lineStart);
                 }
 
-                string newLine = $"\n{currentNumber + 1}. ";
+                string newLine = $"\n{indent}{currentNumber + 1}. ";
                 var result = text.Insert(caretPosition, newLine);
                 return (true, result, caretPosition + newLine.Length);
             }
 
+            return (false, text, caretPosition);
+        }
+
+        /// <summary>
+        /// Behandelt Tab-Taste für Einrückungen in Listen.
+        /// </summary>
+        public static (bool handled, string newText, int newCaretPos) HandleTabInList(string text, int caretPosition, bool shiftPressed)
+        {
+            // Finde die aktuelle Zeile
+            int lineStart = text.LastIndexOf('\n', Math.Max(0, caretPosition - 1)) + 1;
+            int lineEnd = text.IndexOf('\n', caretPosition);
+            if (lineEnd == -1) lineEnd = text.Length;
+            
+            string currentLine = text.Substring(lineStart, lineEnd - lineStart);
+            
+            // Prüfe ob die Zeile ein Listenelement ist
+            var bulletMatch = Regex.Match(currentLine.TrimStart(), @"^([•\-\*])\s");
+            var numberMatch = Regex.Match(currentLine.TrimStart(), @"^(\d+)\.\s");
+            
+            if (!bulletMatch.Success && !numberMatch.Success)
+            {
+                return (false, text, caretPosition);
+            }
+            
+            int currentIndent = currentLine.Length - currentLine.TrimStart().Length;
+            
+            if (shiftPressed)
+            {
+                // Shift+Tab: Einrückung verringern
+                if (currentIndent >= 2)
+                {
+                    var newText = text.Remove(lineStart, 2); // Entferne 2 Leerzeichen
+                    return (true, newText, Math.Max(lineStart, caretPosition - 2));
+                }
+                else if (currentIndent > 0)
+                {
+                    var newText = text.Remove(lineStart, currentIndent);
+                    return (true, newText, lineStart);
+                }
+            }
+            else
+            {
+                // Tab: Einrückung erhöhen (maximal 6 Ebenen = 12 Leerzeichen)
+                if (currentIndent < 12)
+                {
+                    var newText = text.Insert(lineStart, "  "); // 2 Leerzeichen
+                    return (true, newText, caretPosition + 2);
+                }
+            }
+            
             return (false, text, caretPosition);
         }
 
@@ -204,11 +263,12 @@ namespace CapyCard.Services
             result = HighlightPattern.Replace(result, "$1");
             result = ItalicPattern.Replace(result, "$1");
 
-            // Entferne Bullet-Points
+            // Entferne Bullet-Points (verschiedene Formate)
             result = result.Replace("• ", "");
+            result = Regex.Replace(result, @"^[-*]\s+", "", RegexOptions.Multiline);
 
             // Entferne nummerierte Listen-Prefixe
-            result = OrderedListPattern.Replace(result, "$2");
+            result = Regex.Replace(result, @"^(\d+)\.\s+", "", RegexOptions.Multiline);
 
             return result.Trim();
         }

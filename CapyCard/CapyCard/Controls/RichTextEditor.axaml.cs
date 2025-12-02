@@ -272,6 +272,20 @@ namespace CapyCard.Controls
                     UpdateTextAndCaret(newText, newCaretPos);
                 }
             }
+            
+            // Tab-Handling für Listen-Einrückung
+            if (e.Key == Key.Tab)
+            {
+                var text = Text ?? string.Empty;
+                bool shiftPressed = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+                var (handled, newText, newCaretPos) = MarkdownService.HandleTabInList(text, Editor.CaretIndex, shiftPressed);
+                
+                if (handled)
+                {
+                    e.Handled = true;
+                    UpdateTextAndCaret(newText, newCaretPos);
+                }
+            }
         }
 
         private void Editor_OnTextChanged(object? sender, TextChangedEventArgs e)
