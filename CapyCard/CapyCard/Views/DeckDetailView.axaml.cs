@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using CapyCard.Controls;
 using CapyCard.Services;
 using CapyCard.ViewModels;
 using System;
@@ -44,7 +43,6 @@ namespace CapyCard.Views
                 {
                     _viewModel.RequestFrontFocus -= HandleRequestFrontFocus;
                     _viewModel.OnSubDeckAdded -= HandleSubDeckAdded;
-                    _viewModel.GetPendingImages = null;
                 }
     
                 if (DataContext is DeckDetailViewModel vm)
@@ -52,7 +50,6 @@ namespace CapyCard.Views
                     _viewModel = vm;
                     _viewModel.RequestFrontFocus += HandleRequestFrontFocus;
                     _viewModel.OnSubDeckAdded += HandleSubDeckAdded;
-                    _viewModel.GetPendingImages = GetPendingImages;
                 }
                 else
                 {
@@ -84,7 +81,6 @@ namespace CapyCard.Views
                 {
                     _viewModel.RequestFrontFocus -= HandleRequestFrontFocus;
                     _viewModel.OnSubDeckAdded -= HandleSubDeckAdded;
-                    _viewModel.GetPendingImages = null;
                 }
             }
     
@@ -142,18 +138,6 @@ namespace CapyCard.Views
                 {
                     FrontEditor.FocusEditor();
                 });
-            }
-
-            /// <summary>
-            /// Gibt die pending Bilder von beiden Editoren zurück.
-            /// Wird vom ViewModel aufgerufen wenn eine Karte gespeichert wird.
-            /// </summary>
-            public System.Collections.Generic.List<CapyCard.Models.CardImage> GetPendingImages()
-            {
-                var images = new System.Collections.Generic.List<CapyCard.Models.CardImage>();
-                images.AddRange(FrontEditor.GetAndClearPendingImages());
-                images.AddRange(BackEditor.GetAndClearPendingImages());
-                return images;
             }
     
             private async void HandleSubDeckAdded()

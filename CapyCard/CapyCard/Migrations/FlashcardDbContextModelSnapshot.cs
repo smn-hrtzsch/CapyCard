@@ -41,37 +41,6 @@ namespace CapyCard.Migrations
                     b.ToTable("Cards");
                 });
 
-            modelBuilder.Entity("CapyCard.Models.CardImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Base64Data")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CardId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("FileName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ImageId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("MimeType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CardId");
-
-                    b.ToTable("CardImages");
-                });
-
             modelBuilder.Entity("CapyCard.Models.CardSmartScore", b =>
                 {
                     b.Property<int>("Id")
@@ -178,17 +147,6 @@ namespace CapyCard.Migrations
                     b.Navigation("Deck");
                 });
 
-            modelBuilder.Entity("CapyCard.Models.CardImage", b =>
-                {
-                    b.HasOne("CapyCard.Models.Card", "Card")
-                        .WithMany("Images")
-                        .HasForeignKey("CardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Card");
-                });
-
             modelBuilder.Entity("CapyCard.Models.CardSmartScore", b =>
                 {
                     b.HasOne("CapyCard.Models.Card", "Card")
@@ -219,11 +177,6 @@ namespace CapyCard.Migrations
                         .IsRequired();
 
                     b.Navigation("Deck");
-                });
-
-            modelBuilder.Entity("CapyCard.Models.Card", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("CapyCard.Models.Deck", b =>

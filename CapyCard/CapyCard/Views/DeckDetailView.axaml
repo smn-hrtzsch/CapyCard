@@ -135,11 +135,13 @@
                                        Foreground="{DynamicResource MutedForegroundBrush}"
                                        Margin="0,0,0,10"/>
 
-                            <controls:RichTextEditor x:Name="FrontEditor"
-                                                     Text="{Binding NewCardFront, Mode=TwoWay}"
-                                                     Watermark="Text für Vorderseite..."
-                                                     Height="180"
-                                                     Grid.Row="1" Grid.Column="0"/>
+                            <controls:WysiwygEditor x:Name="FrontEditor"
+                                                    Text="{Binding NewCardFront, Mode=TwoWay}"
+                                                    Watermark="Text für Vorderseite..."
+                                                    MinHeight="180"
+                                                    MaxHeight="400"
+                                                    VerticalAlignment="Stretch"
+                                                    Grid.Row="1" Grid.Column="0"/>
 
                             <Path Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
                                   Stroke="{DynamicResource MutedForegroundBrush}" 
@@ -149,11 +151,13 @@
                                   HorizontalAlignment="Center"
                                   Margin="10,0"/>
                             
-                            <controls:RichTextEditor x:Name="BackEditor"
-                                                     Text="{Binding NewCardBack, Mode=TwoWay}"
-                                                     Watermark="Text für Rückseite..."
-                                                     Height="180"
-                                                     Grid.Row="1" Grid.Column="2"/>
+                            <controls:WysiwygEditor x:Name="BackEditor"
+                                                    Text="{Binding NewCardBack, Mode=TwoWay}"
+                                                    Watermark="Text für Rückseite..."
+                                                    MinHeight="180"
+                                                    MaxHeight="400"
+                                                    VerticalAlignment="Stretch"
+                                                    Grid.Row="1" Grid.Column="2"/>
                         </Grid>
                         
                         <!-- ACTION BUTTONS -->
