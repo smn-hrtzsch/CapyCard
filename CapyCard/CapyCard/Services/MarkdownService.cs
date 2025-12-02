@@ -142,28 +142,55 @@ namespace CapyCard.Services
         /// </summary>
         public static (bool handled, string newText, int newCaretPos) HandleEnterInList(string text, int caretPosition)
         {
-            // Finde die aktuelle Zeile
-            int lineStart = text.LastIndexOf('\n', Math.Max(0, caretPosition - 1)) + 1;
-            int lineEnd = text.IndexOf('\n', caretPosition);
-            if (lineEnd == -1) lineEnd = text.Length;
+            if (string.IsNullOrEmpty(text) || caretPosition < 0)
+                return (false, text, caretPosition);
+                
+            // Finde den Zeilenanfang - suche rückwärts nach \n
+            int lineStart = 0;
+            for (int i = Math.Min(caretPosition - 1, text.Length - 1); i >= 0; i--)
+            {
+                if (text[i] == '\n')
+                {
+                    lineStart = i + 1;
+                    break;
+                }
+            }
             
-            string currentLine = text.Substring(lineStart, lineEnd - lineStart);
+            // Finde das Zeilenende
+            int lineEnd = text.Length;
+            for (int i = caretPosition; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    lineEnd = i;
+                    break;
+                }
+            }
+            
+            // Extrahiere die Zeile bis zum Cursor
+            int length = Math.Min(caretPosition - lineStart, text.Length - lineStart);
+            if (length < 0) length = 0;
+            string lineBeforeCursor = text.Substring(lineStart, length);
             
             // Ermittle die Einrückung der aktuellen Zeile
-            int indentLength = currentLine.Length - currentLine.TrimStart().Length;
-            string indent = currentLine.Substring(0, indentLength);
+            int indentLength = lineBeforeCursor.Length - lineBeforeCursor.TrimStart().Length;
+            string indent = indentLength > 0 ? lineBeforeCursor.Substring(0, indentLength) : "";
 
             // Prüfe auf Bullet Point (•, -, *)
-            var bulletMatch = Regex.Match(currentLine.TrimStart(), @"^([•\-\*])\s");
+            var bulletMatch = Regex.Match(lineBeforeCursor.TrimStart(), @"^([•\-\*])\s(.*)$");
             if (bulletMatch.Success)
             {
                 string bulletChar = bulletMatch.Groups[1].Value;
-                string lineContent = currentLine.TrimStart().Substring(bulletMatch.Length).Trim();
+                string lineContent = bulletMatch.Groups[2].Value.Trim();
                 
                 // Wenn die Zeile nur das Bullet ist (kein Inhalt), entferne sie und beende die Liste
                 if (string.IsNullOrEmpty(lineContent))
                 {
-                    var newText = text.Remove(lineStart, currentLine.Length);
+                    // Entferne die gesamte aktuelle Zeile (inkl. Bullet)
+                    int removeLength = lineEnd - lineStart;
+                    if (lineEnd < text.Length && text[lineEnd] == '\n')
+                        removeLength++; // Auch den Zeilenumbruch entfernen wenn vorhanden
+                    var newText = text.Remove(lineStart, Math.Min(removeLength, text.Length - lineStart));
                     return (true, newText, lineStart);
                 }
 
@@ -174,16 +201,19 @@ namespace CapyCard.Services
             }
 
             // Prüfe auf nummerierte Liste
-            var numberMatch = Regex.Match(currentLine.TrimStart(), @"^(\d+)\.\s");
+            var numberMatch = Regex.Match(lineBeforeCursor.TrimStart(), @"^(\d+)\.\s(.*)$");
             if (numberMatch.Success)
             {
                 int currentNumber = int.Parse(numberMatch.Groups[1].Value);
-                string lineContent = currentLine.TrimStart().Substring(numberMatch.Length).Trim();
+                string lineContent = numberMatch.Groups[2].Value.Trim();
                 
                 // Wenn die Zeile nur die Nummer ist (kein Inhalt), entferne sie und beende die Liste
                 if (string.IsNullOrEmpty(lineContent))
                 {
-                    var newText = text.Remove(lineStart, currentLine.Length);
+                    int removeLength = lineEnd - lineStart;
+                    if (lineEnd < text.Length && text[lineEnd] == '\n')
+                        removeLength++;
+                    var newText = text.Remove(lineStart, Math.Min(removeLength, text.Length - lineStart));
                     return (true, newText, lineStart);
                 }
 
@@ -200,10 +230,30 @@ namespace CapyCard.Services
         /// </summary>
         public static (bool handled, string newText, int newCaretPos) HandleTabInList(string text, int caretPosition, bool shiftPressed)
         {
-            // Finde die aktuelle Zeile
-            int lineStart = text.LastIndexOf('\n', Math.Max(0, caretPosition - 1)) + 1;
-            int lineEnd = text.IndexOf('\n', caretPosition);
-            if (lineEnd == -1) lineEnd = text.Length;
+            if (string.IsNullOrEmpty(text) || caretPosition < 0)
+                return (false, text, caretPosition);
+            
+            // Finde den Zeilenanfang
+            int lineStart = 0;
+            for (int i = Math.Min(caretPosition - 1, text.Length - 1); i >= 0; i--)
+            {
+                if (text[i] == '\n')
+                {
+                    lineStart = i + 1;
+                    break;
+                }
+            }
+            
+            // Finde das Zeilenende
+            int lineEnd = text.Length;
+            for (int i = caretPosition; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    lineEnd = i;
+                    break;
+                }
+            }
             
             string currentLine = text.Substring(lineStart, lineEnd - lineStart);
             
