@@ -64,9 +64,50 @@ namespace CapyCard.Controls
         /// </summary>
         private async Task<bool> HandleClipboardPasteAsync()
         {
+            System.Diagnostics.Debug.WriteLine("[WysiwygEditor] HandleClipboardPasteAsync called.");
+
+            // 1. Try Platform Specific Service (Mobile)
+            if (CapyCard.Services.ClipboardService.Current != null)
+            {
+                System.Diagnostics.Debug.WriteLine("[WysiwygEditor] Using ClipboardService.Current.");
+                if (await CapyCard.Services.ClipboardService.Current.HasImageAsync())
+                {
+                    System.Diagnostics.Debug.WriteLine("[WysiwygEditor] HasImageAsync returned true.");
+                    try
+                    {
+                        using var stream = await CapyCard.Services.ClipboardService.Current.GetImageAsync();
+                        if (stream != null)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[WysiwygEditor] Got stream from service. Length: {stream.Length}");
+                            using var ms = new System.IO.MemoryStream();
+                            await stream.CopyToAsync(ms);
+                            var bytes = ms.ToArray();
+                            if (bytes.Length > 0)
+                            {
+                                InsertImageFromBytes(bytes, DetectMimeType(bytes));
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("[WysiwygEditor] Stream from service was null.");
+                        }
+                    }
+                    catch (Exception ex) 
+                    { 
+                        System.Diagnostics.Debug.WriteLine($"[WysiwygEditor] Exception using service: {ex}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[WysiwygEditor] HasImageAsync returned false.");
+                }
+            }
+
             var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
             if (clipboard == null)
             {
+                System.Diagnostics.Debug.WriteLine("[WysiwygEditor] TopLevel Clipboard is null.");
                 return false;
             }
             
@@ -74,6 +115,7 @@ namespace CapyCard.Controls
             {
 #pragma warning disable CS0618 // Obsolete API - GetFormatsAsync/GetDataAsync
                 var formats = await clipboard.GetFormatsAsync();
+                System.Diagnostics.Debug.WriteLine($"[WysiwygEditor] Avalonia Formats: {string.Join(", ", formats)}");
                 
                 // Prüfe zuerst auf Dateien (funktioniert am zuverlässigsten)
                 if (Array.Exists(formats, f => f == DataFormats.Files))
@@ -334,6 +376,29 @@ if let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], opti
         /// </summary>
         private async Task InsertImageAsync()
         {
+            if ((OperatingSystem.IsIOS() || OperatingSystem.IsAndroid()) && CapyCard.Services.PhotoPickerService.Current != null)
+            {
+                try
+                {
+                    var stream = await CapyCard.Services.PhotoPickerService.Current.PickPhotoAsync();
+                    if (stream != null)
+                    {
+                        using var ms = new System.IO.MemoryStream();
+                        await stream.CopyToAsync(ms);
+                        var bytes = ms.ToArray();
+                        if (bytes.Length > 0)
+                        {
+                            InsertImageFromBytes(bytes, DetectMimeType(bytes));
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors
+                }
+                return;
+            }
+
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel == null) return;
 
@@ -387,8 +452,8 @@ if let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], opti
                 _imageDataStore[imageId] = dataUri;
                 
                 // Im Editor nur kurzen Platzhalter anzeigen
-                // Format: ![📷Bild 1](Bild wird nach Fokuswechsel angezeigt)
-                var placeholderMarkdown = $"![📷Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
+                // Format: ![Bild 1](Bild wird nach Fokuswechsel angezeigt)
+                var placeholderMarkdown = $"![Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
                 InsertTextAtCursor(placeholderMarkdown);
             }
             catch
@@ -412,7 +477,7 @@ if let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], opti
                 _imageDataStore[imageId] = dataUri;
                 
                 // Im Editor nur kurzen Platzhalter anzeigen
-                var placeholderMarkdown = $"![📷Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
+                var placeholderMarkdown = $"![Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
                 InsertTextAtCursor(placeholderMarkdown);
             }
             catch
@@ -444,7 +509,7 @@ if let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], opti
                 var imageId = _nextImageId++;
                 _imageDataStore[imageId] = dataUri;
                 
-                return $"![📷Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
+                return $"![Bild {imageId}](Bild wird nach Fokuswechsel angezeigt)";
             });
         }
 
@@ -455,8 +520,10 @@ if let image = NSPasteboard.general.readObjects(forClasses: [NSImage.self], opti
         {
             if (string.IsNullOrEmpty(text)) return text;
             
+            // Regex für Platzhalter: ![Bild 123](Bild wird nach Fokuswechsel angezeigt)
+            var placeholderRegex = new Regex(@"!\[Bild (\d+)\]\(Bild wird nach Fokuswechsel angezeigt\)", RegexOptions.Compiled);
             
-            var result = ImagePlaceholderRegex.Replace(text, match =>
+            var result = placeholderRegex.Replace(text, match =>
             {
                 if (int.TryParse(match.Groups[1].Value, out var imageId) && 
                     _imageDataStore.TryGetValue(imageId, out var dataUri))

@@ -386,6 +386,14 @@ namespace CapyCard.Controls
             ApplyFormattingFromCache("==", "==");
         }
 
+        private async void OnPasteClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            if (!await HandleClipboardPasteAsync())
+            {
+                await InsertClipboardTextAsync();
+            }
+        }
+
         private async void OnImageClick(object? sender, RoutedEventArgs e)
         {
             await InsertImageAsync();
