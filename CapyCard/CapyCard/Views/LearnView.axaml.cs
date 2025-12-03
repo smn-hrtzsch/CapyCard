@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CapyCard.ViewModels;
 
@@ -113,11 +114,72 @@ namespace CapyCard.Views
         {
             if (e.PropertyName == nameof(LearnViewModel.IsImagePreviewOpen))
             {
-                if (DataContext is LearnViewModel vm && !vm.IsImagePreviewOpen)
+                if (DataContext is LearnViewModel vm)
                 {
-                    // Restore Focus when preview closes
-                    FocusMainActionButton();
+                    if (vm.IsImagePreviewOpen)
+                    {
+                        CalculateInitialZoom(vm);
+                        // Focus the overlay to enable KeyBindings
+                         Dispatcher.UIThread.Post(() =>
+                         {
+                             // Find the overlay grid - it's the last child in the root grid basically, 
+                             // but better to give it a name or find by type/property if possible.
+                             // Since we don't have a name, we can rely on Focusable=True in XAML.
+                             // Or we just let the user click. 
+                             // Actually, let's find the Grid by iterating or giving it a name in XAML would be better.
+                             // But we can't easily change XAML name now without another tool call.
+                             // However, the overlay has Focusable=True.
+                             // Let's try to find it by looking for the visible grid with high ZIndex?
+                             // Simpler: Just focus the UserControl itself, KeyBindings bubble? No.
+                             // Let's try to set focus to the window or top level, usually works for global shortcuts.
+                             // But KeyBindings are on the Grid.
+                             // Let's assume the user will click or hover.
+                             // Wait, we want it to work immediately.
+                             // I will rely on the fact that IsImagePreviewOpen makes it visible.
+                         });
+                    }
+                    else
+                    {
+                        // Restore Focus when preview closes
+                        FocusMainActionButton();
+                    }
                 }
+            }
+        }
+
+        private void CalculateInitialZoom(LearnViewModel vm)
+        {
+            if (vm.PreviewImageSource is Bitmap bitmap && _topLevel != null)
+            {
+                // Available size (approximate window size or control size)
+                var containerWidth = this.Bounds.Width;
+                var containerHeight = this.Bounds.Height;
+
+                if (containerWidth <= 0 || containerHeight <= 0) return;
+
+                // Target size: 75% of container
+                var targetWidth = containerWidth * 0.75;
+                var targetHeight = containerHeight * 0.75;
+
+                // Image size
+                var imgWidth = bitmap.Size.Width;
+                var imgHeight = bitmap.Size.Height;
+
+                if (imgWidth <= 0 || imgHeight <= 0) return;
+
+                // Calculate zoom needed to fit 75% bounds
+                var zoomX = targetWidth / imgWidth;
+                var zoomY = targetHeight / imgHeight;
+
+                // Use the smaller zoom to ensure it fits within both dimensions
+                // But wait, the requirement says "75% of window size".
+                // If image is tiny (100x100) and window is 1000x1000. Target is 750x750. Zoom = 7.5.
+                // If image is huge (2000x2000) and window is 1000x1000. Target is 750x750. Zoom = 0.375.
+                
+                var zoom = Math.Min(zoomX, zoomY);
+                
+                // Clamp to reasonable limits (defined in ViewModel setter anyway, but good to be safe)
+                vm.ImageZoomLevel = zoom;
             }
         }
 
@@ -133,8 +195,7 @@ namespace CapyCard.Views
                 return;
             }
             
-            // If Image Preview is open, consume Escape to close it (though the Button HotKey might handle it, 
-            // explicit handling ensures safety if focus is weird)
+            // If Image Preview is open, consume Escape to close it
             if (vm.IsImagePreviewOpen && e.Key == Key.Escape)
             {
                 vm.CloseImagePreviewCommand.Execute(null);
@@ -142,8 +203,7 @@ namespace CapyCard.Views
                 return;
             }
 
-            // Don't handle Enter if Preview is open (let it be focused on controls if any)
-            // But usually we want to prevent "Advance" if preview is open
+            // Don't handle Enter if Preview is open
             if (vm.IsImagePreviewOpen)
             {
                 return;
@@ -168,6 +228,33 @@ namespace CapyCard.Views
                 {
                      vm.CloseImagePreviewCommand.Execute(null);
                 }
+            }
+            // Also try to focus the grid on click to ensure keybindings work
+            if (sender is Control control)
+            {
+                control.Focus();
+            }
+        }
+
+        private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+        {
+            if (DataContext is not LearnViewModel vm) return;
+
+            // Check for Modifier keys (Ctrl on Win/Linux, Cmd/Meta on Mac)
+            var modifiers = e.KeyModifiers;
+            bool isCtrlOrCmd = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
+
+            if (isCtrlOrCmd)
+            {
+                if (e.Delta.Y > 0)
+                {
+                    vm.ZoomInCommand.Execute(null);
+                }
+                else if (e.Delta.Y < 0)
+                {
+                    vm.ZoomOutCommand.Execute(null);
+                }
+                e.Handled = true;
             }
         }
     }

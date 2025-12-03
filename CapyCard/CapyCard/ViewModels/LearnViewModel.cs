@@ -43,7 +43,19 @@ namespace CapyCard.ViewModels
 
         [ObservableProperty] private bool _isImagePreviewOpen = false;
         [ObservableProperty] private object? _previewImageSource;
-        [ObservableProperty] private double _imageZoomLevel = 1.0;
+        private double _imageZoomLevel = 1.0;
+
+        public double ImageZoomLevel
+        {
+            get => _imageZoomLevel;
+            set
+            {
+                if (SetProperty(ref _imageZoomLevel, Math.Clamp(value, 0.1, 5.0)))
+                {
+                    // Optional: Notify commands if needed
+                }
+            }
+        }
 
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
@@ -74,7 +86,7 @@ namespace CapyCard.ViewModels
         private void OpenImagePreview(object imageSource)
         {
             PreviewImageSource = imageSource;
-            ImageZoomLevel = 1.0;
+            // Zoom calculation is done in View (Code Behind) to match window size
             IsImagePreviewOpen = true;
         }
 
@@ -83,6 +95,18 @@ namespace CapyCard.ViewModels
         {
             IsImagePreviewOpen = false;
             PreviewImageSource = null;
+        }
+        
+        [RelayCommand]
+        private void ZoomIn()
+        {
+            ImageZoomLevel += 0.25;
+        }
+
+        [RelayCommand]
+        private void ZoomOut()
+        {
+            ImageZoomLevel -= 0.25;
         }
 
         public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)
