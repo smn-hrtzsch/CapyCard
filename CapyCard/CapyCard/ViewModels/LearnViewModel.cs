@@ -100,13 +100,13 @@ namespace CapyCard.ViewModels
         [RelayCommand]
         private void ZoomIn()
         {
-            ImageZoomLevel += 0.25;
+            ImageZoomLevel += 0.1;
         }
 
         [RelayCommand]
         private void ZoomOut()
         {
-            ImageZoomLevel -= 0.25;
+            ImageZoomLevel -= 0.1;
         }
 
         public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)

@@ -251,14 +251,16 @@ namespace CapyCard.Views
             // Allow Zoom with either Ctrl or Cmd/Meta
             if (isCtrl || isMeta)
             {
-                if (e.Delta.Y > 0)
-                {
-                    vm.ZoomInCommand.Execute(null);
-                }
-                else if (e.Delta.Y < 0)
-                {
-                    vm.ZoomOutCommand.Execute(null);
-                }
+                // Use Delta.Y for smooth zooming logic
+                // Trackpads emit small deltas (e.g. 0.1), mice emit larger ones (e.g. 1.0 or 120 depending on system)
+                // We scale it to a reasonable zoom factor.
+                
+                double zoomFactor = 0.1; // Sensitivity
+                double delta = e.Delta.Y;
+                
+                // Apply zoom
+                vm.ImageZoomLevel += delta * zoomFactor;
+                
                 // Important: Mark as handled to prevent ScrollViewer from scrolling
                 e.Handled = true;
             }
