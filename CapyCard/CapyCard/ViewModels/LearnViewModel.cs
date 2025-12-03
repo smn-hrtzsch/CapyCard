@@ -41,6 +41,10 @@ namespace CapyCard.ViewModels
         [ObservableProperty] private string _reshuffleButtonText = "Neu mischen & Starten";
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ShowEditButton))] private Card? _currentCard;
 
+        [ObservableProperty] private bool _isImagePreviewOpen = false;
+        [ObservableProperty] private object? _previewImageSource;
+        [ObservableProperty] private double _imageZoomLevel = 1.0;
+
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
@@ -64,6 +68,21 @@ namespace CapyCard.ViewModels
         {
             _dbContext = new FlashcardDbContext();
             _smartQueueService = new SmartQueueService();
+        }
+
+        [RelayCommand]
+        private void OpenImagePreview(object imageSource)
+        {
+            PreviewImageSource = imageSource;
+            ImageZoomLevel = 1.0;
+            IsImagePreviewOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseImagePreview()
+        {
+            IsImagePreviewOpen = false;
+            PreviewImageSource = null;
         }
 
         public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)

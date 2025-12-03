@@ -1,3 +1,5 @@
+using System;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -10,6 +12,7 @@ namespace CapyCard.Views
     public partial class LearnView : UserControl
     {
         private TopLevel? _topLevel;
+        private LearnViewModel? _subscribedViewModel;
 
         public static readonly StyledProperty<bool> IsCompactModeProperty =
             AvaloniaProperty.Register<LearnView, bool>(nameof(IsCompactMode));
@@ -32,6 +35,11 @@ namespace CapyCard.Views
         }
 
         private void OnNavigationButtonClick(object? sender, RoutedEventArgs e)
+        {
+            FocusMainActionButton();
+        }
+
+        private void FocusMainActionButton()
         {
             // Delay focus change slightly to allow UI to update (e.g. button visibility)
             Dispatcher.UIThread.Post(() =>
@@ -58,6 +66,12 @@ namespace CapyCard.Views
             {
                 _topLevel.KeyDown += TopLevelOnKeyDown;
             }
+
+            if (DataContext is LearnViewModel vm)
+            {
+                _subscribedViewModel = vm;
+                vm.PropertyChanged += ViewModel_PropertyChanged;
+            }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -68,6 +82,42 @@ namespace CapyCard.Views
             {
                 _topLevel.KeyDown -= TopLevelOnKeyDown;
                 _topLevel = null;
+            }
+
+            if (_subscribedViewModel != null)
+            {
+                _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                _subscribedViewModel = null;
+            }
+        }
+        
+        protected override void OnDataContextChanged(EventArgs e)
+        {
+            base.OnDataContextChanged(e);
+            
+            // Handle dynamic DataContext changes while attached
+            if (_subscribedViewModel != null)
+            {
+                _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                _subscribedViewModel = null;
+            }
+            
+            if (DataContext is LearnViewModel vm)
+            {
+                _subscribedViewModel = vm;
+                vm.PropertyChanged += ViewModel_PropertyChanged;
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LearnViewModel.IsImagePreviewOpen))
+            {
+                if (DataContext is LearnViewModel vm && !vm.IsImagePreviewOpen)
+                {
+                    // Restore Focus when preview closes
+                    FocusMainActionButton();
+                }
             }
         }
 
@@ -82,6 +132,22 @@ namespace CapyCard.Views
             {
                 return;
             }
+            
+            // If Image Preview is open, consume Escape to close it (though the Button HotKey might handle it, 
+            // explicit handling ensures safety if focus is weird)
+            if (vm.IsImagePreviewOpen && e.Key == Key.Escape)
+            {
+                vm.CloseImagePreviewCommand.Execute(null);
+                e.Handled = true;
+                return;
+            }
+
+            // Don't handle Enter if Preview is open (let it be focused on controls if any)
+            // But usually we want to prevent "Advance" if preview is open
+            if (vm.IsImagePreviewOpen)
+            {
+                return;
+            }
 
             if (e.Key is Key.Enter or Key.Return or Key.Space)
             {
@@ -89,6 +155,18 @@ namespace CapyCard.Views
                 {
                     vm.AdvanceCommand.Execute(null);
                     e.Handled = true;
+                }
+            }
+        }
+
+        private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            // Close when clicking on the background grid (not the content)
+            if (sender is Grid grid && e.Source == grid && DataContext is LearnViewModel vm)
+            {
+                if (vm.IsImagePreviewOpen)
+                {
+                     vm.CloseImagePreviewCommand.Execute(null);
                 }
             }
         }
