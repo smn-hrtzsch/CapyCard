@@ -13,7 +13,7 @@ namespace CapyCard.Android;
 
 [Activity(
     Label = "CapyCard",
-    Name = "com.CapyCard.CapyCard.MainActivity",
+    Name = "com.CapyCode.CapyCard.MainActivity",
     Theme = "@style/MyTheme.NoActionBar",
     Icon = "@drawable/icon",
     MainLauncher = true,
