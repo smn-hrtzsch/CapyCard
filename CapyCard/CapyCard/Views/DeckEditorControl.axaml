@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:converters="using:CapyCard.Converters"
+             xmlns:controls="using:CapyCard.Controls"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="CapyCard.Views.DeckEditorControl"
+             x:DataType="vm:DeckDetailViewModel"
+             x:Name="Root">
+    
+    <UserControl.Resources>
+    </UserControl.Resources>
+             
+    <ScrollViewer Classes.rootDeck="{Binding CanAddSubDecks}"
+                  VerticalAlignment="Top"
+                  VerticalScrollBarVisibility="Auto" 
+                  HorizontalScrollBarVisibility="Disabled">
+        <DockPanel Margin="10,0,10,10">
+            <!-- CARD EDITING & LEARNING BUTTONS -->
+            <StackPanel Spacing="10" Margin="0,0,0,0">
+                <TextBlock Text="Neue Karte erstellen:" FontWeight="Bold"/>
+                
+                <Grid x:Name="EditorsGrid" ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                    <TextBlock x:Name="FrontLabel"
+                               Text="Vorderseite" 
+                               Grid.Row="0" Grid.Column="0" 
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource MutedForegroundBrush}"
+                               Margin="0,0,0,10"/>
+                    <TextBlock x:Name="BackLabel"
+                               Text="Rückseite" 
+                               Grid.Row="0" Grid.Column="2" 
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource MutedForegroundBrush}"
+                               Margin="0,0,0,10"/>
+
+                    <controls:WysiwygEditor x:Name="FrontEditor"
+                                            Text="{Binding NewCardFront, Mode=TwoWay}"
+                                            Watermark="Text für Vorderseite..."
+                                            MinHeight="180"
+                                            VerticalAlignment="Stretch"
+                                            Grid.Row="1" Grid.Column="0"/>
+
+                    <Path x:Name="ArrowPath"
+                          Data="M 10,0 L 20,10 L 10,20 M 0,10 L 20,10" 
+                          Stroke="{DynamicResource MutedForegroundBrush}" 
+                          StrokeThickness="2"
+                          Grid.Row="1" Grid.Column="1"
+                          VerticalAlignment="Center" 
+                          HorizontalAlignment="Center"
+                          Margin="10,0"/>
+                    
+                    <controls:WysiwygEditor x:Name="BackEditor"
+                                            Text="{Binding NewCardBack, Mode=TwoWay}"
+                                            Watermark="Text für Rückseite..."
+                                            MinHeight="180"
+                                            VerticalAlignment="Stretch"
+                                            Grid.Row="1" Grid.Column="2"/>
+                </Grid>
+                
+                <!-- ACTION BUTTONS -->
+                <Grid ColumnDefinitions="*,*">
+                    <Button Content="Abbrechen" 
+                            Command="{Binding CancelEditCommand}"
+                            IsVisible="{Binding IsEditing}"
+                            HorizontalAlignment="Stretch"
+                            Grid.Column="0"
+                            Margin="0,0,5,0"/>
+                    
+                    <Button Content="{Binding SaveButtonText}" 
+                            Command="{Binding SaveCardCommand}"
+                            HorizontalAlignment="Stretch"
+                            IsVisible="{Binding IsEditing}"
+                            Grid.Column="1"
+                            Margin="5,0,0,0"/>
+                    
+                    <Button Content="{Binding SaveButtonText}" 
+                            Command="{Binding SaveCardCommand}"
+                            HorizontalAlignment="Stretch"
+                            IsVisible="{Binding !IsEditing}"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"/>
+                </Grid>
+                
+                <!-- LEARNING BUTTONS -->
+                <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Margin="0,20,0,0" Padding="0,20,0,0">
+                    <StackPanel Spacing="10">
+                        <Button Content="{Binding CardCountText}" 
+                                Command="{Binding GoToCardListCommand}"
+                                IsEnabled="{Binding HasCards}"
+                                HorizontalAlignment="Stretch"/>
+                                
+                        <Grid ColumnDefinitions="*,*,*" IsEnabled="{Binding HasCards}" IsVisible="{Binding IsRootDeck}">
+                            <Button Content="Alle lernen" 
+                                    Command="{Binding StartLearningAllCommand}"
+                                    HorizontalAlignment="Stretch" Margin="0,0,5,0"
+                                    ToolTip.Tip="Alle Karten lernen (inkl. Unterdecks)"/>
+                            <Button Content="Allgemeine Karten" 
+                                    Command="{Binding StartLearningMainCommand}"
+                                    HorizontalAlignment="Stretch" Grid.Column="1" Margin="2,0,2,0"
+                                    ToolTip.Tip="Nur Allgemeine Karten lernen"/>
+                            <Button Content="Auswahl..." 
+                                    Command="{Binding OpenSubDeckSelectionCommand}"
+                                    HorizontalAlignment="Stretch" Grid.Column="2" Margin="5,0,0,0"
+                                    ToolTip.Tip="Bestimmte Themen lernen"/>
+                        </Grid>
+                        
+                        <Button Content="Alle Karteikarten des Themas lernen" 
+                                Command="{Binding StartLearningMainCommand}"
+                                IsEnabled="{Binding HasCards}"
+                                IsVisible="{Binding !IsRootDeck}"
+                                HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- SPACER for Floating Toggle Button -->
+                <Border Height="100" IsVisible="{Binding CanAddSubDecks}" />
+            </StackPanel>
+        </DockPanel>
+    </ScrollViewer>
+</UserControl>
