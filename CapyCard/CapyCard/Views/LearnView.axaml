@@ -393,11 +393,11 @@
         
         <!-- Image Preview Overlay -->
         <Grid IsVisible="{Binding IsImagePreviewOpen}" 
+              x:Name="ImagePreviewOverlay"
               Background="#E6000000" 
               ZIndex="1000"
               Focusable="True"
-              PointerPressed="OnOverlayPointerPressed"
-              PointerWheelChanged="OnOverlayPointerWheelChanged">
+              PointerPressed="OnOverlayPointerPressed">
             
             <Grid.KeyBindings>
                 <!-- Windows/Linux: Ctrl + / - -->

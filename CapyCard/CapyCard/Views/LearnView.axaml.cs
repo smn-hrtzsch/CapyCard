@@ -28,11 +28,47 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             this.SizeChanged += OnSizeChanged;
+            
+            // Use Tunneling to catch the wheel event before the ScrollViewer inside consumes it
+            var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
+            if (overlay != null)
+            {
+                overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
+            }
         }
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < 800;
+        }
+        
+        // Re-apply handler when attached, just to be safe if FindControl failed in Constructor (e.g. template not applied yet)
+        // Actually, FindControl might fail in Constructor for XAML loaded content if not initialized? 
+        // InitializeComponent loads it. But safer to do in AttachedToVisualTree or just once.
+        // Let's do it in OnAttachedToVisualTree as well, ensuring no duplicate subscription.
+        
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
+            {
+                _topLevel.KeyDown += TopLevelOnKeyDown;
+            }
+
+            // Ensure Handler is attached (remove first to avoid duplicates)
+            var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
+            if (overlay != null)
+            {
+                overlay.RemoveHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged);
+                overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
+            }
+
+            if (DataContext is LearnViewModel vm)
+            {
+                _subscribedViewModel = vm;
+                vm.PropertyChanged += ViewModel_PropertyChanged;
+            }
         }
 
         private void OnNavigationButtonClick(object? sender, RoutedEventArgs e)
@@ -57,22 +93,6 @@ namespace CapyCard.Views
                     btnSmart.Focus();
                 }
             }, DispatcherPriority.Input);
-        }
-
-        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            base.OnAttachedToVisualTree(e);
-            _topLevel = TopLevel.GetTopLevel(this);
-            if (_topLevel != null)
-            {
-                _topLevel.KeyDown += TopLevelOnKeyDown;
-            }
-
-            if (DataContext is LearnViewModel vm)
-            {
-                _subscribedViewModel = vm;
-                vm.PropertyChanged += ViewModel_PropertyChanged;
-            }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -122,20 +142,8 @@ namespace CapyCard.Views
                         // Focus the overlay to enable KeyBindings
                          Dispatcher.UIThread.Post(() =>
                          {
-                             // Find the overlay grid - it's the last child in the root grid basically, 
-                             // but better to give it a name or find by type/property if possible.
-                             // Since we don't have a name, we can rely on Focusable=True in XAML.
-                             // Or we just let the user click. 
-                             // Actually, let's find the Grid by iterating or giving it a name in XAML would be better.
-                             // But we can't easily change XAML name now without another tool call.
-                             // However, the overlay has Focusable=True.
-                             // Let's try to find it by looking for the visible grid with high ZIndex?
-                             // Simpler: Just focus the UserControl itself, KeyBindings bubble? No.
-                             // Let's try to set focus to the window or top level, usually works for global shortcuts.
-                             // But KeyBindings are on the Grid.
-                             // Let's assume the user will click or hover.
-                             // Wait, we want it to work immediately.
-                             // I will rely on the fact that IsImagePreviewOpen makes it visible.
+                             var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
+                             overlay?.Focus();
                          });
                     }
                     else
@@ -172,13 +180,8 @@ namespace CapyCard.Views
                 var zoomY = targetHeight / imgHeight;
 
                 // Use the smaller zoom to ensure it fits within both dimensions
-                // But wait, the requirement says "75% of window size".
-                // If image is tiny (100x100) and window is 1000x1000. Target is 750x750. Zoom = 7.5.
-                // If image is huge (2000x2000) and window is 1000x1000. Target is 750x750. Zoom = 0.375.
-                
                 var zoom = Math.Min(zoomX, zoomY);
                 
-                // Clamp to reasonable limits (defined in ViewModel setter anyway, but good to be safe)
                 vm.ImageZoomLevel = zoom;
             }
         }
@@ -238,13 +241,15 @@ namespace CapyCard.Views
 
         private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
         {
-            if (DataContext is not LearnViewModel vm) return;
+            if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
 
             // Check for Modifier keys (Ctrl on Win/Linux, Cmd/Meta on Mac)
             var modifiers = e.KeyModifiers;
-            bool isCtrlOrCmd = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
-
-            if (isCtrlOrCmd)
+            bool isCtrl = (modifiers & KeyModifiers.Control) != 0;
+            bool isMeta = (modifiers & KeyModifiers.Meta) != 0;
+            
+            // Allow Zoom with either Ctrl or Cmd/Meta
+            if (isCtrl || isMeta)
             {
                 if (e.Delta.Y > 0)
                 {
@@ -254,6 +259,7 @@ namespace CapyCard.Views
                 {
                     vm.ZoomOutCommand.Execute(null);
                 }
+                // Important: Mark as handled to prevent ScrollViewer from scrolling
                 e.Handled = true;
             }
         }
