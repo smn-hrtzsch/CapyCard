@@ -52,6 +52,7 @@
 
             <converters:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
             <converters:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
+            <converters:RatioConverter x:Key="RatioConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -30,6 +30,7 @@
     <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.17" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Android" Version="2.88.9" />
     <PackageVersion Include="HarfBuzzSharp.NativeAssets.Android" Version="8.3.1.2" />
+    <PackageVersion Include="Xamarin.Essentials" Version="1.8.1" />
     <PackageVersion Include="WixToolset.UI.wixext" Version="4.0.5" />
     <PackageVersion Include="WixToolset.Heat" Version="4.0.5" />
     <!-- Test Packages -->

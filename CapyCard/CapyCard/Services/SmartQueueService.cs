@@ -7,9 +7,17 @@ namespace CapyCard.Services
 {
     public class SmartQueueService
     {
-        private readonly Random _random = new Random();
+        private readonly Random _random;
 
         // Ratings: 1 (Nochmal), 2 (Schwer), 3 (Gut), 4 (Einfach)
+        public SmartQueueService() : this(null) { }
+
+        // Optional constructor to allow injecting a seeded Random for deterministic tests
+        public SmartQueueService(Random? rng)
+        {
+            _random = rng ?? new Random();
+        }
+
         public void CalculateNewScore(CardSmartScore smartScore, int rating)
         {
             // Update LastReviewed

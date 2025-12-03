@@ -3,10 +3,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:controls="using:CapyCard.Controls"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.LearnView"
              x:DataType="vm:LearnViewModel"
              x:Name="Root">
+
+    <!-- KeyBindings für Speichern beim Bearbeiten -->
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding SaveEditCommand}" Gesture="Ctrl+Enter"/>
+        <KeyBinding Command="{Binding SaveEditCommand}" Gesture="Meta+Enter"/>
+    </UserControl.KeyBindings>
 
     <UserControl.Resources>
         <StreamGeometry x:Key="IconBack">M 502 256 A 246 246 0 1 1 10 256 A 246 246 0 1 1 502 256 Z M 352.26 256 L 170.43 256 M 223.91 202.52 L 170.44 256 L 223.91 309.48</StreamGeometry>
@@ -239,7 +246,7 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <TextBlock Text="{Binding CurrentCardFront}" TextWrapping="Wrap"/>
+                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardFront}"/>
                             </ScrollViewer>
                             
                             <Button Command="{Binding StartEditCommand}"
@@ -255,12 +262,11 @@
                             </Button>
                         </Grid>
                         
-                        <TextBox Text="{Binding EditFrontText, Mode=TwoWay}"
-                                 IsVisible="{Binding IsEditing}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Height="150"
-                                 VerticalAlignment="Stretch"/>
+                        <controls:WysiwygEditor Text="{Binding EditFrontText, Mode=TwoWay}"
+                                                IsVisible="{Binding IsEditing}"
+                                                Watermark="Vorderseite..."
+                                                MinHeight="150"
+                                                VerticalAlignment="Stretch"/>
                     </Grid>
                 </Border>
                 
@@ -274,7 +280,7 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <TextBlock Text="{Binding CurrentCardBack}" TextWrapping="Wrap"/>
+                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardBack}"/>
                             </ScrollViewer>
                                  
                             <Button Command="{Binding StartEditCommand}"
@@ -290,12 +296,11 @@
                             </Button>
                         </Grid>
 
-                        <TextBox Text="{Binding EditBackText, Mode=TwoWay}"
-                                 IsVisible="{Binding IsEditing}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Height="150"
-                                 VerticalAlignment="Stretch"/>
+                        <controls:WysiwygEditor Text="{Binding EditBackText, Mode=TwoWay}"
+                                                IsVisible="{Binding IsEditing}"
+                                                Watermark="Rückseite..."
+                                                MinHeight="150"
+                                                VerticalAlignment="Stretch"/>
                     </Grid>
                 </Border>
                 

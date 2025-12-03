@@ -43,6 +43,16 @@ namespace CapyCard.ViewModels
         private bool _isEditing = false;
 
         [ObservableProperty]
+        private bool _isSubDeckListOpen;
+
+        [RelayCommand]
+        private void ToggleSubDeckList()
+        {
+            IsSubDeckListOpen = !IsSubDeckListOpen;
+        }
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(AddSubDeckCommand))]
         private string _newSubDeckName = string.Empty;
 
         [ObservableProperty]

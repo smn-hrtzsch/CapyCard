@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
              xmlns:controls="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls"
+             xmlns:local="clr-namespace:CapyCard.Controls"
              xmlns:conv="clr-namespace:CapyCard.Converters"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.CardListView"
@@ -259,10 +260,10 @@
                                                     </Grid>
                                                     <StackPanel Grid.Row="1" Spacing="6">
                                                         <TextBlock Text="Vorderseite" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedForegroundBrush}"/>
-                                                        <TextBlock Text="{Binding Card.Front}" TextWrapping="Wrap"/>
+                                                        <local:FormattedTextBlock FormattedText="{Binding Card.Front}" TextWrapping="Wrap"/>
                                                         <Separator Margin="0,6" Background="{DynamicResource DividerBrush}"/>
                                                         <TextBlock Text="Rückseite" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource MutedForegroundBrush}"/>
-                                                        <TextBlock Text="{Binding Card.Back}" TextWrapping="Wrap"/>
+                                                        <local:FormattedTextBlock FormattedText="{Binding Card.Back}" TextWrapping="Wrap"/>
                                                     </StackPanel>
                                                 </Grid>
                                             </Border>

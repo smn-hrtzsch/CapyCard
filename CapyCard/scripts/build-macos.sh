@@ -12,7 +12,7 @@ PROJECT_ASSETS_PATH="CapyCard/Assets/icon.icns"
 OUTPUT_DIR="$PROJECT_DIR/bin/Release/net9.0/osx-arm64/publish"
 TEMP_PUBLISH_DIR="$PROJECT_DIR/bin/Release/net9.0/osx-arm64/temp_publish"
 APP_BUNDLE_PATH="$OUTPUT_DIR/$APP_BUNDLE_NAME.app"
-BUNDLE_ID="com.CapyCard.CapyCard.desktop"
+BUNDLE_ID="com.CapyCode.CapyCard.desktop"
 
 echo "--- Building $APP_BUNDLE_NAME ---"
 

@@ -344,13 +344,13 @@ namespace CapyCard.ViewModels
                     // 4. Wenn der Nutzer einen Pfad ausgewählt hat (Stream ist nicht null)
                     if (stream != null)
                     {
-                        Console.WriteLine($"[PDF] Stream opened. CanWrite: {stream.CanWrite}");
+                        // Console.WriteLine($"[PDF] Stream opened. CanWrite: {stream.CanWrite}");
                         
                         try 
                         {
                             // 5. PDF generieren und in den Stream schreiben
                             PdfGenerationService.GeneratePdf(stream, selectedCards, SelectedColumnCount);
-                            Console.WriteLine("[PDF] Generation successful.");
+                            // Console.WriteLine("[PDF] Generation successful.");
                         }
                         catch (Exception innerEx)
                         {
