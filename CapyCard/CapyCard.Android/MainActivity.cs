@@ -21,6 +21,8 @@ namespace CapyCard.Android;
     WindowSoftInputMode = SoftInput.AdjustNothing)]
 public class MainActivity : AvaloniaMainActivity<App>
 {
+    public const int PickImageId = 1000;
+
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
     {
         return base.CustomizeAppBuilder(builder)
@@ -30,6 +32,10 @@ public class MainActivity : AvaloniaMainActivity<App>
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        
+        Xamarin.Essentials.Platform.Init(this, savedInstanceState);
+        PhotoPickerService.Current = new CapyCard.Android.Services.PhotoPickerServiceAndroid();
+        CapyCard.Services.ClipboardService.Current = new CapyCard.Android.Services.ClipboardServiceAndroid();
         
         if (Window != null)
         {
@@ -53,5 +59,11 @@ public class MainActivity : AvaloniaMainActivity<App>
                 imm.ShowSoftInput(view, ShowFlags.Implicit);
             }
         };
+    }
+
+    protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
+    {
+        base.OnActivityResult(requestCode, resultCode, data);
+        CapyCard.Android.Services.PhotoPickerServiceAndroid.OnActivityResult(requestCode, resultCode, data);
     }
 }

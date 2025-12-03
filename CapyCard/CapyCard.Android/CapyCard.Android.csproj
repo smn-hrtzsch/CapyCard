@@ -24,6 +24,7 @@
     <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
     <PackageReference Include="SkiaSharp.NativeAssets.Android" />
     <PackageReference Include="HarfBuzzSharp.NativeAssets.Android" />
+    <PackageReference Include="Xamarin.Essentials" />
   </ItemGroup>
 
   <ItemGroup>

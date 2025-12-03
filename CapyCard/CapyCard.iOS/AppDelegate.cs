@@ -26,6 +26,10 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
 
     public AppDelegate()
     {
+        // Register Platform Services
+        PhotoPickerService.Current = new CapyCard.iOS.Services.PhotoPickerServiceiOS();
+        ClipboardService.Current = new CapyCard.iOS.Services.ClipboardServiceiOS();
+
         // Subscribe to Keyboard Events
         NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillShowNotification, OnKeyboardNotification);
         NSNotificationCenter.DefaultCenter.AddObserver(UIKeyboard.WillHideNotification, OnKeyboardNotification);
