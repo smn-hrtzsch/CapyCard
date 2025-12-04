@@ -19,7 +19,7 @@ namespace CapyCard.Models
         [ForeignKey("DeckId")]
         public virtual Deck Deck { get; set; } = null!;
 
-        public LearningMode Mode { get; set; }
+        public LearningMode Scope { get; set; }
 
         // For Custom mode: which subdecks are included (JSON list of ints)
         // Also used to verify if the selection changed.
@@ -30,7 +30,7 @@ namespace CapyCard.Models
         public string LearnedCardIdsJson { get; set; } = "[]"; // For random mode
         
         // Replaces IsRandomOrder
-        public LearningOrderMode OrderMode { get; set; } = LearningOrderMode.Sequential;
+        public LearningOrderMode Strategy { get; set; } = LearningOrderMode.Sequential;
 
         public DateTime LastAccessed { get; set; } = DateTime.Now;
     }

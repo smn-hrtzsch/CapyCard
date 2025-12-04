@@ -30,7 +30,7 @@ namespace CapyCard.ViewModels
         private bool _isBackVisible = false;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsEditing))] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] private bool _isDeckFinished = false;
         
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] private LearningOrderMode _orderMode;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] private LearningOrderMode _strategy;
         
         [ObservableProperty] private string _editFrontText = string.Empty;
         [ObservableProperty] private string _editBackText = string.Empty;
@@ -62,16 +62,16 @@ namespace CapyCard.ViewModels
         [ObservableProperty] private string _progressModeLabel = string.Empty;
         [ObservableProperty] private string _deckName = string.Empty;
         [ObservableProperty] private string _backButtonText = "Zurück zum Fach";
-        private LearningOrderMode _currentCardFromOrderMode;
+        private LearningOrderMode _currentCardFromStrategy;
 
-        public string ProgressText => OrderMode == LearningOrderMode.Smart ? $"{LearnedCount}% Mastery" : $"{LearnedCount}/{TotalCount}";
+        public string ProgressText => Strategy == LearningOrderMode.Smart ? $"{LearnedCount}% Mastery" : $"{LearnedCount}/{TotalCount}";
         
-        public bool IsSmartMode => OrderMode == LearningOrderMode.Smart;
-        public bool IsSequentialMode => OrderMode == LearningOrderMode.Sequential;
-        public bool IsRandomMode => OrderMode == LearningOrderMode.Random;
+        public bool IsSmartMode => Strategy == LearningOrderMode.Smart;
+        public bool IsSequentialMode => Strategy == LearningOrderMode.Sequential;
+        public bool IsRandomMode => Strategy == LearningOrderMode.Random;
 
-        public bool IsCurrentCardSmart => _currentCardFromOrderMode == LearningOrderMode.Smart;
-        public bool IsCurrentCardStandard => _currentCardFromOrderMode != LearningOrderMode.Smart;
+        public bool IsCurrentCardSmart => _currentCardFromStrategy == LearningOrderMode.Smart;
+        public bool IsCurrentCardStandard => _currentCardFromStrategy != LearningOrderMode.Smart;
 
         public event Action? OnNavigateBack;
         public bool ShowEditButton => IsBackVisible && !IsEditing && CurrentCard != null;
@@ -109,7 +109,7 @@ namespace CapyCard.ViewModels
             ImageZoomLevel -= 0.05;
         }
 
-        public async Task LoadSession(Deck deck, LearningMode mode, List<int>? selectedIds)
+        public async Task LoadSession(Deck deck, LearningMode scope, List<int>? selectedIds)
         {
             var trackedDeck = _dbContext.Decks.Local.FirstOrDefault(d => d.Id == deck.Id);
             if (trackedDeck != null) _dbContext.Entry(trackedDeck).State = EntityState.Detached;
@@ -129,18 +129,18 @@ namespace CapyCard.ViewModels
             string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";
             
             _currentSession = await _dbContext.LearningSessions
-                .FirstOrDefaultAsync(s => s.DeckId == _deck.Id && s.Mode == mode && s.SelectedDeckIdsJson == selectedIdsJson);
+                .FirstOrDefaultAsync(s => s.DeckId == _deck.Id && s.Scope == scope && s.SelectedDeckIdsJson == selectedIdsJson);
 
             if (_currentSession == null)
             {
                 _currentSession = new LearningSession
                 {
                     DeckId = _deck.Id,
-                    Mode = mode,
+                    Scope = scope,
                     SelectedDeckIdsJson = selectedIdsJson,
                     LastLearnedIndex = 0,
                     LearnedCardIdsJson = "[]",
-                    OrderMode = LearningOrderMode.Sequential,
+                    Strategy = LearningOrderMode.Sequential,
                     LastAccessed = DateTime.Now
                 };
                 _dbContext.LearningSessions.Add(_currentSession);
@@ -151,19 +151,19 @@ namespace CapyCard.ViewModels
             }
             await _dbContext.SaveChangesAsync();
 
-            OrderMode = _currentSession.OrderMode;
+            Strategy = _currentSession.Strategy;
 
             // Load cards based on mode
             _allCards.Clear();
-            if (mode == LearningMode.MainOnly)
+            if (scope == LearningMode.MainOnly)
             {
                 _allCards.AddRange(_deck.Cards);
             }
-            else if (mode == LearningMode.AllRecursive)
+            else if (scope == LearningMode.AllRecursive)
             {
                 _allCards.AddRange(GetAllCards(_deck));
             }
-            else if (mode == LearningMode.CustomSelection && selectedIds != null)
+            else if (scope == LearningMode.CustomSelection && selectedIds != null)
             {
                 // Add main deck if selected
                 if (selectedIds.Contains(_deck.Id))
@@ -201,7 +201,7 @@ namespace CapyCard.ViewModels
         {
             if (_currentSession == null) return;
             
-            switch (OrderMode)
+            switch (Strategy)
             {
                 case LearningOrderMode.Sequential:
                     TotalCount = _allCards.Count;
@@ -249,7 +249,7 @@ namespace CapyCard.ViewModels
 
             UpdateProgressState();
 
-            _currentCardFromOrderMode = OrderMode;
+            _currentCardFromStrategy = Strategy;
             OnPropertyChanged(nameof(IsCurrentCardSmart));
             OnPropertyChanged(nameof(IsCurrentCardStandard));
 
@@ -257,7 +257,7 @@ namespace CapyCard.ViewModels
             IsBackVisible = false;
             Card? cardToShow = null;
 
-            if (OrderMode == LearningOrderMode.Sequential)
+            if (Strategy == LearningOrderMode.Sequential)
             {
                 var sortedCards = _allCards.OrderBy(c => c.Id).ToList();
                 if (_currentSession.LastLearnedIndex < sortedCards.Count)
@@ -270,7 +270,7 @@ namespace CapyCard.ViewModels
                     return;
                 }
             }
-            else if (OrderMode == LearningOrderMode.Random)
+            else if (Strategy == LearningOrderMode.Random)
             {
                 var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
@@ -285,7 +285,7 @@ namespace CapyCard.ViewModels
                 }
                 cardToShow = availableCards[Random.Shared.Next(availableCards.Count)];
             }
-            else if (OrderMode == LearningOrderMode.Smart)
+            else if (Strategy == LearningOrderMode.Smart)
             {
                 var cardIds = _allCards.Select(c => c.Id).ToList();
                 var scores = _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToList();
@@ -307,11 +307,11 @@ namespace CapyCard.ViewModels
             if (_currentSession == null) return;
             IsBackVisible = false;
 
-            if (_currentCardFromOrderMode == LearningOrderMode.Sequential)
+            if (_currentCardFromStrategy == LearningOrderMode.Sequential)
             {
                 _currentSession.LastLearnedIndex++;
             }
-            else if (_currentCardFromOrderMode == LearningOrderMode.Random)
+            else if (_currentCardFromStrategy == LearningOrderMode.Random)
             {
                 var learnedIds = string.IsNullOrEmpty(_currentSession.LearnedCardIdsJson) 
                     ? new List<int>() 
@@ -346,12 +346,12 @@ namespace CapyCard.ViewModels
         private void SetFinishedState(string message)
         {
             CurrentCardFront = message;
-            if (OrderMode == LearningOrderMode.Random)
+            if (Strategy == LearningOrderMode.Random)
             {
                 CurrentCardBack = "Alle Karten gelernt. Nochmal mischen?";
                 ReshuffleButtonText = "Neu mischen & Starten";
             }
-            else if (OrderMode == LearningOrderMode.Sequential)
+            else if (Strategy == LearningOrderMode.Sequential)
             {
                 CurrentCardBack = "Alle Karten gelernt. Nochmal von vorn anfangen?";
                 ReshuffleButtonText = "Deck von vorne starten";
@@ -375,8 +375,8 @@ namespace CapyCard.ViewModels
             if (_currentSession == null) return;
 
             // Determine next mode
-            LearningOrderMode nextMode = OrderMode;
-            switch (OrderMode)
+            LearningOrderMode nextMode = Strategy;
+            switch (Strategy)
             {
                 case LearningOrderMode.Sequential:
                     nextMode = LearningOrderMode.Random;
@@ -389,8 +389,8 @@ namespace CapyCard.ViewModels
                     break;
             }
 
-            OrderMode = nextMode;
-            _currentSession.OrderMode = OrderMode;
+            Strategy = nextMode;
+            _currentSession.Strategy = Strategy;
             await _dbContext.SaveChangesAsync();
 
             // If we are currently viewing a card back
@@ -399,7 +399,7 @@ namespace CapyCard.ViewModels
                 // If the CURRENT card was Smart, we MUST wait for rating.
                 // Do NOT advance. The UI will show the new mode icon (OrderMode updated),
                 // but the buttons will remain Rating buttons (IsCurrentCardSmart is still true).
-                if (_currentCardFromOrderMode == LearningOrderMode.Smart)
+                if (_currentCardFromStrategy == LearningOrderMode.Smart)
                 {
                     return;
                 }
@@ -448,15 +448,15 @@ namespace CapyCard.ViewModels
         {
             if (_currentSession == null) return;
 
-            if (OrderMode == LearningOrderMode.Random)
+            if (Strategy == LearningOrderMode.Random)
             {
                 _currentSession.LearnedCardIdsJson = "[]";
             }
-            else if (OrderMode == LearningOrderMode.Sequential)
+            else if (Strategy == LearningOrderMode.Sequential)
             {
                 _currentSession.LastLearnedIndex = 0;
             }
-            else if (OrderMode == LearningOrderMode.Smart)
+            else if (Strategy == LearningOrderMode.Smart)
             {
                 // Reset scores for all cards in this deck/session
                 var cardIds = _allCards.Select(c => c.Id).ToList();

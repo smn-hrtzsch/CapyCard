@@ -463,7 +463,7 @@ namespace CapyCard.ViewModels
             {
                 var lastSession = await context.LearningSessions
                     .AsNoTracking()
-                    .Where(s => s.DeckId == _currentDeck.Id && s.Mode == LearningMode.CustomSelection)
+                    .Where(s => s.DeckId == _currentDeck.Id && s.Scope == LearningMode.CustomSelection)
                     .OrderByDescending(s => s.LastAccessed)
                     .FirstOrDefaultAsync();
 
