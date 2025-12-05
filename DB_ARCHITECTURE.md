@@ -57,6 +57,7 @@ erDiagram
 ## 2. Tabellen-Details
 
 ### 2.1 Tabelle: `Decks`
+
 Repräsentiert einen Kartenstapel oder eine Kategorie. Decks können hierarchisch verschachtelt sein (Unterdecks).
 
 | Spalte | Datentyp (C#) | Datentyp (SQLite) | Beschreibung | Constraints |
@@ -70,6 +71,7 @@ Repräsentiert einen Kartenstapel oder eine Kategorie. Decks können hierarchisc
 | **IsDefault** | `bool` | `INTEGER` | Kennzeichnet das Standard-Unterdeck ("Allgemein"). | `NOT NULL` |
 
 ### 2.2 Tabelle: `Cards`
+
 Repräsentiert eine einzelne Lernkarte mit Vorder- und Rückseite.
 
 | Spalte | Datentyp (C#) | Datentyp (SQLite) | Beschreibung | Constraints |
@@ -80,6 +82,7 @@ Repräsentiert eine einzelne Lernkarte mit Vorder- und Rückseite.
 | **DeckId** | `int` | `INTEGER` | Zugehöriges Deck. | **FK** (zu Decks.Id), `NOT NULL` |
 
 ### 2.3 Tabelle: `CardSmartScores`
+
 Speichert Metadaten für den "Smart Learning"-Modus (basierend auf Leitner-System oder ähnlichen Algorithmen).
 
 | Spalte | Datentyp (C#) | Datentyp (SQLite) | Beschreibung | Constraints |
@@ -91,6 +94,7 @@ Speichert Metadaten für den "Smart Learning"-Modus (basierend auf Leitner-Syste
 | **BoxIndex** | `int` | `INTEGER` | Leitner-Box (0-5). 0 = Neu/Vergessen, 5 = Gemeistert. | `NOT NULL` |
 
 ### 2.4 Tabelle: `LearningSessions`
+
 Speichert den Zustand einer aktiven Lernsitzung, um den Fortschritt wiederherzustellen.
 
 | Spalte | Datentyp (C#) | Datentyp (SQLite) | Beschreibung | Constraints |
@@ -109,26 +113,33 @@ Speichert den Zustand einer aktiven Lernsitzung, um den Fortschritt wiederherzus
 ## 3. Beziehungen & Besonderheiten
 
 ### 3.1 Hierarchische Decks (Self-Referencing)
+
 Die Tabelle `Decks` besitzt eine **Selbstreferenz**:
+
 - Ein Deck kann ein `ParentDeck` haben.
 - Ein Deck kann mehrere `SubDecks` haben.
 - Dies ermöglicht eine unendlich tiefe Ordnerstruktur für Kartenstapel.
 - **Lösch-Verhalten**: `OnDelete(DeleteBehavior.Cascade)` ist konfiguriert. Wenn ein übergeordnetes Deck gelöscht wird, werden alle Unterdecks automatisch mitgelöscht.
 
 ### 3.2 JSON in SQL
-Einige Felder (z.B. `LearnedShuffleCardIdsJson`, `SelectedDeckIdsJson`) speichern Listen von Daten (wie z.B. `List<int>`) als serialisierten **JSON-String**. 
+
+Einige Felder (z.B. `LearnedShuffleCardIdsJson`, `SelectedDeckIdsJson`) speichern Listen von Daten (wie z.B. `List<int>`) als serialisierten **JSON-String**.
+
 - **Vorteil**: Einfache Speicherung variabler Listen ohne zusätzliche Mapping-Tabellen (n:m) für temporäre Zustände.
 - **Nachteil**: Nicht direkt per SQL "query-bar" (in diesem Kontext aber akzeptabel, da diese Daten nur als Block von der Applogik verarbeitet werden).
 
 ### 3.3 Enums
+
 Die Anwendung verwendet Enums, die in der Datenbank als `INTEGER` gespeichert werden:
 
 **LearningOrderMode:**
-*   `0`: Sequential (Der Reihe nach)
-*   `1`: Random (Zufällig)
-*   `2`: Smart (Algorithmus-basiert)
+
+- `0`: Sequential (Der Reihe nach)
+- `1`: Random (Zufällig)
+- `2`: Smart (Algorithmus-basiert)
 
 **LearningMode:**
-*   `0`: MainOnly (Nur Karten direkt im Deck)
-*   `1`: AllRecursive (Karten im Deck + alle Unterdecks)
-*   `2`: CustomSelection (Benutzerdefinierte Auswahl an Unterdecks)
+
+- `0`: MainOnly (Nur Karten direkt im Deck)
+- `1`: AllRecursive (Karten im Deck + alle Unterdecks)
+- `2`: CustomSelection (Benutzerdefinierte Auswahl an Unterdecks)
