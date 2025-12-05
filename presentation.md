@@ -11,7 +11,7 @@ import: https://raw.githubusercontent.com/LiaTemplates/dbdiagram/main/README.md
 
 -->
 
-[![LiaScript](https://raw.githubusercontent.com/LiaScript/LiaScript/master/badges/course.svg)](https://liascript.github.io/course/?https://raw.githubusercontent.com/DeinUsername/CapyCard/main/presentation.md)
+[![LiaScript](https://raw.githubusercontent.com/LiaScript/LiaScript/master/badges/course.svg)](https://liascript.github.io/course/?https://raw.githubusercontent.com/smn-hrtzsch/CapyCard/feature/Image-preview-learn-view/presentation.md)
 
 # Architektur: CapyCard Datenbank
 
