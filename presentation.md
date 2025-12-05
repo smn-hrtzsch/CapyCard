@@ -4,7 +4,7 @@ author:   Simon Hörtzsch
 email:    simon.hoertzsch@student.tu-freiberg.de
 version:  1.0.3
 language: de
-narrator: Deutsch Female
+narrator: Deutsch Male
 
 import: https://raw.githubusercontent.com/LiaTemplates/dbdiagram/main/README.md
         https://raw.githubusercontent.com/liaScript/mermaid_template/master/README.md
@@ -32,7 +32,7 @@ import: https://raw.githubusercontent.com/LiaTemplates/dbdiagram/main/README.md
 
 **Ziel der App:**
 
-Speicherung von hierarchischen Kartenstapeln (Decks), Lernkarten und komplexen Lernzuständen auf mobilen Endgeräten und Desktops.
+Speicherung von hierarchischen Kartenstapeln (Decks), Karteikarten und komplexen Lernzuständen auf mobilen Endgeräten und Desktops.
 
 **Technologien:**
 
@@ -102,8 +102,11 @@ Wir bilden Ordnerstrukturen über eine Selbstreferenz ab.
 | Id | Name | ParentDeckId | Typ |
 | :--- | :--- | :--- | :--- |
 | 1 | Informatik | `NULL` | Hauptfach |
-| 2 | Datenbanken | `1` | Thema |
-| 3 | Normalisierung | `2` | Unter-Thema |
+| 2 | Mathematik | `NULL` | Hauptfach |
+| 3 | Datenbanken | `1` | Thema von Informatik |
+| 4 | Algorithmen | `1` | Thema von Informatik |
+| 5 | Analysis | `2` | Thema von Mathematik |
+| 7 | Lineare Algebra | `2` | Thema von Mathematik |
 
 > **Vorteil:** Wir können theoretisch unendlich tief schachteln, ohne extra Tabellen.
 
@@ -114,7 +117,7 @@ Wir bilden Ordnerstrukturen über eine Selbstreferenz ab.
 
 **2. `Cards` (Der Inhalt)**
 
-Die eigentliche Lernkarte.
+Die eigentliche Karteikarte.
 
 | Feld | Typ | Beschreibung |
 | :--- | :--- | :--- |
@@ -155,18 +158,18 @@ Speichert exakt, wo der Nutzer beim Lernen aufgehört hat.
 | :---                     | :---   | :---                                                                               |
 | `Id`                     | **PK** | Eindeutige ID der Sitzung.                                                         |
 | `DeckId`                 | **FK** | Welches Fach wird gelernt?                                                         |
-| `Scope`                  | ENUM   | **Umfang:** <br> 1. `MainOnly`: Nur Karten *direkt* in diesem Deck (z.B. im Thema "Allgemein"). <br> 2. `AllRecursive`: Das Deck **plus** alle Unterdecks (rekursiv). <br> 3. `CustomSelection`: Das Deck **plus** eine manuelle Auswahl an Unterdecks. |
-| `SelectedDeckIdsJson`    | JSON   | Bei `Selection`: Welche Unterdecks genau?                                          |
-| `Strategy`               | ENUM   | **Wie?** `Sequential` (A-Z), `Random` (Zufall), `Smart` (Algo).                    |
+| `Scope`                  | ENUM   | **Umfang:** <br> 1. `MainOnly`: Nur Karten **direkt** im Thema "Allgemein" des Fachs. <br> 2. `AllRecursive`: **Alle** Themen (inkl. Thema "Allgemein"). <br> 3. `CustomSelection`: Eine **manuelle** Auswahl an Decks innerhalb eines Fachs. |
+| `SelectedDeckIdsJson`    | JSON   | Bei `CustomSelection`: Welche Unterdecks genau?                                          |
+| `Strategy`               | ENUM   | **Wie?** `Sequential` (nach CardId sortiert), `Random` (Zufall), `Smart` (Algo).                    |
 | `LastLearnedIndex`       | INT    | *Nur Sequential:* Zeiger auf letzte Karte (z.B. 5).                                |
-| `LearnedCardIdsJson`     | JSON   | *Nur Random:* Liste gelernter IDs gegen Wiederholungen.                            |
+| `LearnedCardIdsJson`     | JSON   | *Nur Random:* Liste gelernter CardIds                           |
 | `LastAccessed`           | DATE   | Zeitstempel für "Zuletzt verwendet".                                               |
 
 **Polymorphie des Fortschritts:**
 
-*   **Sequential:** Nutzt `LastLearnedIndex` als Zeiger.
-*   **Random:** Nutzt `LearnedCardIdsJson` als Ausschlussliste.
-*   **Smart:** Nutzt die globale `CardSmartScores` Tabelle (kein Feld hier nötig).
+* **Sequential:** Nutzt `LastLearnedIndex` als Zeiger.
+* **Random:** Nutzt `LearnedCardIdsJson` als Ausschlussliste.
+* **Smart:** Nutzt die globale `CardSmartScores` Tabelle (kein Feld hier nötig).
 
 ********************************************************************************
 
@@ -238,8 +241,6 @@ Ref: Decks.Id < LearningSessions.DeckId [delete: cascade]
 
 3. **Inhalt vs. Metadaten:** Trennung von `Cards` (Text/Bild) und `CardSmartScores` (Lernstand).
 
-4. **Clean Architecture:** Wir haben alte Felder aus der `Decks`-Tabelle entfernt und nutzen nun sauber die `LearningSessions`-Tabelle für alle Zustände. Daten wurden per SQL-Skript migriert.
-
 **Vielen Dank für die Aufmerksamkeit!**
 
 ---
@@ -252,9 +253,9 @@ Ja, durch `SelectedDeckIdsJson` und `LearnedCardIdsJson`.
 
 **Warum keine N:M Tabellen (`SessionDecks`, `SessionCards`)?**
 
-1.  **Performance:** Diese Daten sind reiner "State" (temporärer Zustand). Sie werden beim Starten einer Session immer *komplett* benötigt. Ein JSON-Parse ist hier schneller als komplexe Joins über drei Tabellen.
-2.  **Daten-Relevanz:** Es gibt keine analytischen Abfragen wie *"Zeige alle Sessions, die Deck X beinhalten"*. Die Daten haben keinen Wert außerhalb der laufenden Session.
-3.  **Wartbarkeit:** Session löschen = 1 Zeile löschen. Keine verwaisten Einträge in Mapping-Tabellen (KISS-Prinzip).
+1. **Performance:** Diese Daten sind reiner "State" (temporärer Zustand). Sie werden beim Starten einer Session immer *komplett* benötigt. Ein JSON-Parse ist hier schneller als komplexe Joins über drei Tabellen.
+2. **Daten-Relevanz:** Es gibt keine analytischen Abfragen wie *"Zeige alle Sessions, die Deck X beinhalten"*. Die Daten haben keinen Wert außerhalb der laufenden Session.
+3. **Wartbarkeit:** Session löschen = 1 Zeile löschen. Keine verwaisten Einträge in Mapping-Tabellen (KISS-Prinzip).
 
 **Fazit:**
 Bewusster Trade-Off zwischen **akademischer Reinheit** und **Performance/Pragmatismus** für flüchtige Daten.
