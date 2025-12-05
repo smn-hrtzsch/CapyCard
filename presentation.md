@@ -30,54 +30,28 @@ import: https://raw.githubusercontent.com/LiaTemplates/dbdiagram/main/README.md
 <!-- Simon -->
 ## 1. Tech Stack
 
-**Ziel der App:**
+**Disclaimer:**
+
+Diese App wurde größtenteils mit modernen KI-Agenten (z. B. Gemini CLI und GitHub Copilot) entwickelt.
+Sie ist ein (derzeit) privates Experimentierprojekt zur Erforschung der KI-gestützten Softwareentwicklung.
+
+**Ziel der Datenbank:**
 
 Speicherung von hierarchischen Kartenstapeln (Decks), Karteikarten und komplexen Lernzuständen auf mobilen Endgeräten und Desktops.
 
 **Technologien:**
 
+* **Plattform:** .NET 9
+
 * **UI Framework:** Avalonia UI (Cross-Platform für Desktop & Mobile)
 
 * **Datenbank:** SQLite (Lokale Datei auf dem Gerät)
 
-* **ORM:** Entity Framework Core (EF Core)
+* **Object-Relational Mapping (ORM):** Entity Framework Core (EF Core)
 
 ---
 
-## 2. Exkurs: ORM & Migrationen
-
-**Was bedeutet ORM?**
-
-ORM steht für **Object-Relational Mapping**. Es ist eine "Übersetzungsschicht" zwischen C# Klassen und SQL Tabellen.
-
-* *SQL:*
-
-  `SELECT * FROM Cards WHERE DeckId = 5`
-
-* *C#:*
-
-  `dbContext.Cards.Where(c => c.DeckId == 5).ToList()`
-
-**Was sind Migrationen?**
-
-Migrationen sind die "Versionsverwaltung" für das Datenbankschema.
-
-* **Was machen sie?** Wenn wir im Code eine Klasse ändern (z.B. `Card` bekommt ein neues Feld `ImageUrl`), erstellt EF Core automatisch eine Migrations-Datei.
-* **Wie funktionieren sie?** Jede Migration hat zwei Methoden:
-
-  * `Up()`: Führt die Änderung durch (z.B. `CREATE COLUMN ImageUrl`).
-  * `Down()`: Macht die Änderung rückgängig (z.B. `DROP COLUMN ImageUrl`).
-
-* **Wofür zuständig?** Sie garantieren, dass die Datenbank auf allen Geräten (Entwickler-PC, Smartphone des Nutzers) exakt das gleiche Schema hat. Beim App-Start wird geprüft: "Welche Migration fehlt noch?" und diese dann angewendet.
-* **Probleme:**
-
-  * *Datenverlust:* Wenn man eine Spalte umbenennt, denkt die Datenbank oft, man will die alte löschen und eine neue erstellen -> Daten weg!
-    *Lösung:* Manuelle Anpassung der Migration (z.B. SQL-Scripts zur Datenrettung).
-  * *Konflikte:* Wenn zwei Entwickler gleichzeitig Migrationen erstellen, passen die Zeitstempel nicht mehr zusammen.
-
----
-
-## 3. Die Tabellen im Detail
+## 2. Die Tabellen im Detail
 
 Wir schauen uns die 4 Haupt-Tabellen und ihre Aufgaben genau an.
 
@@ -143,7 +117,10 @@ Metadaten für das "Smart Learning" (Gewichteter Zufall).
 | `Score` | REAL | (Platzhalter für zukünftige Fein-Sortierung). |
 | `LastReviewed` | DATE | Wann wurde die Karte zuletzt abgefragt? |
 
-> **Warum getrennt?** Trennung von statischem Inhalt (`Cards`) und dynamischem Lernfortschritt.
+**Warum getrennt?**
+
+> 1. **Verantwortlichkeit:** `Cards` wird vom **Nutzer** editiert (Inhalt). `CardSmartScores` wird vom **System** verwaltet (Lernstatistik).
+> 2. **Synchronisation:** Wenn wir die App später um eine Cloud-Synchronisation erweitern, können wir Inhalte und Lernstände getrennt synchronisieren. Ich kann also meine Karten mit einem Freund teilen, ohne dass er meinen Lernfortschritt erbt.
 
 ********************************************************************************
 
@@ -175,7 +152,7 @@ Speichert exakt, wo der Nutzer beim Lernen aufgehört hat.
 
 ---
 
-## 4. Das Datenmodell (ER-Diagramm)
+## 3. Das Datenmodell (ER-Diagramm)
 
 Hier sehen wir das bereinigte Schema im Zusammenhang.
 
@@ -233,6 +210,39 @@ Ref: Decks.Id < LearningSessions.DeckId [delete: cascade]
 
 ---
 
+## 4. Exkurs: ORM & Migrationen
+
+**Was bedeutet ORM?**
+
+ORM steht für **Object-Relational Mapping**. Es ist eine "Übersetzungsschicht" zwischen C# Klassen und SQL Tabellen.
+
+* *SQL:*
+
+  `SELECT * FROM Cards WHERE DeckId = 5`
+
+* *C#:*
+
+  `dbContext.Cards.Where(c => c.DeckId == 5).ToList()`
+
+**Was sind Migrationen?**
+
+Migrationen sind die "Versionsverwaltung" für das Datenbankschema.
+
+* **Was machen sie?** Wenn wir im Code eine Klasse ändern (z.B. `Card` bekommt ein neues Feld `ImageUrl`), erstellt EF Core automatisch eine Migrations-Datei.
+* **Wie funktionieren sie?** Jede Migration hat zwei Methoden:
+
+  * `Up()`: Führt die Änderung durch (z.B. `CREATE COLUMN ImageUrl`).
+  * `Down()`: Macht die Änderung rückgängig (z.B. `DROP COLUMN ImageUrl`).
+
+* **Wofür zuständig?** Sie garantieren, dass die Datenbank auf allen Geräten (Entwickler-PC, Smartphone des Nutzers) exakt das gleiche Schema hat. Beim App-Start wird geprüft: "Welche Migration fehlt noch?" und diese dann angewendet.
+* **Probleme:**
+
+  * *Datenverlust:* Wenn man eine Spalte umbenennt, denkt die Datenbank oft, man will die alte löschen und eine neue erstellen -> Daten weg!
+    *Lösung:* Manuelle Anpassung der Migration (z.B. SQL-Scripts zur Datenrettung).
+  * *Konflikte:* Wenn zwei Entwickler gleichzeitig Migrationen erstellen, passen die Zeitstempel nicht mehr zusammen.
+
+---
+
 ## 5. Learnings
 
 **1. Migrationen sind überall kritisch:**
@@ -252,6 +262,7 @@ Cross-Platform bedeutet Disziplin bei Dateisystem-Zugriffen (`System.Environment
    Die `Decks`-Tabelle ist selbstreferenziell. Aktuell nutzen wir nur eine Unterebene, aber die Datenbank erlaubt theoretisch unendlich tiefe Strukturen für die Zukunft.
 
 2. **Drei-Ebenen-Architektur:**
+
    * **Statisch:** `Decks` & `Cards` (Struktur & Inhalt).
    * **Dynamisch:** `CardSmartScores` (Sich stetig ändernder Lernfortschritt).
    * **Flüchtig:** `LearningSessions` (Aktueller Zeiger in einer Abfrage).
