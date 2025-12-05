@@ -22,15 +22,6 @@ namespace CapyCard.Models
         // Subdecks
         public virtual ICollection<Deck> SubDecks { get; set; } = new List<Deck>();
 
-        // Speichert den Index der zuletzt gelernten Karte in sequentieller Reihenfolge
-        public int LastLearnedCardIndex { get; set; } = 0;
-
-        // Speichert die IDs der im Shuffle-Modus gelernten Karten als JSON-String
-        public string LearnedShuffleCardIdsJson { get; set; } = "[]";
-
-        // Speichert den zuletzt verwendeten Lernmodus (Zufall oder nicht)
-        public bool IsRandomOrder { get; set; } = false;
-
         // Markiert das Standard-Unterdeck (z.B. "Allgemein"), das automatisch erstellt wird
         public bool IsDefault { get; set; } = false;
     }

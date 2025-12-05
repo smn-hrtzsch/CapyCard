@@ -58,6 +58,7 @@
       KORREKTUR (LAYOUT):
       HorizontalScrollBarVisibility="Disabled".
     -->
+    <Grid>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="10">
             <!-- OBERER BEREICH (unverändert) -->
@@ -246,7 +247,8 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardFront}"/>
+                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardFront}"
+                                                             ImageClickCommand="{Binding OpenImagePreviewCommand}"/>
                             </ScrollViewer>
                             
                             <Button Command="{Binding StartEditCommand}"
@@ -280,7 +282,8 @@
                     <Grid>
                         <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding !IsEditing}">
                             <ScrollViewer Grid.Column="0">
-                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardBack}"/>
+                                <controls:FormattedTextBlock FormattedText="{Binding CurrentCardBack}"
+                                                             ImageClickCommand="{Binding OpenImagePreviewCommand}"/>
                             </ScrollViewer>
                                  
                             <Button Command="{Binding StartEditCommand}"
@@ -387,4 +390,80 @@
             </StackPanel>
         </DockPanel>
     </ScrollViewer>
+        
+        <!-- Image Preview Overlay -->
+        <Grid IsVisible="{Binding IsImagePreviewOpen}" 
+              x:Name="ImagePreviewOverlay"
+              Background="#E6000000" 
+              ZIndex="1000"
+              Focusable="True"
+              PointerPressed="OnOverlayPointerPressed">
+            
+            <Grid.KeyBindings>
+                <!-- Windows/Linux: Ctrl + / - -->
+                <KeyBinding Gesture="Ctrl+OemPlus" Command="{Binding ZoomInCommand}" />
+                <KeyBinding Gesture="Ctrl+Subtract" Command="{Binding ZoomOutCommand}" />
+                <KeyBinding Gesture="Ctrl+Add" Command="{Binding ZoomInCommand}" /> <!-- NumPad -->
+                
+                <!-- macOS: Cmd + / - -->
+                <KeyBinding Gesture="Meta+OemPlus" Command="{Binding ZoomInCommand}" />
+                <KeyBinding Gesture="Meta+Subtract" Command="{Binding ZoomOutCommand}" />
+                <KeyBinding Gesture="Meta+Add" Command="{Binding ZoomInCommand}" /> <!-- NumPad -->
+            </Grid.KeyBindings>
+            
+            <Grid RowDefinitions="Auto,*" Margin="20">
+                <!-- Header with Controls -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
+                    <!-- Zoom Controls -->
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="0">
+                        <TextBlock Text="Zoom:" VerticalAlignment="Center" Foreground="White"/>
+                        
+                        <Button Command="{Binding ZoomOutCommand}" 
+                                Content="-" 
+                                Width="30" Height="30" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#33FFFFFF" Foreground="White"/>
+                        
+                        <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" Width="200"/>
+                        
+                        <Button Command="{Binding ZoomInCommand}" 
+                                Content="+" 
+                                Width="30" Height="30" 
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#33FFFFFF" Foreground="White"/>
+                        
+                        <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
+                                   Foreground="White" Width="40" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Grid.Column="2" 
+                            Command="{Binding CloseImagePreviewCommand}"
+                            HotKey="Escape"
+                            Background="Transparent"
+                            Padding="10">
+                        <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" 
+                              Fill="White" Width="24" Height="24" Stretch="Uniform"/>
+                    </Button>
+                </Grid>
+
+                <!-- Image Area -->
+                <ScrollViewer Grid.Row="1" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Auto"
+                              AllowAutoHide="False">
+                    <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <LayoutTransformControl.LayoutTransform>
+                            <ScaleTransform ScaleX="{Binding ImageZoomLevel}" ScaleY="{Binding ImageZoomLevel}"/>
+                        </LayoutTransformControl.LayoutTransform>
+                        <Image Source="{Binding PreviewImageSource}" 
+                               x:Name="PreviewImage"
+                               Stretch="None"
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"/>
+                    </LayoutTransformControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
 </UserControl>

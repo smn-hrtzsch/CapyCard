@@ -3,6 +3,7 @@ using System;
 using CapyCard.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CapyCard.Migrations
 {
     [DbContext(typeof(FlashcardDbContext))]
-    partial class FlashcardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251204172840_RemoveLegacyDeckFields")]
+    partial class RemoveLegacyDeckFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -109,15 +112,15 @@ namespace CapyCard.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Scope")
+                    b.Property<int>("Mode")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderMode")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SelectedDeckIdsJson")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Strategy")
-                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

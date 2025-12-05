@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 
@@ -21,6 +23,9 @@ namespace CapyCard.Controls
         public static readonly StyledProperty<string> FormattedTextProperty =
             AvaloniaProperty.Register<FormattedTextBlock, string>(nameof(FormattedText), string.Empty);
 
+        public static readonly StyledProperty<ICommand?> ImageClickCommandProperty =
+            AvaloniaProperty.Register<FormattedTextBlock, ICommand?>(nameof(ImageClickCommand));
+
         /// <summary>
         /// Der Markdown-formatierte Text.
         /// </summary>
@@ -28,6 +33,16 @@ namespace CapyCard.Controls
         {
             get => GetValue(FormattedTextProperty);
             set => SetValue(FormattedTextProperty, value);
+        }
+
+        /// <summary>
+        /// Command, der ausgeführt wird, wenn auf ein Bild geklickt wird.
+        /// Parameter ist das Image.Source Objekt.
+        /// </summary>
+        public ICommand? ImageClickCommand
+        {
+            get => GetValue(ImageClickCommandProperty);
+            set => SetValue(ImageClickCommandProperty, value);
         }
 
         public FormattedTextBlock()
@@ -125,7 +140,20 @@ namespace CapyCard.Controls
                             MaxWidth = 300,
                             MaxHeight = 200,
                             Stretch = Stretch.Uniform,
-                            Margin = new Thickness(2)
+                            Margin = new Thickness(2),
+                            Cursor = new Cursor(StandardCursorType.Hand)
+                        };
+
+                        // Interaktion hinzufügen
+                        image.PointerPressed += (s, e) =>
+                        {
+                            if (ImageClickCommand != null && image.Source != null)
+                            {
+                                if (ImageClickCommand.CanExecute(image.Source))
+                                {
+                                    ImageClickCommand.Execute(image.Source);
+                                }
+                            }
                         };
                         
                         // Prüfe ob Base64-Data-URI oder Dateipfad
