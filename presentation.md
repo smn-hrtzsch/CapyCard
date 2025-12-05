@@ -233,13 +233,31 @@ Ref: Decks.Id < LearningSessions.DeckId [delete: cascade]
 
 ---
 
-## 5. Zusammenfassung
+## 5. Learnings
 
-1. **Frameworks:** Avalonia UI & EF Core.
+**1. Migrationen sind überall kritisch:**
+Egal ob Desktop oder Mobile: Fehlerhafte Schema-Updates führen schnell zu Datenverlust. Automatische Migrationen sind mächtig, müssen aber genau geprüft werden.
 
-2. **Struktur:** Rekursive Decks für maximale Flexibilität.
+**2. Mut zum Refactoring:**
+Trotz des Risikos sollte man nicht davor zurückschrecken, das Datenbankschema sauber zu halten und anzupassen. Altlasten (wie ungenutzte Spalten) erschweren die Wartung langfristig mehr als das Risiko einer komplexen Migration.
 
-3. **Inhalt vs. Metadaten:** Trennung von `Cards` (Text/Bild) und `CardSmartScores` (Lernstand).
+**3. Pfade & Berechtigungen:**
+Cross-Platform bedeutet Disziplin bei Dateisystem-Zugriffen (`System.Environment.SpecialFolder`), da Android/iOS Apps in Sandboxen isolieren.
+
+---
+
+## 6. Zusammenfassung
+
+1. **Architektur für Erweiterbarkeit:**
+   Die `Decks`-Tabelle ist selbstreferenziell. Aktuell nutzen wir nur eine Unterebene, aber die Datenbank erlaubt theoretisch unendlich tiefe Strukturen für die Zukunft.
+
+2. **Drei-Ebenen-Architektur:**
+   * **Statisch:** `Decks` & `Cards` (Struktur & Inhalt).
+   * **Dynamisch:** `CardSmartScores` (Sich stetig ändernder Lernfortschritt).
+   * **Flüchtig:** `LearningSessions` (Aktueller Zeiger in einer Abfrage).
+
+3. **Pragmatismus:**
+   JSON in SQL-Spalten spart komplexe Joins für Daten, die ohnehin nur als Block geladen werden.
 
 **Vielen Dank für die Aufmerksamkeit!**
 
