@@ -461,7 +461,6 @@ CapyCard/CapyCard-Installer.msi
 CapyCard/CapyCard-Installer.wixpdb
 CapyCard/CapyCard.sln
 CapyCard/StartCapyCard.cmd
-.gemini/
 gha-creds-*.json
 Flashcard-App.sln
 
