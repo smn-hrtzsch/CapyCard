@@ -57,7 +57,8 @@ namespace CapyCard.ViewModels
             }
         }
 
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
+        [ObservableProperty] private int _learnedCount;
+        [ObservableProperty] private double _defaultZoomLevel = 1.0;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
         [ObservableProperty] private string _deckName = string.Empty;
@@ -107,6 +108,12 @@ namespace CapyCard.ViewModels
         private void ZoomOut()
         {
             ImageZoomLevel -= 0.05;
+        }
+
+        [RelayCommand]
+        private void ResetZoom()
+        {
+             ImageZoomLevel = DefaultZoomLevel;
         }
 
         public async Task LoadSession(Deck deck, LearningMode scope, List<int>? selectedIds)

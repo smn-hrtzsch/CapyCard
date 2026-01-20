@@ -52,6 +52,14 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
+        
+        <!-- Zoom Slider Styles -->
+        <Style Selector="Slider.zoom-slider">
+            <Setter Property="Width" Value="200"/>
+        </Style>
+        <Style Selector="Slider.zoom-slider.compact">
+            <Setter Property="Width" Value="120"/>
+        </Style>
     </UserControl.Styles>
 
     <!-- 
@@ -391,13 +399,13 @@
         </DockPanel>
     </ScrollViewer>
         
-        <!-- Image Preview Overlay -->
         <Grid IsVisible="{Binding IsImagePreviewOpen}" 
               x:Name="ImagePreviewOverlay"
-              Background="#E6000000" 
+              Background="#D9000000" 
               ZIndex="1000"
-              Focusable="True"
-              PointerPressed="OnOverlayPointerPressed">
+              Focusable="True">
+            
+
             
             <Grid.KeyBindings>
                 <!-- Windows/Linux: Ctrl + / - -->
@@ -411,47 +419,16 @@
                 <KeyBinding Gesture="Meta+Add" Command="{Binding ZoomInCommand}" /> <!-- NumPad -->
             </Grid.KeyBindings>
             
-            <Grid RowDefinitions="Auto,*" Margin="20">
-                <!-- Header with Controls -->
-                <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,10">
-                    <!-- Zoom Controls -->
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.Column="0">
-                        <TextBlock Text="Zoom:" VerticalAlignment="Center" Foreground="White"/>
-                        
-                        <Button Command="{Binding ZoomOutCommand}" 
-                                Content="-" 
-                                Width="30" Height="30" 
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Background="#33FFFFFF" Foreground="White"/>
-                        
-                        <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" Width="200"/>
-                        
-                        <Button Command="{Binding ZoomInCommand}" 
-                                Content="+" 
-                                Width="30" Height="30" 
-                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                                Background="#33FFFFFF" Foreground="White"/>
-                        
-                        <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
-                                   Foreground="White" Width="40" VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Close Button -->
-                    <Button Grid.Column="2" 
-                            Command="{Binding CloseImagePreviewCommand}"
-                            HotKey="Escape"
-                            Background="Transparent"
-                            Padding="10">
-                        <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" 
-                              Fill="White" Width="24" Height="24" Stretch="Uniform"/>
-                    </Button>
-                </Grid>
-
+            <Grid>
                 <!-- Image Area -->
-                <ScrollViewer Grid.Row="1" 
-                              HorizontalScrollBarVisibility="Auto" 
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                               VerticalScrollBarVisibility="Auto"
-                              AllowAutoHide="False">
+                              AllowAutoHide="False"
+                              Padding="0,0,0,100"
+                              x:Name="ImageScrollViewer">
+                    <ScrollViewer.GestureRecognizers>
+                        <PinchGestureRecognizer />
+                    </ScrollViewer.GestureRecognizers>
                     <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
                         <LayoutTransformControl.LayoutTransform>
                             <ScaleTransform ScaleX="{Binding ImageZoomLevel}" ScaleY="{Binding ImageZoomLevel}"/>
@@ -463,6 +440,79 @@
                                VerticalAlignment="Center"/>
                     </LayoutTransformControl>
                 </ScrollViewer>
+
+                <!-- Close Button (Top Right) -->
+                <Button Command="{Binding CloseImagePreviewCommand}"
+                        HotKey="Escape"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="20"
+                        Width="40" Height="40"
+                        CornerRadius="20"
+                        Background="#33FFFFFF"
+                        Padding="0">
+                    <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" 
+                          Fill="White" Width="20" Height="20" Stretch="Uniform"/>
+                </Button>
+
+                <!-- Floating Zoom Controls (Bottom Center) -->
+                <Border HorizontalAlignment="Center" 
+                        VerticalAlignment="Bottom" 
+                        Margin="0,0,0,40"
+                        CornerRadius="24"
+                        Background="#CC202020"
+                        BorderBrush="#33FFFFFF"
+                        BorderThickness="1"
+                        Padding="15,10"
+                        BoxShadow="0 4 10 0 #66000000">
+                    <StackPanel Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                        
+                        <!-- Reset Button -->
+                        <Button Click="OnResetZoomClick" 
+                                Width="36" Height="36"
+                                CornerRadius="18"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#33FFFFFF" Foreground="White"
+                                Padding="8"
+                                ToolTip.Tip="Zoom zurücksetzen">
+                            <Path Data="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" 
+                                  Fill="White" Stretch="Uniform"/>
+                        </Button>
+                        
+                        <Button Command="{Binding ZoomOutCommand}" 
+                                Content="-" 
+                                Width="36" Height="36"
+                                CornerRadius="18"
+                                FontSize="18"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#33FFFFFF" Foreground="White"
+                                Padding="0,0,0,2"/>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" 
+                                    Classes="zoom-slider"
+                                    Classes.compact="{Binding #Root.IsCompactMode}"
+                                    VerticalAlignment="Center"/>
+                            
+                            <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
+                                       Foreground="White" 
+                                       Width="40" 
+                                       VerticalAlignment="Center"
+                                       TextAlignment="Center"
+                                       FontSize="14"
+                                       FontWeight="Medium"/>
+                        </StackPanel>
+
+                        <Button Command="{Binding ZoomInCommand}" 
+                                Content="+" 
+                                Width="36" Height="36"
+                                CornerRadius="18"
+                                FontSize="18"
+                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                Background="#33FFFFFF" Foreground="White"
+                                Padding="0,0,0,2"/>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Grid>
     </Grid>
