@@ -14,4 +14,6 @@
 
 ## Features
 
+- [ ] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und das ist bei der Bearbeitung nervig.
+
 ## Card Grid View
