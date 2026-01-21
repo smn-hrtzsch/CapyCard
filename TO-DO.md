@@ -2,7 +2,6 @@
 
 ## Bugs
 
-
 ## Fixed Bugs
 
 - [x] Mastery Prozent anzeige wird nicht korrekt aktualisiert während des Lernens. Erst nach dem Neu Starten des Lern-Modus wird die Prozentanzeige aktualisiert.
