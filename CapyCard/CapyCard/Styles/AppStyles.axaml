@@ -15,6 +15,20 @@
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
 
+    <!-- Destructive Button (Delete/Remove actions - Red) -->
+    <Style Selector="Button.destructive">
+        <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        <Setter Property="CornerRadius" Value="25"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    
+    <Style Selector="Button.destructive:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+
     <!-- Secondary/Action Button (Outlined/Ghost-like) -->
     <Style Selector="Button.secondary">
         <Setter Property="Background" Value="Transparent"/>
