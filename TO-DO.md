@@ -13,7 +13,7 @@
 
 ### Android
 
-- [ ] Zurück-Taste auf Android funktioniert im Learning Mode nicht.
+- [x] Zurück-Taste auf Android funktioniert im Learning Mode nicht.
 
 ## Features
 
