@@ -152,11 +152,14 @@ public class MainActivity : AvaloniaMainActivity<App>
         try
         {
             _onBackInvokedCallback = new BackInvokedCallback(this);
-            OnBackInvokedDispatcher?.RegisterOnBackInvokedCallback(
-                0,
-                _onBackInvokedCallback);
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+                OnBackInvokedDispatcher?.RegisterOnBackInvokedCallback(
+                    0,
+                    _onBackInvokedCallback);
+            }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _onBackInvokedCallback = null;
         }
@@ -171,7 +174,10 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         try
         {
-            OnBackInvokedDispatcher?.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
+            if (OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+                OnBackInvokedDispatcher?.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
+            }
         }
         catch
         {
@@ -205,7 +211,7 @@ public class MainActivity : AvaloniaMainActivity<App>
                     _activity.Finish();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _activity.Finish();
             }
@@ -226,7 +232,7 @@ public class MainActivity : AvaloniaMainActivity<App>
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
 
@@ -245,11 +251,13 @@ public class MainActivity : AvaloniaMainActivity<App>
                 return;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
 
+#pragma warning disable CA1422 // Validate platform compatibility
         base.OnBackPressed();
+#pragma warning restore CA1422 // Validate platform compatibility
     }
 
     private void TryInstallGestureExclusionCleaner()
@@ -305,7 +313,7 @@ public class MainActivity : AvaloniaMainActivity<App>
             var now = SystemClock.UptimeMillis();
             EnsureBackCallbackTopPriority(force: false);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
@@ -321,12 +329,9 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         _lastBackCallbackRefreshMs = now;
 
-        var createdNew = false;
-
         if (_hardwareBackCallback == null)
         {
             _hardwareBackCallback = new HardwareBackCallback(this);
-            createdNew = true;
         }
         else
         {
@@ -496,7 +501,7 @@ public class MainActivity : AvaloniaMainActivity<App>
                     _activity.FallbackToSystemBack();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _activity.FallbackToSystemBack();
             }
