@@ -29,13 +29,10 @@ namespace CapyCard.Android;
 public class MainActivity : AvaloniaMainActivity<App>
 {
     public const int PickImageId = 1000;
-    private const string BackLogTag = "CapyCard.Back";
 
     private OnBackPressedCallback? _hardwareBackCallback;
     private ViewTreeObserver.IOnGlobalLayoutListener? _gestureExclusionCleaner;
     private long _lastBackCallbackRefreshMs;
-    private string? _lastLoggedVmType;
-    private long _lastGestureClearLogMs;
 
     private Handler? _maintenanceHandler;
     private MaintenanceRunnable? _maintenanceRunnable;
@@ -86,23 +83,19 @@ public class MainActivity : AvaloniaMainActivity<App>
             }
         };
 
-        Log.Info(BackLogTag, "MainActivity created");
     }
 
     protected override void OnResume()
     {
         base.OnResume();
-        Log.Info(BackLogTag, "MainActivity resumed");
         ClearGestureExclusionRects();
         EnsureBackCallbackTopPriority(force: true);
-        LogCurrentViewModelIfChanged();
 
         StartMaintenanceLoop();
     }
 
     protected override void OnPause()
     {
-        Log.Info(BackLogTag, "MainActivity paused");
         StopMaintenanceLoop();
         base.OnPause();
     }
@@ -110,17 +103,14 @@ public class MainActivity : AvaloniaMainActivity<App>
     protected override void OnStart()
     {
         base.OnStart();
-        Log.Info(BackLogTag, "MainActivity started");
 
         // Use AndroidX OnBackPressedDispatcher directly.
         // This is more reliable across views than relying on Avalonia TopLevel.BackRequested.
         EnsureBackCallbackTopPriority(force: true);
-        LogCurrentViewModelIfChanged();
     }
 
     protected override void OnStop()
     {
-        Log.Info(BackLogTag, "MainActivity stopped");
 
         TryUnregisterOnBackInvokedCallback();
 
@@ -129,7 +119,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             _hardwareBackCallback.Remove();
             _hardwareBackCallback = null;
-            Log.Info(BackLogTag, "OnBackPressedDispatcher callback removed");
         }
 
         if (_gestureExclusionCleaner != null && Window?.DecorView != null)
@@ -143,7 +132,6 @@ public class MainActivity : AvaloniaMainActivity<App>
                 // ignore
             }
             _gestureExclusionCleaner = null;
-            Log.Info(BackLogTag, "Gesture exclusion cleaner removed");
         }
 
         base.OnStop();
@@ -167,11 +155,9 @@ public class MainActivity : AvaloniaMainActivity<App>
             OnBackInvokedDispatcher?.RegisterOnBackInvokedCallback(
                 0,
                 _onBackInvokedCallback);
-            Log.Info(BackLogTag, "OnBackInvokedCallback registered");
         }
         catch (Exception ex)
         {
-            Log.Warn(BackLogTag, $"Failed to register OnBackInvokedCallback: {ex.Message}");
             _onBackInvokedCallback = null;
         }
     }
@@ -186,7 +172,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         try
         {
             OnBackInvokedDispatcher?.UnregisterOnBackInvokedCallback(_onBackInvokedCallback);
-            Log.Info(BackLogTag, "OnBackInvokedCallback unregistered");
         }
         catch
         {
@@ -211,10 +196,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             try
             {
-                Log.Info(BackLogTag, "OnBackInvoked fired");
 
                 var handled = _activity.TryHandleBack(out var currentVmType);
-                Log.Info(BackLogTag, $"OnBackInvoked TryHandleBack: CurrentViewModel={currentVmType}; handled={handled}");
 
                 if (!handled)
                 {
@@ -224,7 +207,6 @@ public class MainActivity : AvaloniaMainActivity<App>
             }
             catch (Exception ex)
             {
-                Log.Error(BackLogTag, $"Exception in OnBackInvoked: {ex}");
                 _activity.Finish();
             }
         }
@@ -236,10 +218,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             if (e != null && e.KeyCode == Keycode.Back && e.Action == KeyEventActions.Up)
             {
-                Log.Info(BackLogTag, "DispatchKeyEvent: KEYCODE_BACK (Up)");
 
                 var handled = TryHandleBack(out var currentVmType);
-                Log.Info(BackLogTag, $"DispatchKeyEvent TryHandleBack: CurrentViewModel={currentVmType}; handled={handled}");
                 if (handled)
                 {
                     return true;
@@ -248,7 +228,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         catch (Exception ex)
         {
-            Log.Error(BackLogTag, $"Exception in DispatchKeyEvent: {ex}");
         }
 
         return base.DispatchKeyEvent(e);
@@ -259,10 +238,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         // Called for both gesture back and 3-button back.
         try
         {
-            Log.Info(BackLogTag, "OnBackPressed invoked");
 
             var handled = TryHandleBack(out var currentVmType);
-            Log.Info(BackLogTag, $"OnBackPressed TryHandleBack: CurrentViewModel={currentVmType}; handled={handled}");
             if (handled)
             {
                 return;
@@ -270,7 +247,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
         catch (Exception ex)
         {
-            Log.Error(BackLogTag, $"Exception in OnBackPressed: {ex}");
         }
 
         base.OnBackPressed();
@@ -280,14 +256,12 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         if (!OperatingSystem.IsAndroidVersionAtLeast(29))
         {
-            Log.Info(BackLogTag, "Gesture exclusion cleaner skipped (Android < 29)");
             return;
         }
 
         var decor = Window?.DecorView;
         if (decor == null)
         {
-            Log.Warn(BackLogTag, "Gesture exclusion cleaner skipped (DecorView null)");
             return;
         }
 
@@ -298,11 +272,9 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         _gestureExclusionCleaner = new GestureExclusionCleaner(this);
         decor.ViewTreeObserver?.AddOnGlobalLayoutListener(_gestureExclusionCleaner);
-        Log.Info(BackLogTag, "Gesture exclusion cleaner attached");
 
         ClearGestureExclusionRects();
         EnsureBackCallbackTopPriority(force: false);
-        LogCurrentViewModelIfChanged();
     }
 
     private void ClearGestureExclusionRects()
@@ -331,17 +303,10 @@ public class MainActivity : AvaloniaMainActivity<App>
             }
 
             var now = SystemClock.UptimeMillis();
-            if (now - _lastGestureClearLogMs > 3000)
-            {
-                _lastGestureClearLogMs = now;
-                Log.Info(BackLogTag, "Cleared system gesture exclusion rects");
-            }
             EnsureBackCallbackTopPriority(force: false);
-            LogCurrentViewModelIfChanged();
         }
         catch (Exception ex)
         {
-            Log.Warn(BackLogTag, $"Failed to clear gesture exclusion rects: {ex.Message}");
         }
     }
 
@@ -376,10 +341,6 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
 
         OnBackPressedDispatcher.AddCallback(this, _hardwareBackCallback);
-        if (force || createdNew)
-        {
-            Log.Info(BackLogTag, "OnBackPressedDispatcher callback ensured (top priority)");
-        }
     }
 
     private void StartMaintenanceLoop()
@@ -439,7 +400,6 @@ public class MainActivity : AvaloniaMainActivity<App>
 
                 _activity.ClearGestureExclusionRects();
                 _activity.EnsureBackCallbackTopPriority(force: false);
-                _activity.LogCurrentViewModelIfChanged();
             }
             catch
             {
@@ -452,27 +412,7 @@ public class MainActivity : AvaloniaMainActivity<App>
         }
     }
 
-    private void LogCurrentViewModelIfChanged()
-    {
-        try
-        {
-            if (Avalonia.Application.Current?.ApplicationLifetime is not ISingleViewApplicationLifetime lifetime)
-                return;
-            if (lifetime.MainView?.DataContext is not MainViewModel vm)
-                return;
 
-            var currentVmType = vm.CurrentViewModel?.GetType().FullName ?? "<null>";
-            if (!string.Equals(_lastLoggedVmType, currentVmType, StringComparison.Ordinal))
-            {
-                _lastLoggedVmType = currentVmType;
-                Log.Info(BackLogTag, $"Observed CurrentViewModel={currentVmType}");
-            }
-        }
-        catch
-        {
-            // ignore
-        }
-    }
 
     private sealed class GestureExclusionCleaner : Java.Lang.Object, ViewTreeObserver.IOnGlobalLayoutListener
     {
@@ -495,20 +435,16 @@ public class MainActivity : AvaloniaMainActivity<App>
 
         if (Avalonia.Application.Current?.ApplicationLifetime is not ISingleViewApplicationLifetime lifetime)
         {
-            Log.Warn(BackLogTag, "No ISingleViewApplicationLifetime (lifetime is null or different type)");
             return false;
         }
 
         if (lifetime.MainView is null)
         {
-            Log.Warn(BackLogTag, "Lifetime.MainView is null");
             return false;
         }
 
         if (lifetime.MainView.DataContext is not MainViewModel vm)
         {
-            Log.Warn(BackLogTag,
-                $"MainView.DataContext is not MainViewModel: {lifetime.MainView.DataContext?.GetType().FullName ?? "<null>"}");
             return false;
         }
 
@@ -552,10 +488,8 @@ public class MainActivity : AvaloniaMainActivity<App>
         {
             try
             {
-                Log.Info(BackLogTag, "Hardware back pressed");
 
                 var handled = _activity.TryHandleBack(out var currentVmType);
-                Log.Info(BackLogTag, $"TryHandleBack: CurrentViewModel={currentVmType}; handled={handled}");
 
                 if (!handled)
                 {
@@ -564,7 +498,6 @@ public class MainActivity : AvaloniaMainActivity<App>
             }
             catch (Exception ex)
             {
-                Log.Error(BackLogTag, $"Exception in hardware back callback: {ex}");
                 _activity.FallbackToSystemBack();
             }
         }

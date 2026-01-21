@@ -45,7 +45,7 @@ namespace CapyCard.ViewModels
 
         partial void OnCurrentViewModelChanged(ObservableObject value)
         {
-            Console.WriteLine($"[CapyCard.Nav] CurrentViewModel -> {value?.GetType().FullName ?? "<null>"}");
+            // Logging removed
         }
 
         private void NavigateTo(ObservableObject target, bool pushCurrent)
@@ -110,9 +110,8 @@ namespace CapyCard.ViewModels
                 await _learnViewModel.LoadSession(deck, mode, selectedIds);
                 NavigateTo(_learnViewModel, pushCurrent: CurrentViewModel != _learnViewModel);
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error navigating to learn view: {ex}");
                 // Optional: Show error message to user if possible, or just stay on current view
             }
         }
