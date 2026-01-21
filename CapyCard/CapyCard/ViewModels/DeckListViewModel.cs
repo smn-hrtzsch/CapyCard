@@ -239,6 +239,15 @@ namespace CapyCard.ViewModels
         }
 
         [RelayCommand]
+        private void OpenDeck(DeckItemViewModel? deckVM)
+        {
+            if (deckVM != null && !deckVM.IsEditing)
+            {
+                OnDeckSelected?.Invoke(deckVM.Deck);
+            }
+        }
+
+        [RelayCommand]
         private void SelectSubDeck(DeckItemViewModel? subDeckVM)
         {
             if (subDeckVM != null)

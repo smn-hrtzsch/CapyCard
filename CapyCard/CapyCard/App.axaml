@@ -3,6 +3,7 @@
              xmlns:local="using:CapyCard"
              xmlns:behaviors="using:CapyCard.Behaviors"
              xmlns:converters="using:CapyCard.Converters"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="CapyCard.App"
              RequestedThemeVariant="Default">
              
@@ -13,42 +14,85 @@
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <materialIcons:MaterialIconStyles />
         
         <!-- Enable CMD+A etc on Mac -->
         <Style Selector="TextBox">
             <Setter Property="behaviors:MacTextEditingBehavior.EnableMacShortcuts" Value="True"/>
         </Style>
+        
+        <!-- Custom App Styles -->
+        <StyleInclude Source="/Styles/AppStyles.axaml" />
     </Application.Styles>
     
-    <!-- Theme-aware resources shared across views -->
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="#FFF3F4F6"/>
-                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFD8DAE0"/>
-                    <SolidColorBrush x:Key="TileBackgroundBrush" Color="#FFFFFFFF"/>
-                    <SolidColorBrush x:Key="TileBorderBrush" Color="#FFE2E4EA"/>
-                    <SolidColorBrush x:Key="TileHoverBrush" Color="#FFF0F2F8"/>
-                    <SolidColorBrush x:Key="TileSelectedBrush" Color="#FFE3E8F6"/>
-                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFD8E4FF"/>
-                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF234082"/>
-                    <SolidColorBrush x:Key="MutedForegroundBrush" Color="#FF61646D"/>
-                    <SolidColorBrush x:Key="DividerBrush" Color="#FFE1E3E8"/>
+                    <!-- Base Colors -->
+                    <Color x:Key="PrimaryColor">#FF018786</Color>
+                    <Color x:Key="SecondaryColor">#FF6200EE</Color>
+                    <Color x:Key="BackgroundColor">#FFDDDDDD</Color>
+                    <Color x:Key="SurfaceColor">#FFCACACA</Color>
+                    <Color x:Key="ErrorColor">#FFB71C1C</Color>
+                    
+                    <!-- Brushes -->
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+                    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFBDBDBD"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+                    
+                    <!-- Text -->
+                    <SolidColorBrush x:Key="TextControlForeground" Color="#FF333333"/>
+                    <SolidColorBrush x:Key="TextMutedBrush" Color="#FF808080"/>
+                    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
+                    
+                    <!-- Components -->
+                    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFE0E0E0"/>
+                    <SolidColorBrush x:Key="InputStrokeBrush" Color="#FF808080"/>
+                    <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FF757575"/>
+                    
+                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFEEEEEE"/>
+                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF616161"/>
                 </ResourceDictionary>
+                
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="SurfaceBackgroundBrush" Color="#FF1F2126"/>
-                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF2E3038"/>
-                    <SolidColorBrush x:Key="TileBackgroundBrush" Color="#FF2B2E36"/>
-                    <SolidColorBrush x:Key="TileBorderBrush" Color="#FF3A3D46"/>
-                    <SolidColorBrush x:Key="TileHoverBrush" Color="#FF343844"/>
-                    <SolidColorBrush x:Key="TileSelectedBrush" Color="#FF3F4554"/>
-                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#663E6BFF"/>
-                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFE6ECFF"/>
-                    <SolidColorBrush x:Key="MutedForegroundBrush" Color="#FFB7BAC4"/>
-                    <SolidColorBrush x:Key="DividerBrush" Color="#FF2F323A"/>
+                    <!-- Base Colors -->
+                    <Color x:Key="PrimaryColor">#FF03DAC5</Color>
+                    <Color x:Key="SecondaryColor">#FFBB86FC</Color>
+                    <Color x:Key="BackgroundColor">#FF333333</Color>
+                    <Color x:Key="SurfaceColor">#FF494949</Color>
+                    <Color x:Key="ErrorColor">#FFE57373</Color>
+                    
+                    <!-- Brushes -->
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+                    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+                    <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF616161"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+                    
+                    <!-- Text -->
+                    <SolidColorBrush x:Key="TextControlForeground" Color="#FFDDDDDD"/>
+                    <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA5A5A7"/>
+                    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FF000000"/>
+
+                    <!-- Components -->
+                    <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FF424242"/>
+                    <SolidColorBrush x:Key="InputStrokeBrush" Color="#FFBDBDBD"/>
+                    <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FFEEEEEE"/>
+                    
+                    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FF616161"/>
+                    <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFEEEEEE"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
+
+            <!-- Shapes -->
+            <CornerRadius x:Key="CornerRadiusSmall">12</CornerRadius>
+            <CornerRadius x:Key="CornerRadiusLarge">28</CornerRadius>
+            <Thickness x:Key="FloatingMargin">16</Thickness>
 
             <converters:BoolToGridSpanConverter x:Key="BoolToGridSpanConverter"/>
             <converters:BoolToChevronConverter x:Key="BoolToChevronConverter"/>

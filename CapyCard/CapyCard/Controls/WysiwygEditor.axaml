@@ -48,16 +48,17 @@
         </Style>
     </UserControl.Styles>
     
-    <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" 
+    <Border BorderBrush="{DynamicResource SurfaceBorderBrush}" 
             BorderThickness="1" 
-            CornerRadius="4"
-            Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            CornerRadius="12"
+            Background="{DynamicResource SurfaceBrush}">
         <Grid RowDefinitions="Auto,*">
             <!-- Toolbar -->
             <Border Grid.Row="0" 
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    Background="{DynamicResource SurfaceBorderBrush}"
+                    BorderBrush="{DynamicResource DividerBrush}"
                     BorderThickness="0,0,0,1"
+                    CornerRadius="12,12,0,0"
                     Padding="4">
                 <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
                 <StackPanel Orientation="Horizontal" Spacing="2">

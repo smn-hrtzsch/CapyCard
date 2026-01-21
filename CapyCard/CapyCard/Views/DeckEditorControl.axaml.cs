@@ -32,9 +32,9 @@ namespace CapyCard.Views
                 Grid.SetColumn(FrontLabel, 0); Grid.SetRow(FrontLabel, 0);
                 Grid.SetColumn(FrontEditor, 0); Grid.SetRow(FrontEditor, 1);
 
-                Grid.SetColumn(ArrowPath, 0); Grid.SetRow(ArrowPath, 2);
-                ArrowPath.RenderTransform = new Avalonia.Media.RotateTransform(90);
-                ArrowPath.Margin = new Thickness(0, 10, 0, 10);
+                Grid.SetColumn(ArrowIcon, 0); Grid.SetRow(ArrowIcon, 2);
+                ArrowIcon.RenderTransform = new Avalonia.Media.RotateTransform(90);
+                ArrowIcon.Margin = new Thickness(0, 10, 0, 10);
 
                 Grid.SetColumn(BackLabel, 0); Grid.SetRow(BackLabel, 3);
                 Grid.SetColumn(BackEditor, 0); Grid.SetRow(BackEditor, 4);

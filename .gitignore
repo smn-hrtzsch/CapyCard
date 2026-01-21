@@ -474,3 +474,5 @@ Release/**/.DS_Store
 # Android Signing Keys
 *.keystore
 *.jks
+
+.gemini-clipboard/

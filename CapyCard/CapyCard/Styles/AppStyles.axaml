@@ -1,0 +1,117 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Primary Button (Pill Shape) -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+        <Setter Property="CornerRadius" Value="25"/>
+        <Setter Property="Padding" Value="20,10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+
+    <!-- Secondary/Action Button (Outlined/Ghost-like) -->
+    <Style Selector="Button.secondary">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="25"/>
+        <Setter Property="Padding" Value="16,8"/>
+    </Style>
+
+    <!-- Floating TextBox -->
+    <Style Selector="TextBox.floating">
+        <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusSmall}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputStrokeBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="Margin" Value="0,0,0,16"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    
+    <Style Selector="TextBox.floating:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    
+    <Style Selector="TextBox.floating:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- Floating ComboBox -->
+    <Style Selector="ComboBox.floating">
+        <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusSmall}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource InputStrokeBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- Floating Card (List Items) -->
+    <Style Selector="Border.card">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusSmall}"/>
+        <Setter Property="BoxShadow" Value="0 2 4 0 #20000000"/>
+        <Setter Property="Margin" Value="4,4,4,8"/>
+        <Setter Property="Padding" Value="16"/>
+    </Style>
+
+    <!-- Main Container Card (Large Corner) -->
+    <Style Selector="Border.container">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource CornerRadiusLarge}"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+    
+    <!-- Icon Button (Circle) -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="40"/>
+    </Style>
+
+    <Style Selector="ToggleButton.icon">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Padding" Value="8"/>
+        <Setter Property="Width" Value="40"/>
+        <Setter Property="Height" Value="40"/>
+    </Style>
+
+    <Style Selector="ToggleButton.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#10FFFFFF"/>
+    </Style>
+
+    <Style Selector="ToggleButton.icon:checked /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+    </Style>
+    
+    <Style Selector="ToggleButton.icon:checked:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#10FFFFFF"/>
+    </Style>
+
+    <!-- List Item Button (Transparent, fills space) -->
+    <Style Selector="Button.list-item">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+    <Style Selector="Button.list-item:pointerover /template/ ContentPresenter">
+         <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    
+</Styles>

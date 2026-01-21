@@ -8,14 +8,9 @@
         x:DataType="vm:MainViewModel" 
         Title="CapyCard"
         WindowStartupLocation="CenterScreen"
-        Icon="/Assets/icon.ico">
+        Icon="/Assets/icon.ico"
+        Background="{DynamicResource BackgroundBrush}">
             
-    <!-- 
-      Alle Kommentare sind jetzt HIER, innerhalb des <Window>...</Window>
-      Blocks, was legaler XML-Code ist.
-      
-      Dieser ContentControl hostet unsere 'Seiten' (CurrentViewModel).
-    -->
     <ContentControl Content="{Binding CurrentViewModel}" />
 
 </Window>

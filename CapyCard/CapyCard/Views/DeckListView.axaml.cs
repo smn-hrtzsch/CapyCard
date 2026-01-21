@@ -40,6 +40,11 @@ namespace CapyCard.Views
                 e.Handled = true;
                 KeyboardService.ShowKeyboard();
             }
+            else if (e.Key == Key.Escape)
+            {
+                this.Focus();
+                e.Handled = true;
+            }
         }
     }
 }
