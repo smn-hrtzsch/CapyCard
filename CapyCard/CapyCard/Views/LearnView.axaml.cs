@@ -225,6 +225,18 @@ namespace CapyCard.Views
                 return; // Don't handle other keys like Enter
             }
 
+            // Android Back can arrive as a key event on some devices/setups.
+            // In LearnView we treat it as navigation back (unless the preview is open, handled above).
+            if (OperatingSystem.IsAndroid() && e.Key is Key.BrowserBack or Key.Back or Key.Escape)
+            {
+                if (vm.GoBackCommand.CanExecute(null))
+                {
+                    vm.GoBackCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+            }
+
             if (e.Key is Key.Enter or Key.Return or Key.Space)
             {
                 if (vm.AdvanceCommand.CanExecute(null))

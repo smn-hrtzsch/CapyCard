@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CapyCard.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -9,6 +10,8 @@ namespace CapyCard.ViewModels
     {
         [ObservableProperty]
         private ObservableObject _currentViewModel;
+
+        private readonly Stack<ObservableObject> _navigationStack = new();
 
         private readonly DeckListViewModel _deckListViewModel;
         private readonly DeckDetailViewModel _deckDetailViewModel;
@@ -24,15 +27,15 @@ namespace CapyCard.ViewModels
 
             // Navigation verknüpfen
             _deckListViewModel.OnDeckSelected += NavigateToDeckDetail;
-            _deckDetailViewModel.OnNavigateBack += NavigateToDeckList;
+            _deckDetailViewModel.OnNavigateBack += GoBack;
             _deckDetailViewModel.OnNavigateToCardList += NavigateToCardList;
             _deckDetailViewModel.OnNavigateToLearn += NavigateToLearn;
             _deckDetailViewModel.OnNavigateToDeck += NavigateToDeckDetail;
             _deckDetailViewModel.OnCardCountUpdated += UpdateDeckCardCount;
             _deckDetailViewModel.OnSubDeckAdded += RefreshDeckList;
             
-            _cardListViewModel.OnNavigateBack += NavigateBackToDeckDetail;
-            _learnViewModel.OnNavigateBack += NavigateBackToDeckDetail;
+            _cardListViewModel.OnNavigateBack += GoBack;
+            _learnViewModel.OnNavigateBack += GoBack;
             
             // NEU: Abonniert das "Bearbeiten"-Event aus der Kartenliste
             _cardListViewModel.OnEditCardRequest += NavigateToEditCard;
@@ -40,29 +43,64 @@ namespace CapyCard.ViewModels
             _currentViewModel = _deckListViewModel;
         }
 
+        partial void OnCurrentViewModelChanged(ObservableObject value)
+        {
+            Console.WriteLine($"[CapyCard.Nav] CurrentViewModel -> {value?.GetType().FullName ?? "<null>"}");
+        }
+
+        private void NavigateTo(ObservableObject target, bool pushCurrent)
+        {
+            if (pushCurrent && CurrentViewModel != target)
+            {
+                _navigationStack.Push(CurrentViewModel);
+            }
+
+            CurrentViewModel = target;
+        }
+
+        private async Task ActivateViewModelAsync(ObservableObject vm)
+        {
+            switch (vm)
+            {
+                case DeckListViewModel:
+                    _deckListViewModel.RefreshDecks();
+                    break;
+                case DeckDetailViewModel:
+                    await _deckDetailViewModel.RefreshCardDataAsync();
+                    break;
+            }
+        }
+
+        private async void GoBack()
+        {
+            if (_navigationStack.TryPop(out var previous))
+            {
+                await ActivateViewModelAsync(previous);
+                CurrentViewModel = previous;
+                return;
+            }
+
+            // Fallback: if stack is empty, go to root.
+            if (CurrentViewModel != _deckListViewModel)
+            {
+                _deckListViewModel.RefreshDecks();
+                CurrentViewModel = _deckListViewModel;
+            }
+        }
+
         private async void NavigateToDeckDetail(Deck selectedDeck)
         {
             await _deckDetailViewModel.LoadDeck(selectedDeck); 
-            CurrentViewModel = _deckDetailViewModel;     
-        }
-
-        private void NavigateToDeckList()
-        {
-            _deckListViewModel.RefreshDecks();
-            CurrentViewModel = _deckListViewModel; 
+            NavigateTo(_deckDetailViewModel, pushCurrent: CurrentViewModel != _deckDetailViewModel);
         }
         
         private void NavigateToCardList(Deck deck)
         {
             _cardListViewModel.LoadDeck(deck);
-            CurrentViewModel = _cardListViewModel;
-        }
-        
-        private async void NavigateBackToDeckDetail()
-        {
-            // Ruft Refresh auf, um Zähler (nach Löschen/Hinzufügen) zu aktualisieren
-            await _deckDetailViewModel.RefreshCardDataAsync();
-            CurrentViewModel = _deckDetailViewModel;
+
+            // If we're leaving DeckDetail while editing (CancelEdit path), treat it like a back-navigation.
+            bool isCancelEditPath = CurrentViewModel is DeckDetailViewModel detail && detail.IsEditing;
+            NavigateTo(_cardListViewModel, pushCurrent: !isCancelEditPath);
         }
         
         private async void NavigateToLearn(Deck deck, LearningMode mode, List<int>? selectedIds)
@@ -70,7 +108,7 @@ namespace CapyCard.ViewModels
             try
             {
                 await _learnViewModel.LoadSession(deck, mode, selectedIds);
-                CurrentViewModel = _learnViewModel;
+                NavigateTo(_learnViewModel, pushCurrent: CurrentViewModel != _learnViewModel);
             }
             catch (System.Exception ex)
             {
@@ -98,28 +136,50 @@ namespace CapyCard.ViewModels
             await _deckDetailViewModel.LoadCardForEditing(deck, card);
             
             // Zeigt die Detail-Ansicht an (jetzt im "Bearbeiten"-Modus)
-            CurrentViewModel = _deckDetailViewModel;
+            NavigateTo(_deckDetailViewModel, pushCurrent: CurrentViewModel != _deckDetailViewModel);
         }
 
         public bool HandleHardwareBack()
         {
-            if (CurrentViewModel is LearnViewModel)
+            if (CurrentViewModel is LearnViewModel learnVm)
             {
-                NavigateBackToDeckDetail();
-                return true;
-            }
-            else if (CurrentViewModel is CardListViewModel)
-            {
-                NavigateBackToDeckDetail();
+                // Learning Mode: first close transient overlays/states, then navigate back.
+                if (learnVm.IsImagePreviewOpen && learnVm.CloseImagePreviewCommand.CanExecute(null))
+                {
+                    learnVm.CloseImagePreviewCommand.Execute(null);
+                    return true;
+                }
+
+                if (learnVm.IsEditing && learnVm.CancelEditCommand.CanExecute(null))
+                {
+                    learnVm.CancelEditCommand.Execute(null);
+                    return true;
+                }
+
+                GoBack();
                 return true;
             }
             else if (CurrentViewModel is DeckDetailViewModel detailVm)
             {
+                // Prefer app navigation history (previous screen) if available.
+                if (_navigationStack.Count > 0)
+                {
+                    GoBack();
+                    return true;
+                }
+
+                // Otherwise, allow DeckDetail to handle hierarchical back (subdeck -> parent deck).
                 if (detailVm.GoBackCommand.CanExecute(null))
                 {
                     detailVm.GoBackCommand.Execute(null);
                     return true;
                 }
+            }
+
+            if (_navigationStack.Count > 0)
+            {
+                GoBack();
+                return true;
             }
             
             // If in DeckListView, return false (let system exit)
