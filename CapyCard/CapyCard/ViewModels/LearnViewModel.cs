@@ -30,7 +30,7 @@ namespace CapyCard.ViewModels
         private bool _isBackVisible = false;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsEditing))] [NotifyPropertyChangedFor(nameof(ShowEditButton))] [NotifyCanExecuteChangedFor(nameof(AdvanceCommand))] private bool _isDeckFinished = false;
         
-        [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] private LearningOrderMode _strategy;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsSmartMode))] [NotifyPropertyChangedFor(nameof(IsSequentialMode))] [NotifyPropertyChangedFor(nameof(IsRandomMode))] [NotifyPropertyChangedFor(nameof(ProgressText))] private LearningOrderMode _strategy;
         
         [ObservableProperty] private string _editFrontText = string.Empty;
         [ObservableProperty] private string _editBackText = string.Empty;
@@ -57,7 +57,7 @@ namespace CapyCard.ViewModels
             }
         }
 
-        [ObservableProperty] private int _learnedCount;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _learnedCount;
         [ObservableProperty] private double _defaultZoomLevel = 1.0;
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
@@ -190,6 +190,10 @@ namespace CapyCard.ViewModels
                 }
             }
 
+            // Pre-load scores for all cards to ensure local context is complete for mastery calculation
+            var allCardIds = _allCards.Select(c => c.Id).ToList();
+            await _dbContext.CardSmartScores.Where(s => allCardIds.Contains(s.CardId)).LoadAsync();
+
             UpdateProgressState();
             ShowCardAtCurrentProgress();
         }
@@ -229,7 +233,8 @@ namespace CapyCard.ViewModels
                     // Calculate mastery percentage
                     // We need to fetch scores for all cards in _allCards
                     var cardIds = _allCards.Select(c => c.Id).ToList();
-                    var scores = _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToList();
+                    // Use Local to get the most up-to-date state including recent changes in this session
+                    var scores = _dbContext.CardSmartScores.Local.Where(s => cardIds.Contains(s.CardId)).ToList();
                     
                     if (!_allCards.Any())
                     {
