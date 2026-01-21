@@ -5,6 +5,7 @@ This document provides essential information for AI coding agents working on the
 ## Project Overview
 
 CapyCard is a cross-platform flashcard learning application built with:
+
 - **.NET 9.0** (SDK 9.0.307, see `global.json`)
 - **Avalonia UI 11.3.9** (cross-platform UI framework)
 - **CommunityToolkit.Mvvm 8.4.0** (MVVM pattern with source generators)
@@ -15,7 +16,7 @@ CapyCard is a cross-platform flashcard learning application built with:
 
 ## Project Structure
 
-```
+```text
 CapyCard/
 ├── CapyCard/                    # Solution folder
 │   ├── CapyCard/                # Core shared library (main code)
@@ -85,16 +86,16 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ### Naming Conventions
 
-| Element | Convention | Example |
-|---------|------------|---------|
-| Private fields | `_camelCase` with underscore prefix | `private string _newDeckName;` |
-| Properties | `PascalCase` | `public string DeckName { get; set; }` |
-| Methods | `PascalCase` | `public void LoadDecks()` |
-| Local variables | `camelCase` | `var totalCards = 0;` |
-| Constants | `PascalCase` | `private const int Iterations = 5000;` |
-| Interfaces | `IPascalCase` | `public interface IClipboardService` |
-| ViewModels | `[Name]ViewModel` | `DeckListViewModel` |
-| Views | `[Name]View` | `DeckListView` |
+| Element         | Convention                          | Example                                |
+| --------------- | ----------------------------------- | -------------------------------------- |
+| Private fields  | `_camelCase` with underscore prefix | `private string _newDeckName;`         |
+| Properties      | `PascalCase`                        | `public string DeckName { get; set; }` |
+| Methods         | `PascalCase`                        | `public void LoadDecks()`              |
+| Local variables | `camelCase`                         | `var totalCards = 0;`                  |
+| Constants       | `PascalCase`                        | `private const int Iterations = 5000;` |
+| Interfaces      | `IPascalCase`                       | `public interface IClipboardService`   |
+| ViewModels      | `[Name]ViewModel`                   | `DeckListViewModel`                    |
+| Views           | `[Name]View`                        | `DeckListView`                         |
 
 ### File Organization
 
@@ -218,13 +219,13 @@ private async Task LoadDataAsync()
 
 ## Important Files
 
-| File | Purpose |
-|------|---------|
-| `App.axaml` | Application resources, themes (Light/Dark) |
-| `ViewLocator.cs` | Convention-based View resolution |
-| `FlashcardDbContext.cs` | EF Core database context |
-| `Directory.Packages.props` | All NuGet package versions |
-| `Directory.Build.props` | App version (2.2.0) |
+| File                       | Purpose                                    |
+| -------------------------- | ------------------------------------------ |
+| `App.axaml`                | Application resources, themes (Light/Dark) |
+| `ViewLocator.cs`           | Convention-based View resolution           |
+| `FlashcardDbContext.cs`    | EF Core database context                   |
+| `Directory.Packages.props` | All NuGet package versions                 |
+| `Directory.Build.props`    | App version (2.2.0)                        |
 
 ## Known Issues / Technical Debt
 
@@ -252,6 +253,36 @@ dotnet ef migrations remove --project CapyCard
 ## Platform-Specific Code
 
 Platform-specific implementations are in their respective projects:
+
 - `CapyCard.iOS/` - iOS services (e.g., `ClipboardServiceiOS.cs`)
 - `CapyCard.Android/` - Android services
 - Core interfaces in `CapyCard/Services/` (e.g., `IClipboardService.cs`)
+
+## Design & UI Guidelines (UI Overhaul 2026)
+
+CapyCard follows a specific "Shopping List" aesthetic characterized by floating elements, rounded corners, and a Teal/Purple color scheme.
+
+### Visual Style
+- **Aesthetic:** Clean, Floating, Rounded ("Material Design 3" inspired).
+- **Colors:**
+  - **Primary (Accent):** Teal (`#018786` Light / `#03DAC5` Dark). Used for FABs, primary buttons, focus borders.
+  - **Secondary:** Deep Purple (`#6200EE` Light / `#BB86FC` Dark).
+  - **Labels:** Use `TextMutedBrush` (Grey) for secondary labels (e.g., "Vorderseite"). Avoid using primary colors for static labels.
+- **Shapes:**
+  - **Buttons:** Pill-Shape (`CornerRadius="25"`).
+  - **Cards/Dialogs:** Large rounded corners (`CornerRadius="28"`).
+  - **Inputs:** Floating style (`CornerRadius="12"`), transparent background.
+- **Icons:** Use `Material.Icons.Avalonia` exclusively. Avoid inline SVG paths.
+
+### Hover Effects
+- **Consistency:** Hover colors must be variations of the base color (e.g., a Teal button should become a slightly darker or lighter Teal on hover).
+- **Stability:** Avoid drastic changes during hover.
+  - Do NOT switch text color between Light/Dark if not necessary.
+  - Do NOT switch button types (e.g., from Outlined to Filled) on hover.
+  - Do NOT change color families (e.g., from Red to Teal).
+- **Implementation:** Usually handled via `Opacity` or subtle brightness shifts in the `ContentPresenter` of the button template.
+
+### Interaction & UX
+- **Navigation:** List items should generally be fully clickable area buttons (`Classes="list-item"`) rather than relying on small icons.
+- **Focus:** Input fields should not darken the background on focus. Use a subtle `PrimaryBrush` border instead.
+- **Keyboard:** Always handle `Escape` to release focus from floating inputs.

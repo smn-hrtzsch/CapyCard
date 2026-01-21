@@ -12,7 +12,7 @@
     
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Opacity" Value="0.9"/>
+        <Setter Property="Opacity" Value="0.85"/>
     </Style>
 
     <!-- Secondary/Action Button (Outlined/Ghost-like) -->
@@ -23,6 +23,12 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="16,8"/>
+    </Style>
+    
+    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#08808080"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
 
     <!-- Floating TextBox -->
@@ -111,7 +117,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
     <Style Selector="Button.list-item:pointerover /template/ ContentPresenter">
-         <Setter Property="Background" Value="Transparent"/>
+         <Setter Property="Background" Value="#08808080"/>
     </Style>
     
 </Styles>
