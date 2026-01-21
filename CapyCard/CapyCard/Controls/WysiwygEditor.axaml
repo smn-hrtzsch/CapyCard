@@ -40,6 +40,28 @@
             <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
         </Style>
         
+        <!-- Inner TextBox - transparent background on all states -->
+        <Style Selector="TextBox#EditorTextBox">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox#EditorTextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="TextBox#EditorTextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        
+        <!-- Outer border focus style -->
+        <Style Selector="Border#OuterBorder">
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Border#OuterBorder:focus-within">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+        </Style>
+        
         <!-- Separator Style -->
         <Style Selector="Border.toolbar-separator">
             <Setter Property="Width" Value="1"/>
@@ -48,7 +70,8 @@
         </Style>
     </UserControl.Styles>
     
-    <Border BorderBrush="{DynamicResource SurfaceBorderBrush}" 
+    <Border x:Name="OuterBorder"
+            BorderBrush="{DynamicResource SurfaceBorderBrush}" 
             BorderThickness="1" 
             CornerRadius="12"
             Background="{DynamicResource SurfaceBrush}">

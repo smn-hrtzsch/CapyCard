@@ -30,14 +30,11 @@
                                  TextWrapping="NoWrap">
                         </TextBox>
                         
-                        <Button Classes="primary"
+                        <Button Classes="fab"
                                 Command="{Binding AddDeckCommand}"
                                 Grid.Column="1"
-                                ToolTip.Tip="Fach hinzufügen"
-                                Width="50" Height="50"
-                                Padding="0"
-                                CornerRadius="25">
-                            <materialIcons:MaterialIcon Kind="Plus" Width="24" Height="24" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
+                                ToolTip.Tip="Fach hinzufügen">
+                            <materialIcons:MaterialIcon Kind="Plus" Width="24" Height="24" Foreground="{DynamicResource BackgroundBrush}"/>
                         </Button>
                     </Grid>
                 </StackPanel>
@@ -145,7 +142,7 @@
                                                     CommandParameter="{Binding}"
                                                     Classes="icon"
                                                     Grid.Column="1">
-                                                <materialIcons:MaterialIcon Kind="Check" Width="24" Height="24" Foreground="{DynamicResource PrimaryBrush}"/>
+                                                <materialIcons:MaterialIcon Kind="Check" Width="24" Height="24" Foreground="{DynamicResource PrimaryLightBrush}"/>
                                             </Button>
 
                                             <Button Command="{Binding CancelEditCommand}"

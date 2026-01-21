@@ -14,33 +14,36 @@
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Ctrl+Enter"/>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Meta+Enter"/>
+        <KeyBinding Command="{Binding HandleEscapeCommand}" Gesture="Escape"/>
+        <KeyBinding Command="{Binding StartLearningCustomCommand}" Gesture="Enter"/>
     </UserControl.KeyBindings>
     
     <!-- OUTER GRID FOR OVERLAYS -->
     <Grid>
         <Grid RowDefinitions="Auto,*,Auto">
             <!-- 1. HEADER (Top) -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="16">
-                <TextBlock Text="{Binding DeckName}" 
-                           FontSize="22" FontWeight="Bold" 
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Left"
-                           Margin="0,0,12,0"
-                           Foreground="{DynamicResource TextControlForeground}"
-                           TextWrapping="Wrap"/>
-                
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="16">
                 <Button Command="{Binding GoBackCommand}" 
                         Classes="primary"
-                        Grid.Column="1"
-                        HorizontalAlignment="Right"
-                        Margin="12,0,0,0"
+                        Grid.Column="0"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,12,0"
                         ToolTip.Tip="{Binding BackButtonText}"
                         Padding="12,8">
                      <StackPanel Orientation="Horizontal" Spacing="8">
-                         <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" Foreground="{DynamicResource TextOnPrimaryBrush}"/>
-                         <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                         <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" Foreground="#FFDDDDDD"/>
+                         <TextBlock Text="{Binding BackButtonText}" Foreground="#FFDDDDDD" IsVisible="{Binding !#Root.IsCompactMode}"/>
                      </StackPanel>
                 </Button>
+                
+                <TextBlock Text="{Binding DeckName}" 
+                           Grid.Column="1"
+                           FontSize="22" FontWeight="Bold" 
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           Margin="0,0,0,0"
+                           Foreground="{DynamicResource TextControlForeground}"
+                           TextWrapping="Wrap"/>
             </Grid>
             
             <!-- 2. DECK EDITOR (Content) -->

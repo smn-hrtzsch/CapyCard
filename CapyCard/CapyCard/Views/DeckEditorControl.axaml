@@ -103,14 +103,14 @@
                         <Grid ColumnDefinitions="*,*,*" IsEnabled="{Binding HasCards}" IsVisible="{Binding IsRootDeck}">
                             <Button Content="Alle lernen" 
                                     Command="{Binding StartLearningAllCommand}"
-                                    Classes="primary"
+                                    Classes="secondary"
                                     HorizontalAlignment="Stretch" 
                                     HorizontalContentAlignment="Center"
                                     Margin="0,0,4,0"
                                     ToolTip.Tip="Alle Karten lernen (inkl. Unterdecks)"/>
                             <Button Content="Allgemein" 
                                     Command="{Binding StartLearningMainCommand}"
-                                    Classes="primary"
+                                    Classes="secondary"
                                     HorizontalAlignment="Stretch" 
                                     HorizontalContentAlignment="Center"
                                     Grid.Column="1" Margin="4,0,4,0"
@@ -126,7 +126,7 @@
                         
                         <Button Content="Alle Karteikarten des Themas lernen" 
                                 Command="{Binding StartLearningMainCommand}"
-                                Classes="primary"
+                                Classes="secondary"
                                 IsEnabled="{Binding HasCards}"
                                 IsVisible="{Binding !IsRootDeck}"
                                 HorizontalAlignment="Stretch"

@@ -59,6 +59,7 @@ namespace CapyCard.ViewModels
         private bool _canAddSubDecks = false;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(StartLearningCustomCommand))]
         private bool _isSubDeckSelectionVisible = false;
 
         [ObservableProperty]
@@ -483,7 +484,9 @@ namespace CapyCard.ViewModels
                     catch { /* Ignore json errors */ }
                 }
             }
-        }        [RelayCommand]
+        }
+        
+        [RelayCommand(CanExecute = nameof(IsSubDeckSelectionVisible))]
         private void StartLearningCustom()
         {
             if (_currentDeck == null) return;
@@ -503,6 +506,25 @@ namespace CapyCard.ViewModels
         private void CancelSubDeckSelection()
         {
             IsSubDeckSelectionVisible = false;
+        }
+
+        [RelayCommand]
+        private void HandleEscape()
+        {
+            // Priority: Close dialogs first, then dropdown
+            if (IsSubDeckSelectionVisible)
+            {
+                IsSubDeckSelectionVisible = false;
+            }
+            else if (IsConfirmingDeleteSubDeck)
+            {
+                IsConfirmingDeleteSubDeck = false;
+                _subDeckToConfirmDelete = null;
+            }
+            else if (IsSubDeckListOpen)
+            {
+                IsSubDeckListOpen = false;
+            }
         }
         
         private void UpdateCardCount(int count)

@@ -1,48 +1,81 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <!-- Primary Button (Pill Shape) -->
+    <!-- Primary Button (Pill Shape) - Filled teal button with light text -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="20,10"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     
-    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+    <!-- Force light text on hover by targeting the ContentPresenter -->
+    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+    </Style>
+    
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
+    
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
 
-    <!-- Destructive Button (Delete/Remove actions - Red) -->
+    <!-- Destructive Button (Delete/Remove actions - Red with light text) -->
     <Style Selector="Button.destructive">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
-        <Setter Property="Foreground" Value="#FFFFFFFF"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="20,10"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     
-    <Style Selector="Button.destructive:pointerover /template/ ContentPresenter">
+    <Style Selector="Button.destructive /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+    </Style>
+    
+    <Style Selector="Button.destructive:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
+    
+    <Style Selector="Button.destructive:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
 
-    <!-- Secondary/Action Button (Outlined/Ghost-like) -->
+    <!-- Secondary/Action Button (Outlined with bright teal border and text) -->
     <Style Selector="Button.secondary">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="16,8"/>
     </Style>
     
-    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#08808080"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+    <Style Selector="Button.secondary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+    
+    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#15808080"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+    
+    <Style Selector="Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#25808080"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
     </Style>
 
     <!-- Floating TextBox -->
@@ -57,7 +90,7 @@
     </Style>
     
     <Style Selector="TextBox.floating:focus /template/ Border#PART_BorderElement">
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
         <Setter Property="BorderThickness" Value="1.5"/>
         <Setter Property="Background" Value="Transparent"/>
     </Style>
@@ -91,6 +124,32 @@
         <Setter Property="ClipToBounds" Value="True"/>
     </Style>
     
+    <!-- FAB Button (Floating Action Button - Bright teal) -->
+    <Style Selector="Button.fab">
+        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="25"/>
+        <Setter Property="Width" Value="50"/>
+        <Setter Property="Height" Value="50"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+    
+    <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+    </Style>
+    
+    <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+    
+    <Style Selector="Button.fab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+
     <!-- Icon Button (Circle) -->
     <Style Selector="Button.icon">
         <Setter Property="Background" Value="Transparent"/>
@@ -99,6 +158,14 @@
         <Setter Property="Padding" Value="8"/>
         <Setter Property="Width" Value="40"/>
         <Setter Property="Height" Value="40"/>
+    </Style>
+    
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#10808080"/>
+    </Style>
+    
+    <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#20808080"/>
     </Style>
 
     <Style Selector="ToggleButton.icon">
@@ -110,17 +177,16 @@
         <Setter Property="Height" Value="40"/>
     </Style>
 
-    <Style Selector="ToggleButton.icon:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#10FFFFFF"/>
+    <Style Selector="ToggleButton.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#10808080"/>
     </Style>
 
-    <Style Selector="ToggleButton.icon:checked /template/ ContentPresenter">
+    <Style Selector="ToggleButton.icon:checked /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="Transparent"/>
     </Style>
     
-    <Style Selector="ToggleButton.icon:checked:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="#10FFFFFF"/>
+    <Style Selector="ToggleButton.icon:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#10808080"/>
     </Style>
 
     <!-- List Item Button (Transparent, fills space) -->
@@ -130,8 +196,24 @@
         <Setter Property="Padding" Value="12,8"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
     </Style>
-    <Style Selector="Button.list-item:pointerover /template/ ContentPresenter">
-         <Setter Property="Background" Value="#08808080"/>
+    
+    <Style Selector="Button.list-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#08808080"/>
+    </Style>
+    
+    <Style Selector="Button.list-item:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#15808080"/>
+    </Style>
+
+    <!-- CheckBox - Teal accent color -->
+    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+    
+    <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
     
 </Styles>
