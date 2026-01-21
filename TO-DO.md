@@ -29,9 +29,8 @@
 ## UI-Overhaul
 
 - [ ] Komplett neues App Design:
-
-    - [ ] Orientierung am Design der Shopping List App (siehe Referenz für Farben und Styles)
-    - [ ] Neues Farbschema
-    - [ ] einheitliche Design-Sprache bei Icons
-    - [ ] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
-    - [ ] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
+  - [ ] Orientierung am Design der Shopping List App (siehe Referenz für Farben und Styles)
+  - [ ] Neues Farbschema
+  - [ ] einheitliche Design-Sprache bei Icons
+  - [ ] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
+  - [ ] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
