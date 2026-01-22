@@ -32,6 +32,7 @@
 ## Bugs
 
 - [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
+- [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 
 ## Fixed Bugs
 
