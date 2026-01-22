@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
@@ -285,6 +286,20 @@ namespace CapyCard.Views
             {
                 control.Focus();
             }
+
+            // --- DOUBLE TAP ZOOM ---
+            // "Einmal Doppelklicken sollte 50% ran zoomen und nochmal Doppelklicken sollte wieder zurück zoomen"
+            if (e.ClickCount == 2)
+            {
+                // Only trigger if we clicked strictly on the Image itself.
+                // This prevents zooming when double-clicking the background overlay.
+                if (e.Source is Image)
+                {
+                     ToggleZoom(vm);
+                     e.Handled = true;
+                     return;
+                }
+            }
             
             var point = e.GetPosition(this);
             _activePointers[e.Pointer.Id] = point;
@@ -299,6 +314,31 @@ namespace CapyCard.Views
                 _initialZoomLevel = vm.ImageZoomLevel;
                 e.Handled = true; 
             }
+        }
+
+        private void ToggleZoom(LearnViewModel vm)
+        {
+             // If currently zoomed in (significantly larger than default), reset to default
+             // Otherwise, zoom in by 50% relative to current (or base)
+             
+             // Define a threshold to decide if we are "zoomed in"
+             // Since "reset" sets it to DefaultZoomLevel, we check if we are notably above that.
+             // DefaultZoomLevel is calculated in CalculateInitialZoom
+             
+             double current = vm.ImageZoomLevel;
+             double defaultZoom = vm.DefaultZoomLevel;
+             
+             // Epsilon for float comparison
+             if (current > defaultZoom * 1.1) 
+             {
+                 // Zoom out (Reset)
+                 CalculateInitialZoom(vm);
+             }
+             else
+             {
+                 // Zoom in 75% (was 50%)
+                 vm.ImageZoomLevel = current * 1.75;
+             }
         }
 
         private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
