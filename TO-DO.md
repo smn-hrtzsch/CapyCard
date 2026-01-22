@@ -1,11 +1,5 @@
 # CapyCard To-Do List
 
-## Bugs
-
-## Fixed Bugs
-
-- [x] Mastery Prozent anzeige wird nicht korrekt aktualisiert während des Lernens. Erst nach dem Neu Starten des Lern-Modus wird die Prozentanzeige aktualisiert.
-
 ### Mobile
 
 - [x] Die Steuerungselemente der Image Preview sind auf mobile Geräten sehr eng aneinander und das sieht nicht schön aus. Auf Desktop passt es so.
@@ -35,3 +29,11 @@
   - [ ] einheitliche Design-Sprache bei Icons
   - [ ] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
   - [ ] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
+
+## Bugs
+
+- [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
+
+## Fixed Bugs
+
+- [x] Mastery Prozent anzeige wird nicht korrekt aktualisiert während des Lernens. Erst nach dem Neu Starten des Lern-Modus wird die Prozentanzeige aktualisiert.
