@@ -23,6 +23,9 @@ namespace CapyCard.ViewModels
         [ObservableProperty]
         private bool _isExpanded = false;
 
+        [ObservableProperty]
+        private bool _hasSelection = false;
+
         public CardGroupViewModel(string title)
         {
             Title = title;
@@ -407,6 +410,12 @@ namespace CapyCard.ViewModels
         private void UpdateSelectedCount()
         {
             SelectedCardCount = AllCards.Count(c => c.IsSelected);
+            
+            // Update HasSelection for each group
+            foreach (var group in CardGroups)
+            {
+                group.HasSelection = group.Cards.Any(c => c.IsSelected);
+            }
         }
     }
 }

@@ -63,6 +63,11 @@
         <Style Selector="ToggleButton.group-header:checked Border.badge">
             <Setter Property="Background" Value="#30FFFFFF"/>
         </Style>
+
+        <!-- Selection Indicator Style -->
+        <Style Selector="materialIcons|MaterialIcon.selection-indicator">
+             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
     </UserControl.Styles>
     
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -161,6 +166,13 @@
                                                    FontSize="12"
                                                    FontWeight="Bold"/>
                                     </Border>
+                                    
+                                    <!-- Selection Indicator (Visible if cards are selected in this group) -->
+                                    <materialIcons:MaterialIcon Kind="CheckCircle"
+                                                              Width="20" Height="20"
+                                                              Classes="selection-indicator"
+                                                              IsVisible="{Binding HasSelection}"
+                                                              ToolTip.Tip="Enthält ausgewählte Karten"/>
                                 </StackPanel>
                             </ToggleButton>
 
