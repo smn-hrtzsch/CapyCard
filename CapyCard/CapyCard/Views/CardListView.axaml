@@ -15,6 +15,60 @@
     <UserControl.Resources>
         <conv:SelectAllTextToIconConverter x:Key="SelectAllTextToIconConverter"/>
     </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- Style for the Column Selector Container -->
+        <Style Selector="Border.input-container">
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputStrokeBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Style for the Group Header ToggleButton -->
+        <Style Selector="ToggleButton.group-header">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Padding" Value="12"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
+
+        <!-- Default State for Content (Unchecked) -->
+        <Style Selector="ToggleButton.group-header TextBlock">
+             <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header materialIcons|MaterialIcon">
+             <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        </Style>
+
+        <!-- Expanded State Coloring (Deep Purple) -->
+        <Style Selector="ToggleButton.group-header:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
+        </Style>
+        
+        <!-- Ensure text/icons are white on the dark purple background -->
+        <Style Selector="ToggleButton.group-header:checked TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header:checked materialIcons|MaterialIcon">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        
+        <!-- Handle the badge border color in expanded state -->
+        <Style Selector="ToggleButton.group-header:checked Border.badge">
+            <Setter Property="Background" Value="#30FFFFFF"/>
+        </Style>
+
+        <!-- Selection Indicator Style -->
+        <Style Selector="materialIcons|MaterialIcon.selection-indicator">
+             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+    </UserControl.Styles>
     
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="16">
@@ -47,17 +101,22 @@
                             HorizontalAlignment="Right">
                     
                     <!-- Columns Selection -->
-                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" IsVisible="{Binding ShowPdfButton}">
-                        <materialIcons:MaterialIcon Kind="ViewColumn" 
-                                                  Width="24" Height="24"
-                                                  Foreground="{DynamicResource TextMutedBrush}"
-                                                  ToolTip.Tip="Spaltenanzahl"/>
-                        <ComboBox ItemsSource="{Binding ColumnOptions}"
-                                  SelectedItem="{Binding SelectedColumnCount}"
-                                  Width="70"
-                                  Classes="floating"
-                                  Margin="0"/>
-                    </StackPanel>
+                    <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
+                        <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                            <materialIcons:MaterialIcon Kind="ViewDashboard" 
+                                                      Width="20" Height="20"
+                                                      Foreground="{DynamicResource TextMutedBrush}"
+                                                      ToolTip.Tip="Spaltenanzahl"
+                                                      Margin="4,0,4,0"/>
+                            <ComboBox ItemsSource="{Binding ColumnOptions}"
+                                      SelectedItem="{Binding SelectedColumnCount}"
+                                      Width="70"
+                                      Classes="floating"
+                                      BorderThickness="0"
+                                      Margin="0"
+                                      Padding="8,8"/>
+                        </StackPanel>
+                    </Border>
                     
                     <!-- PDF Button -->
                     <Button Command="{Binding GeneratePdfCommand}"
@@ -92,27 +151,28 @@
                         <StackPanel Margin="0,0,0,24">
                             <!-- Group Header -->
                             <ToggleButton IsChecked="{Binding IsExpanded}"
-                                          HorizontalAlignment="Stretch"
-                                          HorizontalContentAlignment="Left"
-                                          Background="Transparent"
-                                          BorderThickness="0"
-                                          Margin="0,0,0,12">
+                                          Classes="group-header">
                                 <StackPanel Orientation="Horizontal" Spacing="12">
                                     <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
-                                                              Width="24" Height="24"
-                                                              Foreground="{DynamicResource TextControlForeground}"/>
+                                                              Width="24" Height="24"/>
                                     <TextBlock Text="{Binding Title}" 
                                                FontSize="18" 
-                                               FontWeight="Bold"
-                                               Foreground="{DynamicResource TextControlForeground}"/>
-                                    <Border Background="{DynamicResource SurfaceBorderBrush}"
+                                               FontWeight="Bold"/>
+                                    <Border Classes="badge"
+                                            Background="{DynamicResource SurfaceBorderBrush}"
                                             Padding="10,2"
                                             CornerRadius="12">
                                         <TextBlock Text="{Binding Cards.Count}" 
                                                    FontSize="12"
-                                                   FontWeight="Bold"
-                                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                                   FontWeight="Bold"/>
                                     </Border>
+                                    
+                                    <!-- Selection Indicator (Visible if cards are selected in this group AND group is collapsed) -->
+                                    <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
+                                                              Width="20" Height="20"
+                                                              Classes="selection-indicator"
+                                                              IsVisible="{Binding ShowSelectionIndicator}"
+                                                              ToolTip.Tip="Enthält ausgewählte Karten"/>
                                 </StackPanel>
                             </ToggleButton>
 

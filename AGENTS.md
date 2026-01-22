@@ -5,301 +5,139 @@ This document provides essential information for AI coding agents working on the
 ## Project Overview
 
 CapyCard is a cross-platform flashcard learning application built with:
+- **.NET 9.0** (SDK 9.0.307)
+- **Avalonia UI 11.3.9** (Cross-platform UI)
+- **CommunityToolkit.Mvvm 8.4.0** (MVVM + Source Generators)
+- **Entity Framework Core 9.0** (SQLite)
+- **xUnit** (Testing)
 
-- **.NET 9.0** (SDK 9.0.307, see `global.json`)
-- **Avalonia UI 11.3.9** (cross-platform UI framework)
-- **CommunityToolkit.Mvvm 8.4.0** (MVVM pattern with source generators)
-- **Entity Framework Core 9.0** with SQLite
-- **xUnit** for testing
+**Platforms:** Desktop (Windows/macOS/Linux), Android, iOS, Browser (WASM).
 
-**Platforms:** Desktop (Windows/macOS/Linux), Android, iOS, Browser (WebAssembly)
+## Development Guidelines
 
-## Project Structure
+### Build Configuration & Environment
+- **JAVA_HOME:** When building the .sln or Android project, set the correct JAVA_HOME to avoid errors:
 
-```text
-CapyCard/
-├── CapyCard/                    # Solution folder
-│   ├── CapyCard/                # Core shared library (main code)
-│   │   ├── Models/              # Domain entities (Card, Deck, LearningSession)
-│   │   ├── ViewModels/          # MVVM ViewModels
-│   │   ├── Views/               # Avalonia AXAML views
-│   │   ├── Services/            # Business logic services
-│   │   ├── Data/                # EF Core DbContext
-│   │   ├── Controls/            # Custom UI controls
-│   │   ├── Converters/          # Value converters
-│   │   ├── Behaviors/           # Attached behaviors
-│   │   └── Migrations/          # EF Core migrations
-│   ├── CapyCard.Desktop/        # Desktop platform head
-│   ├── CapyCard.Android/        # Android platform head
-│   ├── CapyCard.iOS/            # iOS platform head
-│   ├── CapyCard.Browser/        # WebAssembly platform head
-│   ├── CapyCard.Tests/          # Unit tests (xUnit)
-│   ├── Directory.Build.props    # Centralized version (2.2.0)
-│   └── Directory.Packages.props # Central package management
-└── plans/                       # Planning documents
-```
+  ```bash
+  export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+  ```
 
-## Build Commands
+- **Platform-Specific Builds:** Always run a platform-specific build after modifying platform code:
 
-All commands should be run from `CapyCard/CapyCard/` directory (where the .sln file is).
+  ```bash
+  dotnet build CapyCard/CapyCard.iOS/CapyCard.iOS.csproj
+  ```
+
+- **Verification:** Always try to build or compile the project after making changes. If errors occur, provide solutions immediately.
+
+### Pull Requests & Releases
+- **Pull Requests:** 
+  - Target the `main` branch unless specified otherwise.
+  - After creation, **merge immediately** and **delete the source branch** (local & remote).
+- **Releases:**
+  - Use the GitHub release workflow. target `main`.
+  - Ask if the release is **Major, Minor, or Patch** if not specified.
+  - Provide a concise changelog.
+
+## Build & Test Commands
+
+Run from `CapyCard/CapyCard/` (solution folder).
+
+### Build
 
 ```bash
-# Restore dependencies
 dotnet restore
-
-# Build entire solution
 dotnet build
-
-# Build specific project
-dotnet build CapyCard/CapyCard.csproj
-
-# Build for release
 dotnet build -c Release
-
 # Run Desktop app
 dotnet run --project CapyCard.Desktop
 ```
 
-## Test Commands
+### Test
 
 ```bash
 # Run all tests
 dotnet test
 
-# Run all tests with verbose output
-dotnet test --logger "console;verbosity=detailed"
+# Run a single test (by full name)
+dotnet test --filter "FullyQualifiedName=CapyCard.Tests.SmartQueueServiceTests.Method_Scenario_Result"
 
-# Run a single test by full name
-dotnet test --filter "FullyQualifiedName=CapyCard.Tests.SmartQueueServiceTests.CalculateNewScore_Rating1_DecreasesBoxByTwo"
-
-# Run tests matching a pattern
+# Run tests by pattern
 dotnet test --filter "DisplayName~CalculateNewScore"
-
-# Run all tests in a class
-dotnet test --filter "ClassName=CapyCard.Tests.SmartQueueServiceTests"
 
 # Run with coverage
 dotnet test --collect:"XPlat Code Coverage"
 ```
 
-## Code Style Guidelines
+### Linting & Migrations
 
-### Naming Conventions
+```bash
+# Format code
+dotnet format
 
-| Element         | Convention                          | Example                                |
-| --------------- | ----------------------------------- | -------------------------------------- |
-| Private fields  | `_camelCase` with underscore prefix | `private string _newDeckName;`         |
-| Properties      | `PascalCase`                        | `public string DeckName { get; set; }` |
-| Methods         | `PascalCase`                        | `public void LoadDecks()`              |
-| Local variables | `camelCase`                         | `var totalCards = 0;`                  |
-| Constants       | `PascalCase`                        | `private const int Iterations = 5000;` |
-| Interfaces      | `IPascalCase`                       | `public interface IClipboardService`   |
-| ViewModels      | `[Name]ViewModel`                   | `DeckListViewModel`                    |
-| Views           | `[Name]View`                        | `DeckListView`                         |
-
-### File Organization
-
-- One class per file (matching filename to class name)
-- ViewModels in `ViewModels/` folder
-- Views in `Views/` folder with `.axaml` + `.axaml.cs` pairs
-- Models in `Models/` folder as POCOs
-- Services in `Services/` folder
-
-### Using Statements / Imports
-
-```csharp
-// System namespaces first
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-// Third-party packages
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
-
-// Project namespaces
-using CapyCard.Data;
-using CapyCard.Models;
+# EF Core Migrations
+dotnet ef migrations add MigrationName --project CapyCard
+dotnet ef database update --project CapyCard
 ```
 
-### MVVM Pattern
+## Code Style Guidelines
 
-Use CommunityToolkit.Mvvm source generators:
+### Naming & Organization
+- **Fields:** `_camelCase` (`private string _name;`)
+- **Properties/Methods:** `PascalCase` (`public void Load()`)
+- **ViewModels:** `[Name]ViewModel` in `ViewModels/`
+- **Views:** `[Name]View` in `Views/` (matched to VM)
+- **One class per file.**
+
+### MVVM Pattern (CommunityToolkit.Mvvm)
+Use source generators to reduce boilerplate:
 
 ```csharp
-public partial class MyViewModel : ObservableObject
+public partial class DeckViewModel : ObservableObject
 {
-    // Auto-generates "MyProperty" property with change notification
     [ObservableProperty]
-    private string _myProperty = string.Empty;
+    private string _title = string.Empty;
 
-    // Auto-generates "DoSomethingCommand" IRelayCommand
     [RelayCommand]
-    private async Task DoSomething()
-    {
-        // Implementation
-    }
+    private async Task Save() { /* ... */ }
 }
 ```
 
-### Database Access Pattern
-
-Use short-lived DbContext instances (unit-of-work per operation):
+### Database (EF Core)
+Use **short-lived** contexts (Unit-of-Work) to avoid memory leaks:
 
 ```csharp
-// CORRECT: Short-lived context
 using (var context = new FlashcardDbContext())
 {
     var decks = await context.Decks.ToListAsync();
-    // ... operations
+    // ...
     await context.SaveChangesAsync();
 }
-
-// INCORRECT: Long-lived context (causes memory leaks)
-private readonly FlashcardDbContext _dbContext; // Don't do this
 ```
 
-### Nullable Reference Types
+### Error Handling & Async
+- **Async:** Use `async Task` (not `async void` except for events).
+- **Nullability:** Handle `null` explicitly (`<Nullable>enable</Nullable>`).
+- **Exceptions:** Catch specific exceptions where possible.
 
-The project has `<Nullable>enable</Nullable>`. Always handle nullability:
+## Design & UI Guidelines
 
-```csharp
-// Use nullable types for optional values
-public Deck? SelectedDeck { get; set; }
+CapyCard follows a specific "Shopping List" aesthetic (Teal/Purple, Rounded, Floating).
 
-// Use null-forgiving operator only when certain
-public virtual Deck Deck { get; set; } = null!;
+**👉 See [guidelines/DESIGN.md](guidelines/DESIGN.md) for detailed visual specs, color codes, and button classes.**
 
-// Prefer null checks
-if (deck != null)
-{
-    // Safe to use deck
-}
-```
-
-### Error Handling
-
-Current pattern (to be improved - see plans/):
-
-```csharp
-try
-{
-    // Operation
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Error: {ex.Message}");
-    // TODO: Add proper user notification
-}
-```
-
-### Async/Await
-
-- Use `async Task` for async methods without return value
-- Use `async Task<T>` for async methods with return value
-- Use `async void` ONLY for event handlers
-- Always use `ConfigureAwait(false)` in library code when appropriate
-
-```csharp
-[RelayCommand]
-private async Task LoadDataAsync()
-{
-    using var context = new FlashcardDbContext();
-    var data = await context.Decks.ToListAsync();
-}
-```
-
-### AXAML Views
-
-- Use compiled bindings: `{Binding PropertyName}` or `{CompiledBinding PropertyName}`
-- Views are resolved via `ViewLocator.cs` (convention: `ViewModel` -> `View`)
-- Use Material Icons: `<material:MaterialIcon Kind="Add" />`
+### Key UI Rules
+- **Primary Color:** Teal (`#018786` Light / `#03DAC5` Dark).
+- **Secondary:** Deep Purple.
+- **Shapes:** Pill-shaped buttons (`CornerRadius="25"`), Large rounded cards (`CornerRadius="28"`).
+- **Icons:** Use `Material.Icons.Avalonia`.
+- **UX:** Floating inputs with transparent backgrounds. Handle `Escape` to release focus.
 
 ## Important Files
 
-| File                       | Purpose                                    |
-| -------------------------- | ------------------------------------------ |
-| `App.axaml`                | Application resources, themes (Light/Dark) |
-| `ViewLocator.cs`           | Convention-based View resolution           |
-| `FlashcardDbContext.cs`    | EF Core database context                   |
-| `Directory.Packages.props` | All NuGet package versions                 |
-| `Directory.Build.props`    | App version (2.2.0)                        |
-
-## Known Issues / Technical Debt
-
-1. **LearnViewModel** has a long-lived DbContext that should be refactored
-2. **MarkdownService.cs** is empty - implement or remove
-3. No dependency injection - services are instantiated with `new`
-4. UI strings are hardcoded in German (no localization)
-5. Test coverage is limited to `SmartQueueService`
-
-See `plans/2026-01-21-architecture-improvements.md` for detailed improvement plan.
-
-## EF Core Migrations
-
-```bash
-# Add new migration (from CapyCard/CapyCard/ folder)
-dotnet ef migrations add MigrationName --project CapyCard
-
-# Update database
-dotnet ef database update --project CapyCard
-
-# Remove last migration
-dotnet ef migrations remove --project CapyCard
-```
-
-## Platform-Specific Code
-
-Platform-specific implementations are in their respective projects:
-
-- `CapyCard.iOS/` - iOS services (e.g., `ClipboardServiceiOS.cs`)
-- `CapyCard.Android/` - Android services
-- Core interfaces in `CapyCard/Services/` (e.g., `IClipboardService.cs`)
-
-## Design & UI Guidelines (UI Overhaul 2026)
-
-CapyCard follows a specific "Shopping List" aesthetic characterized by floating elements, rounded corners, and a Teal/Purple color scheme.
-
-### Visual Style
-
-- **Aesthetic:** Clean, Floating, Rounded ("Material Design 3" inspired).
-- **Colors:**
-  - **Primary (Accent):** Teal (`#018786` Light / `#03DAC5` Dark). Used for FABs, primary buttons, focus borders.
-  - **Secondary:** Deep Purple (`#6200EE` Light / `#BB86FC` Dark).
-  - **Labels:** Use `TextMutedBrush` (Grey) for secondary labels (e.g., "Vorderseite"). Avoid using primary colors for static labels.
-- **Shapes:**
-  - **Buttons:** Pill-Shape (`CornerRadius="25"`).
-  - **Cards/Dialogs:** Large rounded corners (`CornerRadius="28"`).
-  - **Inputs:** Floating style (`CornerRadius="12"`), transparent background.
-- **Icons:** Use `Material.Icons.Avalonia` exclusively. Avoid inline SVG paths.
-
-### Hover Effects
-
-- **Consistency:** Hover colors must be variations of the base color (e.g., a Teal button should become a slightly darker or lighter Teal on hover).
-- **Stability:** Avoid drastic changes during hover.
-  - Do NOT switch text color between Light/Dark if not necessary.
-  - Do NOT switch button types (e.g., from Outlined to Filled) on hover.
-  - Do NOT change color families (e.g., from Red to Teal).
-- **Implementation:** Usually handled via `Opacity` or subtle brightness shifts in the `ContentPresenter` of the button template.
-
-### Button Styles (Classes)
-
-Use predefined button classes from `Styles/AppStyles.axaml`:
-
-| Class         | Use Case                     | Appearance                 |
-| ------------- | ---------------------------- | -------------------------- |
-| `primary`     | Main actions (Save, Confirm) | Teal filled, white text    |
-| `secondary`   | Secondary actions (Cancel)   | Outlined, teal border/text |
-| `destructive` | Delete/Remove actions        | Red filled, white text     |
-| `icon`        | Icon-only buttons            | Transparent, circular      |
-| `list-item`   | Clickable list items         | Transparent, full-width    |
-
-**Important:** Never use `Classes="primary" Background="{DynamicResource ErrorBrush}"` - this breaks hover states. Use `Classes="destructive"` instead.
-
-### Interaction & UX
-
-- **Navigation:** List items should generally be fully clickable area buttons (`Classes="list-item"`) rather than relying on small icons.
-- **Focus:** Input fields should not darken the background on focus. Use a subtle `PrimaryBrush` border instead.
-- **Keyboard:** Always handle `Escape` to release focus from floating inputs.
+| File | Purpose |
+| :--- | :--- |
+| `CapyCard/App.axaml` | Global resources & themes |
+| `CapyCard/ViewLocator.cs` | ViewModel -> View resolution |
+| `CapyCard/Data/FlashcardDbContext.cs` | Database Context |
+| `Directory.Packages.props` | NuGet versions |

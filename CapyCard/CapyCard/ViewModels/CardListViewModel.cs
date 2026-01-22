@@ -21,7 +21,14 @@ namespace CapyCard.ViewModels
         public ObservableCollection<CardItemViewModel> Cards { get; } = new();
         
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
         private bool _isExpanded = false;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
+        private bool _hasSelection = false;
+
+        public bool ShowSelectionIndicator => HasSelection && !IsExpanded;
 
         public CardGroupViewModel(string title)
         {
@@ -407,6 +414,12 @@ namespace CapyCard.ViewModels
         private void UpdateSelectedCount()
         {
             SelectedCardCount = AllCards.Count(c => c.IsSelected);
+            
+            // Update HasSelection for each group
+            foreach (var group in CardGroups)
+            {
+                group.HasSelection = group.Cards.Any(c => c.IsSelected);
+            }
         }
     }
 }
