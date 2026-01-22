@@ -1,6 +1,6 @@
 # CapyCard To-Do List
 
-### Mobile
+## Mobile
 
 - [x] Die Steuerungselemente der Image Preview sind auf mobile Geräten sehr eng aneinander und das sieht nicht schön aus. Auf Desktop passt es so.
 - [ ] Doppelklick auf Image Preview auf Mobile sollte auch zoomen können. Einmal Doppelklicken sollte 50% ran zoomen und nochmal Doppelklicken sollte wieder zurück zoomen.

@@ -21,10 +21,14 @@ namespace CapyCard.ViewModels
         public ObservableCollection<CardItemViewModel> Cards { get; } = new();
         
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
         private bool _isExpanded = false;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
         private bool _hasSelection = false;
+
+        public bool ShowSelectionIndicator => HasSelection && !IsExpanded;
 
         public CardGroupViewModel(string title)
         {

@@ -167,11 +167,11 @@
                                                    FontWeight="Bold"/>
                                     </Border>
                                     
-                                    <!-- Selection Indicator (Visible if cards are selected in this group) -->
-                                    <materialIcons:MaterialIcon Kind="CheckCircle"
+                                    <!-- Selection Indicator (Visible if cards are selected in this group AND group is collapsed) -->
+                                    <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
                                                               Width="20" Height="20"
                                                               Classes="selection-indicator"
-                                                              IsVisible="{Binding HasSelection}"
+                                                              IsVisible="{Binding ShowSelectionIndicator}"
                                                               ToolTip.Tip="Enthält ausgewählte Karten"/>
                                 </StackPanel>
                             </ToggleButton>
