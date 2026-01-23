@@ -33,6 +33,7 @@
 
 - [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
+- [ ] Wenn das Fenster vertikel zu klein wird, dann überlappt der "Themen"-Ausklapp-Button mit der Section für die Lern Buttons. (Siehe Screenshot) Es muss also die Aufteilung, die die obere Sektion des CardDetailView zum Scrollview mach angepasst werden, sodass sie nicht mehr überlappen, schau dir im Detail an, wie es momentan geregelt ist und fixe das.
 
 ## Fixed Bugs
 
