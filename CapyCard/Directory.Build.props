@@ -5,5 +5,11 @@
       This will be updated automatically by the CI/CD pipeline.
     -->
     <Version>2.2.0</Version>
+    
+    <!-- 
+      Ensure Android builds use the correct JDK (OpenJDK 21). 
+      This is required because newer JDKs (like 25) are not yet supported by Xamarin.Android.
+    -->
+    <JavaSdkDirectory Condition="'$(JavaSdkDirectory)' == '' and Exists('/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home')">/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home</JavaSdkDirectory>
   </PropertyGroup>
 </Project>

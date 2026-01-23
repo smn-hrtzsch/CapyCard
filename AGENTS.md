@@ -16,11 +16,9 @@ CapyCard is a cross-platform flashcard learning application built with:
 ## Development Guidelines
 
 ### Build Configuration & Environment
-- **JAVA_HOME:** When building the .sln or Android project, set the correct JAVA_HOME to avoid errors:
-
-  ```bash
-  export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
-  ```
+- **JAVA_HOME / JDK:** The project requires **OpenJDK 21** for Android builds.
+  - This is automatically configured in `Directory.Build.props` for the default path: `/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`.
+  - If your JDK is elsewhere, set the `JavaSdkDirectory` MSBuild property or the `JAVA_HOME` environment variable.
 
 - **Platform-Specific Builds:** Always run a platform-specific build after modifying platform code:
 
