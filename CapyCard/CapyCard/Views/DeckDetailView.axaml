@@ -50,8 +50,7 @@
             <views:DeckEditorControl Grid.Row="1" />
 
             <!-- 3. SUBDECK LIST OVERLAY (Bottom of Content Area) -->
-            <views:SubDeckListControl Grid.Row="1" 
-                                      VerticalAlignment="Bottom"
+            <views:SubDeckListControl Grid.Row="2" 
                                       IsVisible="{Binding CanAddSubDecks}"
                                       IsCompactMode="{Binding #Root.IsCompactMode}"/>
         </Grid>

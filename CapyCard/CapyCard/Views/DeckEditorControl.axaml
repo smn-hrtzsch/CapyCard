@@ -135,7 +135,7 @@
                 </Border>
                 
                 <!-- SPACER -->
-                <Border Height="100" IsVisible="{Binding CanAddSubDecks}" />
+                <Border Height="16" IsVisible="{Binding CanAddSubDecks}" />
             </StackPanel>
         </DockPanel>
     </ScrollViewer>
