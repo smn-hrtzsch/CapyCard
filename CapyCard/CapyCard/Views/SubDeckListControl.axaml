@@ -10,22 +10,21 @@
              x:Class="CapyCard.Views.SubDeckListControl"
              x:DataType="vm:DeckDetailViewModel">
     
-    <Grid RowDefinitions="*,Auto">
+    <Grid RowDefinitions="Auto,Auto">
         <!-- LIST OVERLAY -->
-        <Border Grid.Row="0" 
-                VerticalAlignment="Bottom"
-                IsVisible="{Binding IsSubDeckListOpen}" 
-                MaxHeight="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=TopLevel}, Converter={StaticResource RatioConverter}, ConverterParameter=0.75}"
-                Margin="20,0,20,80"
-                Background="{DynamicResource BackgroundBrush}"
-                BorderBrush="{DynamicResource PrimaryBrush}"
-                BorderThickness="2"
-                CornerRadius="{DynamicResource CornerRadiusSmall}"
-                BoxShadow="0 8 32 0 #70000000"
-                Padding="8"
-                ZIndex="5">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding SubDecks}" Grid.IsSharedSizeScope="True">
+        <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="0" ZIndex="5">
+            <Border VerticalAlignment="Bottom"
+                    IsVisible="{Binding IsSubDeckListOpen}" 
+                    MaxHeight="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=TopLevel}, Converter={StaticResource RatioConverter}, ConverterParameter=0.75}"
+                    Margin="20,0,20,80"
+                    Background="{DynamicResource BackgroundBrush}"
+                    BorderBrush="{DynamicResource PrimaryBrush}"
+                    BorderThickness="2"
+                    CornerRadius="{DynamicResource CornerRadiusSmall}"
+                    BoxShadow="0 8 32 0 #70000000"
+                    Padding="8">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding SubDecks}" Grid.IsSharedSizeScope="True">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <!-- List Item -->
@@ -131,6 +130,7 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
+        </Grid>
         
         <!-- TOGGLE BUTTON (Floating Pill) -->
         <Border Grid.Row="0"
