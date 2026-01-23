@@ -33,6 +33,7 @@
 
 - [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
+- [ ] Im Lern Modus sollten auf Desktop die Buttons für das Zurücksetzen des Lernfortschritts und das Wechseln des Lern Modus zusätztlich zum Icon auch mit Text angezeigt werden und als umrandete Buttons gestylt sein. 
 
 ## Fixed Bugs
 
