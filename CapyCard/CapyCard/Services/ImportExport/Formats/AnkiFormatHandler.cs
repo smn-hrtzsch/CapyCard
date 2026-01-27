@@ -169,13 +169,14 @@ namespace CapyCard.Services.ImportExport.Formats
                         {
                             return ImportResult.Failed("Kein Ziel-Fach ausgewählt.");
                         }
-                        targetDeck = await context.Decks
+                        var foundDeck = await context.Decks
                             .Include(d => d.SubDecks)
                             .FirstOrDefaultAsync(d => d.Id == options.TargetDeckId.Value);
-                        if (targetDeck == null)
+                        if (foundDeck == null)
                         {
                             return ImportResult.Failed("Ziel-Fach nicht gefunden.");
                         }
+                        targetDeck = foundDeck;
                         break;
 
                     default:

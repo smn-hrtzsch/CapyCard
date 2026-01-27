@@ -134,8 +134,8 @@
                     </StackPanel>
                 </Border>
                 
-                <!-- SPACER -->
-                <Border Height="16" IsVisible="{Binding CanAddSubDecks}" />
+                <!-- SPACER for Bottom Sheet -->
+                <Border Height="{Binding #Root.BottomSpacerHeight}" IsVisible="{Binding CanAddSubDecks}" />
             </StackPanel>
         </DockPanel>
     </ScrollViewer>

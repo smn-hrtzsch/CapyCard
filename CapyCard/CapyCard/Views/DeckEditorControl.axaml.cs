@@ -8,6 +8,15 @@ namespace CapyCard.Views
 {
     public partial class DeckEditorControl : UserControl
     {
+        public static readonly StyledProperty<double> BottomSpacerHeightProperty =
+            AvaloniaProperty.Register<DeckEditorControl, double>(nameof(BottomSpacerHeight), defaultValue: 0);
+
+        public double BottomSpacerHeight
+        {
+            get => GetValue(BottomSpacerHeightProperty);
+            set => SetValue(BottomSpacerHeightProperty, value);
+        }
+
         private DeckDetailViewModel? _viewModel;
 
         public DeckEditorControl()

@@ -147,7 +147,8 @@
         </Grid>
         
         <!-- TOGGLE BUTTON (Floating Pill) -->
-        <Border Grid.Row="0"
+        <Border x:Name="ToggleContainer"
+                Grid.Row="0"
                 VerticalAlignment="Bottom"
                 HorizontalAlignment="Center"
                 Margin="0,0,0,8"
