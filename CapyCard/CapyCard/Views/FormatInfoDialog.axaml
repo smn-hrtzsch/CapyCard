@@ -9,93 +9,97 @@
              x:DataType="vm:FormatInfoViewModel">
 
     <!-- Format Info Dialog Overlay -->
-    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000">
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="1000">
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
                 Padding="24"
                 Margin="24"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
-                MaxWidth="450"
-                MaxHeight="800"
+                MaxWidth="420"
+                MaxHeight="850"
                 BoxShadow="0 4 16 0 #40000000">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <StackPanel Spacing="20" HorizontalAlignment="Stretch" MinWidth="320" Margin="0,0,12,12">
-                <!-- Header -->
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Import/Export Formate"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               TextWrapping="Wrap"
-                               Foreground="{DynamicResource TextControlForeground}"
-                               Grid.Column="0"/>
-                    <Button Command="{Binding CloseCommand}"
-                            Classes="icon"
-                            Grid.Column="1">
-                        <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
-                                                   Foreground="{DynamicResource TextMutedBrush}"/>
-                    </Button>
-                </Grid>
-
-                <!-- CapyCard Format -->
-                <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <materialIcons:MaterialIcon Kind="Archive" Width="20" Height="20" 
-                                                   Foreground="{DynamicResource PrimaryBrush}"/>
-                        <TextBlock Text="CAPYCARD (.capycard)"
+                <StackPanel Spacing="20" 
+                            HorizontalAlignment="Stretch" 
+                            MinWidth="300" 
+                            MaxWidth="370"
+                            Margin="0,0,16,16">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Import/Export Formate"
+                                   FontSize="20"
                                    FontWeight="Bold"
                                    TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextControlForeground}"/>
-                    </StackPanel>
-                    <TextBlock Text="Das native Format von CapyCard. Enthält alle Karten mit Formatierung, Bildern und optional deinen Lernfortschritt. Ideal zum Teilen mit anderen CapyCard-Nutzern."
-                               TextWrapping="Wrap"
-                               FontSize="13"
-                               Foreground="{DynamicResource TextMutedBrush}"/>
-                </StackPanel>
+                                   Foreground="{DynamicResource TextControlForeground}"
+                                   Grid.Column="0"/>
+                        <Button Command="{Binding CloseCommand}"
+                                Classes="icon"
+                                Grid.Column="1">
+                            <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </Button>
+                    </Grid>
 
-                <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
-
-                <!-- Anki Format -->
-                <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <materialIcons:MaterialIcon Kind="Cards" Width="20" Height="20" 
-                                                   Foreground="{DynamicResource PrimaryBrush}"/>
-                        <TextBlock Text="ANKI (.apkg)"
-                                   FontWeight="Bold"
+                    <!-- CapyCard Format -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="Archive" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="CAPYCARD (.capycard)"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </StackPanel>
+                        <TextBlock Text="Das native Format von CapyCard. Enthält alle Karten mit Formatierung, Bildern und optional deinen Lernfortschritt. Ideal zum Teilen mit anderen CapyCard-Nutzern."
                                    TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                     </StackPanel>
-                    <TextBlock Text="Kompatibel mit Anki und AnkiDroid. Ermöglicht den Austausch mit Millionen von geteilten Kartenstapeln auf ankiweb.net. Bilder werden unterstützt."
-                               TextWrapping="Wrap"
-                               FontSize="13"
-                               Foreground="{DynamicResource TextMutedBrush}"/>
-                </StackPanel>
 
-                <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
 
-                <!-- CSV Format -->
-                <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <materialIcons:MaterialIcon Kind="FileDelimited" Width="20" Height="20" 
-                                                   Foreground="{DynamicResource PrimaryBrush}"/>
-                        <TextBlock Text="CSV (.csv)"
-                                   FontWeight="Bold"
+                    <!-- Anki Format -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="Cards" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="ANKI (.apkg)"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </StackPanel>
+                        <TextBlock Text="Kompatibel mit Anki und AnkiDroid. Ermöglicht den Austausch mit Millionen von geteilten Kartenstapeln auf ankiweb.net. Bilder werden unterstützt."
                                    TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
                     </StackPanel>
-                    <TextBlock Text="Einfaches Tabellenformat. Öffne die Datei in Excel oder Google Sheets zum Bearbeiten. Bilder werden nicht unterstützt und als Platzhalter exportiert."
-                               TextWrapping="Wrap"
-                               FontSize="13"
-                               Foreground="{DynamicResource TextMutedBrush}"/>
-                </StackPanel>
 
-                <!-- Close Button -->
-                <Button Content="Verstanden"
-                        Command="{Binding CloseCommand}"
-                        Classes="primary"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center"
-                        Margin="0,8,0,4"/>
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
+
+                    <!-- CSV Format -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="FileDelimited" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="CSV (.csv)"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </StackPanel>
+                        <TextBlock Text="Einfaches Tabellenformat. Öffne die Datei in Excel oder Google Sheets zum Bearbeiten. Bilder werden nicht unterstützt und als Platzhalter exportiert."
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Content="Verstanden"
+                            Command="{Binding CloseCommand}"
+                            Classes="primary"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Margin="0,8,0,0"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
