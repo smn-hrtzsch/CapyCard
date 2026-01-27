@@ -15,8 +15,17 @@ namespace CapyCard.Data
 
         public string DbPath { get; }
 
+        // For testing purposes
+        public static string? OverrideDbPath { get; set; }
+
         public FlashcardDbContext()
         {
+            if (OverrideDbPath != null)
+            {
+                DbPath = OverrideDbPath;
+                return;
+            }
+
             if (OperatingSystem.IsBrowser())
             {
                 DbPath = "InMemory";

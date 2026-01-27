@@ -8,11 +8,25 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
              x:Class="CapyCard.Views.SubDeckListControl"
-             x:DataType="vm:DeckDetailViewModel">
+             x:DataType="vm:DeckDetailViewModel"
+             ClipToBounds="False">
     
-    <Grid RowDefinitions="Auto,Auto">
+    <Grid RowDefinitions="Auto,Auto" ClipToBounds="False">
         <!-- LIST OVERLAY -->
-        <Grid Grid.Row="0" VerticalAlignment="Bottom" Height="0" ZIndex="5">
+        <Grid Grid.Row="0" VerticalAlignment="Bottom" ZIndex="999" ClipToBounds="False">
+            <Grid.Styles>
+                <Style Selector="Grid[Tag=True]">
+                    <Setter Property="Height" Value="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=TopLevel}, Converter={StaticResource RatioConverter}, ConverterParameter=0.8}"/>
+                </Style>
+                 <Style Selector="Grid[Tag=False]">
+                    <Setter Property="Height" Value="0"/>
+                </Style>
+            </Grid.Styles>
+            
+            <Grid.Tag>
+                <Binding Path="IsSubDeckListOpen"/>
+            </Grid.Tag>
+
             <Border VerticalAlignment="Bottom"
                     IsVisible="{Binding IsSubDeckListOpen}" 
                     MaxHeight="{Binding Bounds.Height, RelativeSource={RelativeSource AncestorType=TopLevel}, Converter={StaticResource RatioConverter}, ConverterParameter=0.75}"

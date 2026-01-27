@@ -465,7 +465,6 @@ namespace CapyCard.ViewModels
         {
             if (_currentDeck == null) return;
 
-            IsSubDeckSelectionVisible = true;
             SubDeckSelectionList.Clear();
 
             foreach (var subDeckVM in SubDecks)
@@ -473,29 +472,38 @@ namespace CapyCard.ViewModels
                 SubDeckSelectionList.Add(new SubDeckSelectionItem(subDeckVM.Deck));
             }
 
-            using (var context = new FlashcardDbContext())
-            {
-                var lastSession = await context.LearningSessions
-                    .AsNoTracking()
-                    .Where(s => s.DeckId == _currentDeck.Id && s.Scope == LearningMode.CustomSelection)
-                    .OrderByDescending(s => s.LastAccessed)
-                    .FirstOrDefaultAsync();
+            IsSubDeckSelectionVisible = true;
 
-                if (lastSession != null && !string.IsNullOrEmpty(lastSession.SelectedDeckIdsJson))
+            try
+            {
+                using (var context = new FlashcardDbContext())
                 {
-                    try 
+                    var lastSession = await context.LearningSessions
+                        .AsNoTracking()
+                        .Where(s => s.DeckId == _currentDeck.Id && s.Scope == LearningMode.CustomSelection)
+                        .OrderByDescending(s => s.LastAccessed)
+                        .FirstOrDefaultAsync();
+
+                    if (lastSession != null && !string.IsNullOrEmpty(lastSession.SelectedDeckIdsJson))
                     {
-                        var selectedIds = JsonSerializer.Deserialize<List<int>>(lastSession.SelectedDeckIdsJson);
-                        if (selectedIds != null)
+                        try 
                         {
-                            foreach (var item in SubDeckSelectionList)
+                            var selectedIds = JsonSerializer.Deserialize<List<int>>(lastSession.SelectedDeckIdsJson);
+                            if (selectedIds != null)
                             {
-                                item.IsSelected = selectedIds.Contains(item.Deck.Id);
+                                foreach (var item in SubDeckSelectionList)
+                                {
+                                    item.IsSelected = selectedIds.Contains(item.Deck.Id);
+                                }
                             }
                         }
+                        catch { /* Ignore json errors */ }
                     }
-                    catch { /* Ignore json errors */ }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load previous selection: {ex.Message}");
             }
         }
         
