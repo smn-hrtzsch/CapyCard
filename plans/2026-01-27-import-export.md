@@ -23,11 +23,11 @@ Implementierung einer vollständigen Import/Export-Funktionalität für Kartenst
 
 ## Unterstützte Formate
 
-| Format | Import | Export | Beschreibung |
-|--------|--------|--------|--------------|
-| `.capycard` (ZIP+JSON) | ✅ | ✅ | Eigenes Format mit Bildern und Fortschritt |
-| `.apkg` (Anki) | ✅ | ✅ | Anki 2.1+ Deck-Pakete |
-| `.csv` | ✅ | ✅ | Einfaches Tabellenformat (Front;Back) |
+| Format                 | Import | Export | Beschreibung                               |
+| ---------------------- | ------ | ------ | ------------------------------------------ |
+| `.capycard` (ZIP+JSON) | ✅     | ✅     | Eigenes Format mit Bildern und Fortschritt |
+| `.apkg` (Anki)         | ✅     | ✅     | Anki 2.1+ Deck-Pakete                      |
+| `.csv`                 | ✅     | ✅     | Einfaches Tabellenformat (Front;Back)      |
 
 ---
 
@@ -35,7 +35,7 @@ Implementierung einer vollständigen Import/Export-Funktionalität für Kartenst
 
 ### Neue Dateien
 
-```
+```tree
 CapyCard/
 ├── Services/
 │   └── ImportExport/
@@ -61,21 +61,22 @@ CapyCard/
 
 ### Betroffene bestehende Dateien
 
-| Datei | Änderung |
-|-------|----------|
-| `DeckListView.axaml` | Import-Button hinzufügen |
-| `DeckListViewModel.cs` | Import-Command hinzufügen |
-| `DeckDetailView.axaml` | Export-Button im Header |
-| `DeckDetailViewModel.cs` | Export-Command hinzufügen |
-| `CardListView.axaml` | Export-Button für ausgewählte Karten |
-| `CardListViewModel.cs` | Export-Command hinzufügen |
-| `MainViewModel.cs` | Dialog-Navigation |
+| Datei                    | Änderung                             |
+| ------------------------ | ------------------------------------ |
+| `DeckListView.axaml`     | Import-Button hinzufügen             |
+| `DeckListViewModel.cs`   | Import-Command hinzufügen            |
+| `DeckDetailView.axaml`   | Export-Button im Header              |
+| `DeckDetailViewModel.cs` | Export-Command hinzufügen            |
+| `CardListView.axaml`     | Export-Button für ausgewählte Karten |
+| `CardListViewModel.cs`   | Export-Command hinzufügen            |
+| `MainViewModel.cs`       | Dialog-Navigation                    |
 
 ---
 
 ## Datenmodelle
 
 ### ImportOptions.cs
+
 ```csharp
 public class ImportOptions
 {
@@ -91,6 +92,7 @@ public enum DuplicateHandling { Skip, Replace, KeepBoth }
 ```
 
 ### ExportOptions.cs
+
 ```csharp
 public class ExportOptions
 {
@@ -148,7 +150,8 @@ public enum ExportScope { FullDeck, SelectedSubDecks, SelectedCards }
 ## Anki-Format (.apkg)
 
 ### Struktur
-```
+
+```tree
 deck.apkg (ZIP-Archiv)
 ├── collection.anki2  (SQLite-Datenbank)
 └── media             (JSON: {"0": "image.jpg", "1": "audio.mp3"})
@@ -158,24 +161,25 @@ deck.apkg (ZIP-Archiv)
 
 ### Mapping: Anki → CapyCard
 
-| Anki | CapyCard | Bemerkung |
-|------|----------|-----------|
-| `notes.flds` (Field 0) | `Card.Front` | Mit HTML → Markdown-Konvertierung |
-| `notes.flds` (Field 1) | `Card.Back` | Mit HTML → Markdown-Konvertierung |
-| `decks` (JSON in col) | `Deck` | Hierarchie aus `::` parsen |
-| `cards.ivl`, `cards.factor` | `CardSmartScore` | Optional, nur bei IncludeProgress |
-| Media-Referenzen `<img src="...">` | Base64 Data-URI | Bilder einbetten |
+| Anki                               | CapyCard         | Bemerkung                         |
+| ---------------------------------- | ---------------- | --------------------------------- |
+| `notes.flds` (Field 0)             | `Card.Front`     | Mit HTML → Markdown-Konvertierung |
+| `notes.flds` (Field 1)             | `Card.Back`      | Mit HTML → Markdown-Konvertierung |
+| `decks` (JSON in col)              | `Deck`           | Hierarchie aus `::` parsen        |
+| `cards.ivl`, `cards.factor`        | `CardSmartScore` | Optional, nur bei IncludeProgress |
+| Media-Referenzen `<img src="...">` | Base64 Data-URI  | Bilder einbetten                  |
 
 ### Mapping: CapyCard → Anki
 
-| CapyCard | Anki | Bemerkung |
-|----------|------|-----------|
-| `Card.Front` | `notes.flds[0]` | Markdown → HTML |
-| `Card.Back` | `notes.flds[1]` | Markdown → HTML |
+| CapyCard                   | Anki             | Bemerkung                     |
+| -------------------------- | ---------------- | ----------------------------- |
+| `Card.Front`               | `notes.flds[0]`  | Markdown → HTML               |
+| `Card.Back`                | `notes.flds[1]`  | Markdown → HTML               |
 | `Deck.Name + SubDeck.Name` | `decks` mit `::` | z.B. "Biologie::Zellbiologie" |
-| Base64 Data-URI | Media-Dateien | Bilder extrahieren |
+| Base64 Data-URI            | Media-Dateien    | Bilder extrahieren            |
 
 ### Anki-Besonderheiten
+
 - **Note Types (Models):** CapyCard verwendet immer "Basic" (2 Felder: Front, Back)
 - **Cloze Deletions:** Werden als Text behandelt (kein spezielles Parsing)
 - **Audio/Video:** Werden als Links behandelt (kein Abspielen in CapyCard)
@@ -186,6 +190,7 @@ deck.apkg (ZIP-Archiv)
 ## CSV-Format
 
 ### Export-Format
+
 ```csv
 Front;Back;Deck;SubDeck;BoxIndex;LastReviewed
 "Was ist Photosynthese?";"Der Prozess...";"Biologie";"Allgemein";3;2026-01-25
@@ -196,6 +201,7 @@ Front;Back;Deck;SubDeck;BoxIndex;LastReviewed
 - **Bilder:** Als `[Bild: img_001.png]` Placeholder (ohne Base64)
 
 ### Import-Format
+
 - Erkennt automatisch Trennzeichen (`;`, `,`, `\t`)
 - Mindestens 2 Spalten (Front, Back)
 - Optionale Header-Zeile (wird erkannt)
@@ -208,12 +214,12 @@ Front;Back;Deck;SubDeck;BoxIndex;LastReviewed
 
 ### Buttons für Import/Export
 
-| Element | Klasse | Icon | Tooltip |
-|---------|--------|------|---------|
-| Import-Button | `Classes="primary"` | `MaterialIcon Kind="Import"` | "Kartenstapel importieren" |
-| Export-Button (Header) | `Classes="primary"` | `MaterialIcon Kind="Export"` | "Fach exportieren" |
-| Export-Button (Thema) | `Classes="icon"` | `MaterialIcon Kind="Export"` | "Thema exportieren" |
-| Info-Button | `Classes="icon"` | `MaterialIcon Kind="InformationOutline"` | "Über Formate" |
+| Element                | Klasse              | Icon                                     | Tooltip                    |
+| ---------------------- | ------------------- | ---------------------------------------- | -------------------------- |
+| Import-Button          | `Classes="primary"` | `MaterialIcon Kind="Import"`             | "Kartenstapel importieren" |
+| Export-Button (Header) | `Classes="primary"` | `MaterialIcon Kind="Export"`             | "Fach exportieren"         |
+| Export-Button (Thema)  | `Classes="icon"`    | `MaterialIcon Kind="Export"`             | "Thema exportieren"        |
+| Info-Button            | `Classes="icon"`    | `MaterialIcon Kind="InformationOutline"` | "Über Formate"             |
 
 ### Dialog-Styling
 
@@ -221,7 +227,7 @@ Alle Import/Export-Dialoge folgen dem bestehenden Overlay-Pattern (siehe `DeckLi
 
 ```xml
 <Grid Background="#80000000"> <!-- Dimmed Overlay -->
-    <Border Background="{DynamicResource SurfaceBrush}" 
+    <Border Background="{DynamicResource SurfaceBrush}"
             Padding="24"
             CornerRadius="28"
             MinWidth="320"
@@ -234,24 +240,24 @@ Alle Import/Export-Dialoge folgen dem bestehenden Overlay-Pattern (siehe `DeckLi
 
 ### Dialog-Elemente
 
-| Element | Styling |
-|---------|---------|
-| Titel | `FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextControlForeground}"` |
-| Beschreibung | `Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"` |
-| Radio-Buttons | Standard Avalonia, mit `Margin="0,8"` |
-| Checkboxen | Standard Avalonia, mit `Margin="0,8"` |
-| Primär-Button | `Classes="primary"` (z.B. "Importieren", "Exportieren") |
-| Abbrechen-Button | `Classes="secondary"` |
+| Element          | Styling                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| Titel            | `FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextControlForeground}"` |
+| Beschreibung     | `Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"`                    |
+| Radio-Buttons    | Standard Avalonia, mit `Margin="0,8"`                                                  |
+| Checkboxen       | Standard Avalonia, mit `Margin="0,8"`                                                  |
+| Primär-Button    | `Classes="primary"` (z.B. "Importieren", "Exportieren")                                |
+| Abbrechen-Button | `Classes="secondary"`                                                                  |
 
 ### Farben (Referenz)
 
-| Verwendung | Resource |
-|------------|----------|
+| Verwendung     | Resource                                                                |
+| -------------- | ----------------------------------------------------------------------- |
 | Primary (Teal) | `{DynamicResource PrimaryBrush}` — `#018786` (Light) / `#03DAC5` (Dark) |
-| Surface | `{DynamicResource SurfaceBrush}` |
-| Text | `{DynamicResource TextControlForeground}` |
-| Muted Text | `{DynamicResource TextMutedBrush}` |
-| Overlay | `#80000000` (50% schwarz) |
+| Surface        | `{DynamicResource SurfaceBrush}`                                        |
+| Text           | `{DynamicResource TextControlForeground}`                               |
+| Muted Text     | `{DynamicResource TextMutedBrush}`                                      |
+| Overlay        | `#80000000` (50% schwarz)                                               |
 
 ---
 
@@ -273,13 +279,13 @@ Die **Position im Text** bestimmt, wo das Bild auf der Karte erscheint.
 
 ### Konvertierungsregeln
 
-| Richtung | Transformation | Position erhalten? |
-|----------|----------------|-------------------|
-| CapyCard → CapyCard | Keine (1:1 Kopie) | ✅ Ja |
-| CapyCard → Anki | `![alt](data:...)` → `<img src="0">` | ✅ Ja |
-| Anki → CapyCard | `<img src="0">` → `![Bild](data:...)` | ✅ Ja |
-| CapyCard → CSV | `![alt](data:...)` → `[Bild: 1]` | ✅ Ja (Platzhalter) |
-| CSV → CapyCard | Keine Bilder möglich | ❌ N/A |
+| Richtung            | Transformation                        | Position erhalten?  |
+| ------------------- | ------------------------------------- | ------------------- |
+| CapyCard → CapyCard | Keine (1:1 Kopie)                     | ✅ Ja               |
+| CapyCard → Anki     | `![alt](data:...)` → `<img src="0">`  | ✅ Ja               |
+| Anki → CapyCard     | `<img src="0">` → `![Bild](data:...)` | ✅ Ja               |
+| CapyCard → CSV      | `![alt](data:...)` → `[Bild: 1]`      | ✅ Ja (Platzhalter) |
+| CSV → CapyCard      | Keine Bilder möglich                  | ❌ N/A              |
 
 ### Implementierungsdetails
 
@@ -325,7 +331,7 @@ var imgRegex = new Regex(@"<img\s+src=""(\d+)""[^>]*>");
 
 Platzierung: Rechts neben dem "Fach hinzufügen"-Button
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ Meine Fächer                                │
 ├─────────────────────────────────────────────┤
@@ -340,7 +346,7 @@ Platzierung: Rechts neben dem "Fach hinzufügen"-Button
 
 Platzierung: Im Header neben dem Deck-Namen
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ [← Zurück]  Biologie          [↑ Export]    │
 └─────────────────────────────────────────────┘
@@ -350,7 +356,7 @@ Platzierung: Im Header neben dem Deck-Namen
 
 Jedes Unterthema erhält einen kleinen Export-Button:
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ Themen                                      │
 ├─────────────────────────────────────────────┤
@@ -363,7 +369,7 @@ Jedes Unterthema erhält einen kleinen Export-Button:
 
 Neben dem PDF-Export-Button:
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │ [PDF] [Export] — 5 Karten ausgewählt        │
 └─────────────────────────────────────────────┘
@@ -371,7 +377,7 @@ Neben dem PDF-Export-Button:
 
 ### 5. Import-Dialog
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │ Kartenstapel importieren                    [X] │
 ├─────────────────────────────────────────────────┤
@@ -393,7 +399,7 @@ Neben dem PDF-Export-Button:
 
 ### 6. Export-Dialog
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │ Kartenstapel exportieren                    [X] │
 ├─────────────────────────────────────────────────┤
@@ -423,7 +429,7 @@ Neben dem PDF-Export-Button:
 
 ### 7. Format-Info-Dialog
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │ Import/Export Formate                       [X] │
 ├─────────────────────────────────────────────────┤
@@ -527,23 +533,23 @@ Neben dem PDF-Export-Button:
 
 ### Technische Risiken
 
-| Risiko | Mitigation |
-|--------|------------|
-| Anki-Format-Änderungen | Versionscheck einbauen, nur v11+ unterstützen |
-| Große Dateien (>100MB) | Streaming, Progress-Anzeige, Speicheroptimierung |
-| iOS Sandbox-Einschränkungen | `StorageProvider` von Avalonia verwenden |
-| SQLite-Version im Anki-Format | Microsoft.Data.Sqlite verwenden (flexibel) |
+| Risiko                        | Mitigation                                       |
+| ----------------------------- | ------------------------------------------------ |
+| Anki-Format-Änderungen        | Versionscheck einbauen, nur v11+ unterstützen    |
+| Große Dateien (>100MB)        | Streaming, Progress-Anzeige, Speicheroptimierung |
+| iOS Sandbox-Einschränkungen   | `StorageProvider` von Avalonia verwenden         |
+| SQLite-Version im Anki-Format | Microsoft.Data.Sqlite verwenden (flexibel)       |
 
 ### Edge-Cases
 
-| Fall | Verhalten |
-|------|-----------|
-| Doppelte Karten | Dialog: "Überspringen / Ersetzen / Beide behalten" |
-| Karten ohne Deck-Zuordnung | In "Allgemein"-Unterdeck importieren |
-| Bilder mit unsupportetem Format | Als Text-Platzhalter `[Bild nicht unterstützt]` |
-| Anki Cloze-Karten | Als normale Karten mit `{{c1::text}}` als Text |
-| Audio/Video in Anki | Als `[Audio: datei.mp3]` Platzhalter |
-| Leere Felder | Warnung anzeigen, aber Import erlauben |
+| Fall                            | Verhalten                                          |
+| ------------------------------- | -------------------------------------------------- |
+| Doppelte Karten                 | Dialog: "Überspringen / Ersetzen / Beide behalten" |
+| Karten ohne Deck-Zuordnung      | In "Allgemein"-Unterdeck importieren               |
+| Bilder mit unsupportetem Format | Als Text-Platzhalter `[Bild nicht unterstützt]`    |
+| Anki Cloze-Karten               | Als normale Karten mit `{{c1::text}}` als Text     |
+| Audio/Video in Anki             | Als `[Audio: datei.mp3]` Platzhalter               |
+| Leere Felder                    | Warnung anzeigen, aber Import erlauben             |
 
 ---
 
@@ -551,11 +557,11 @@ Neben dem PDF-Export-Button:
 
 ### Neue NuGet-Pakete
 
-| Paket | Zweck |
-|-------|-------|
-| `Microsoft.Data.Sqlite` | Anki .anki2 lesen/schreiben |
-| *(bereits vorhanden)* `System.IO.Compression` | ZIP-Handling |
-| *(bereits vorhanden)* `System.Text.Json` | JSON-Serialisierung |
+| Paket                                         | Zweck                       |
+| --------------------------------------------- | --------------------------- |
+| `Microsoft.Data.Sqlite`                       | Anki .anki2 lesen/schreiben |
+| _(bereits vorhanden)_ `System.IO.Compression` | ZIP-Handling                |
+| _(bereits vorhanden)_ `System.Text.Json`      | JSON-Serialisierung         |
 
 ### Bestehende Nutzung
 
@@ -569,23 +575,25 @@ Neben dem PDF-Export-Button:
 
 ### Übersicht
 
-| Plattform | Datei-Picker | Export-Methode | SQLite | Status |
-|-----------|--------------|----------------|--------|--------|
-| **Desktop** (Win/Mac/Linux) | Native Dialog | Speichern unter... | ✅ Nativ | Volle Funktionalität |
-| **iOS** | `UIDocumentPickerViewController` | Share Sheet / Speichern | ✅ via Microsoft.Data.Sqlite | Volle Funktionalität |
-| **Android** | Storage Access Framework (SAF) | Share Intent / Speichern | ✅ via Microsoft.Data.Sqlite | Volle Funktionalität |
-| **Browser (WASM)** | `<input type="file">` | Blob-Download | ⚠️ sql.js (WebAssembly) | Eingeschränkt* |
+| Plattform                   | Datei-Picker                     | Export-Methode           | SQLite                       | Status               |
+| --------------------------- | -------------------------------- | ------------------------ | ---------------------------- | -------------------- |
+| **Desktop** (Win/Mac/Linux) | Native Dialog                    | Speichern unter...       | ✅ Nativ                     | Volle Funktionalität |
+| **iOS**                     | `UIDocumentPickerViewController` | Share Sheet / Speichern  | ✅ via Microsoft.Data.Sqlite | Volle Funktionalität |
+| **Android**                 | Storage Access Framework (SAF)   | Share Intent / Speichern | ✅ via Microsoft.Data.Sqlite | Volle Funktionalität |
+| **Browser (WASM)**          | `<input type="file">`            | Blob-Download            | ⚠️ sql.js (WebAssembly)      | Eingeschränkt\*      |
 
-*Browser: Anki-Import/Export erfordert `sql.js` für SQLite-Unterstützung im Browser. Alternativ: Anki-Format im Browser deaktivieren und nur CapyCard/CSV anbieten.
+\*Browser: Anki-Import/Export erfordert `sql.js` für SQLite-Unterstützung im Browser. Alternativ: Anki-Format im Browser deaktivieren und nur CapyCard/CSV anbieten.
 
 ### Technische Details pro Plattform
 
 #### Desktop (Windows, macOS, Linux)
+
 - **Datei-Dialoge:** `TopLevel.StorageProvider.OpenFilePickerAsync()` / `SaveFilePickerAsync()`
 - **Keine Einschränkungen:** Voller Dateisystem-Zugriff
 - **SQLite:** Verwendet native SQLite-Bibliothek via `Microsoft.Data.Sqlite`
 
 #### iOS
+
 - **Datei-Dialoge:** Avalonia mappt auf `UIDocumentPickerViewController`
 - **Export-Alternative:** Share Sheet (`UIActivityViewController`) für "Teilen an..." (AirDrop, Mail, etc.)
 - **Sandbox:** Nur Zugriff auf von Nutzer ausgewählte Dateien (kein direkter Dateisystem-Zugriff)
@@ -605,6 +613,7 @@ public async Task ShareFileAsync(string filePath)
 ```
 
 #### Android
+
 - **Datei-Dialoge:** Avalonia nutzt Storage Access Framework (SAF) seit Android 11
 - **Export-Alternative:** Share Intent für "Teilen an..." (WhatsApp, Drive, etc.)
 - **Berechtigungen:** Keine zusätzlichen Berechtigungen nötig (SAF ist permission-less)
@@ -616,10 +625,10 @@ public async Task ShareFileAsync(string filePath)
 public void ShareFile(string filePath, string mimeType)
 {
     var uri = AndroidX.Core.Content.FileProvider.GetUriForFile(
-        Platform.CurrentActivity, 
-        $"{Platform.CurrentActivity.PackageName}.fileprovider", 
+        Platform.CurrentActivity,
+        $"{Platform.CurrentActivity.PackageName}.fileprovider",
         new Java.IO.File(filePath));
-    
+
     var intent = new Intent(Intent.ActionSend);
     intent.SetType(mimeType);
     intent.PutExtra(Intent.ExtraStream, uri);
@@ -630,6 +639,7 @@ public void ShareFile(string filePath, string mimeType)
 ```
 
 #### Browser (WASM)
+
 - **Import:** `<input type="file">` via Avalonia's `StorageProvider`
 - **Export:** Blob-Download (automatischer Download im Browser)
 - **SQLite-Problem:** Browser hat keinen nativen SQLite-Zugriff
@@ -644,7 +654,7 @@ public IEnumerable<ExportFormat> GetAvailableFormats()
 {
     yield return ExportFormat.CapyCard;
     yield return ExportFormat.CSV;
-    
+
     #if !BROWSER
     yield return ExportFormat.Anki; // Anki nur auf nativen Plattformen
     #endif
@@ -664,13 +674,13 @@ public IEnumerable<ExportFormat> GetAvailableFormats()
 ## Offene Fragen
 
 1. **Konfliktbehandlung bei Import:** Soll der Nutzer bei jedem Duplikat gefragt werden, oder einmal für alle?
-   - *Empfehlung:* Einmal zu Beginn wählen ("Für alle übernehmen")
+   - _Empfehlung:_ Einmal zu Beginn wählen ("Für alle übernehmen")
 
 2. **Anki-Notiztypen:** Sollen komplexe Note Types (>2 Felder) unterstützt werden?
-   - *Empfehlung:* Vorerst nur "Basic" (2 Felder). Warnung bei anderen.
+   - _Empfehlung:_ Vorerst nur "Basic" (2 Felder). Warnung bei anderen.
 
 3. **RemNote-Format:** Soll RemNote (.rem, .md) ebenfalls unterstützt werden?
-   - *Empfehlung:* In Phase 2 als separates Feature planen
+   - _Empfehlung:_ In Phase 2 als separates Feature planen
 
 ---
 
