@@ -213,52 +213,53 @@
                 </ItemsControl>
             </DockPanel>
             
-            <!-- Confirmation Dialog Overlay -->
-            <Grid IsVisible="{Binding IsConfirmingDelete}"
-                  Grid.Row="0"
-                  Background="#80000000">
-                <Border Background="{DynamicResource SurfaceBrush}" 
-                        Padding="24"
-                        Margin="24"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center"
-                        MaxWidth="400"
-                        CornerRadius="28"
-                        BoxShadow="0 4 10 0 #40000000">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Spacing="16" HorizontalAlignment="Stretch" Margin="0,0,12,12">
-                        <TextBlock Text="Fach löschen?" 
-                                   FontSize="20" FontWeight="Bold"
-                                   TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextControlForeground}"/>
-                        <TextBlock Text="Möchtest du dieses Fach und alle Karten wirklich löschen? Das kann nicht rückgängig gemacht werden."
-                                   TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextMutedBrush}"/>
-                        
-                        <Grid ColumnDefinitions="*,*" Margin="0,8,0,4">
-                            <Button Content="Abbrechen" 
-                                    Command="{Binding CancelDeleteCommand}"
-                                    Classes="secondary"
-                                    Grid.Column="0"
-                                    Margin="0,0,4,0"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center"/>
-                            
-                            <Button Content="Löschen" 
-                                    Command="{Binding ConfirmDeleteCommand}"
-                                    Classes="destructive"
-                                    Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    HorizontalAlignment="Stretch"
-                                    HorizontalContentAlignment="Center"/>
-                        </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
-                </Border>
-            </Grid>
-            
             </Grid>
         </ScrollViewer>
+        
+        <!-- Confirmation Dialog Overlay -->
+        <Grid IsVisible="{Binding IsConfirmingDelete}"
+              Background="#80000000">
+            <Border Background="{DynamicResource SurfaceBrush}" 
+                    Padding="24"
+                    Margin="24"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center"
+                    MaxWidth="400"
+                    CornerRadius="28"
+                    BoxShadow="0 4 10 0 #40000000">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Fach löschen?" 
+                               FontSize="20" FontWeight="Bold"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextControlForeground}"/>
+                    <TextBlock Text="Möchtest du dieses Fach und alle Karten wirklich löschen? Das kann nicht rückgängig gemacht werden."
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
+                    
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Content="Abbrechen" 
+                                Command="{Binding CancelDeleteCommand}"
+                                Classes="secondary"
+                                Grid.Column="0"
+                                Margin="0,0,4,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Abbrechen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                        
+                        <Button Content="Löschen" 
+                                Command="{Binding ConfirmDeleteCommand}"
+                                Classes="destructive"
+                                Grid.Column="1"
+                                Margin="4,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Löschen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
         
         <!-- Import Dialog Overlay -->
         <views:ImportDialog DataContext="{Binding ImportViewModel}"/>
