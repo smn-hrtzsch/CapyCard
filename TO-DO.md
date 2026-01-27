@@ -31,15 +31,18 @@
 
 ## Bugs
 
-- [ ] Der Export Dialog und der Import Dialog sollten noch breiter sein und kann auch, solange es die Bildschirmgröße zulässt höher sein. Momentan ist auch der die Scroll Leiste viel zu nah am Text und dem Inhalt des Dialogs, da muss mehr Abstand hin, siehe Screenshot: 
 - [ ] Styling der Radio Buttons im Import und Export Dialog sind noch nicht korrekt: es wird noch die System Akzentfarbe für den Rahmen benutzt, obwohl es einfach nur der Teal sein sollte, wenn die Option ausgewählt ist. Siehe Screenshot: 
 - [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
+- [ ] Position des x-Buttons zum Schließen des Import/Export Dialogs ist nicht schön, sie sollte wirklich oben rechts am Rand sein, sie ist aber viel weiter richtung Mitte versetzt. Außerdem ist der Hover Effekt zu dezent.
+- [ ] Wenn die Fenstergröße zu schmal wird, sollte im DeckDetailView die Eingabe für die Karten untereinander sein, wie auf Mobile Geräten, um den Platz besser zu nutzen. Momentan wird die Eingabe für die Karten immer kleiner, wenn das Fenster schmaler wird, was nicht schön aussieht.
+- [ ] Bei sehr schmalem Display ist die Fortschrittsanzeige im Lern Modus nicht schön, der Text zum Lernmodus und die Anzahl oder Prozentanzeige werden von der Progressbar überschattet und verdeckt. Das Layout sollte sich anpassen, sodass der Text und die Anzeige immer sichtbar sind.
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 
 ## Fixed Bugs
 
+- [x] Der Export Dialog und der Import Dialog sollten noch breiter sein und kann auch, solange es die Bildschirmgröße zulässt höher sein. Momentan ist auch der die Scroll Leiste viel zu nah am Text und dem Inhalt des Dialogs, da muss mehr Abstand hin, siehe Screenshot: 
 - [x] Text oder Icon Farbe für die Hinzufügen-Buttons und Import/Export-Buttons im DeckListView und DeckdetailView sollten auch in einem Grau sein, wie der Text der "Zurück zur Fächerliste" Button zum Beispiel. Das Design sollte einheitlich sein.
 - [x] Beim Build des Projekts werden einige Warnungen für WASM angezeigt. Ich möchte bis aus weiteres erstmal keine WASM Entwicklung anstreben, entferne es also erstmal aus der sln oder der csproj Datei, sodass die Warnungen weg sind. Wenn man es einfach deaktivieren kann, dass WASM immer mit gebaut wird, dann wäre das auch okay.
 - [x] "Themen"-Button im CardDetailView funktioniert nicht mehr (öffnet das Themen-Auswahl-Menü nicht mehr)

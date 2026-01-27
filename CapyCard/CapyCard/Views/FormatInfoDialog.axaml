@@ -13,12 +13,14 @@
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
                 Padding="24"
+                Margin="24"
                 VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                MinWidth="400"
-                MaxWidth="500"
+                HorizontalAlignment="Stretch"
+                MaxWidth="450"
+                MaxHeight="800"
                 BoxShadow="0 4 16 0 #40000000">
-            <StackPanel Spacing="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <StackPanel Spacing="20" HorizontalAlignment="Stretch" Margin="0,0,12,24">
                 <!-- Header -->
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Import/Export Formate"
@@ -89,8 +91,9 @@
                         Classes="primary"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        Margin="0,8,0,0"/>
-            </StackPanel>
+                        Margin="0,8,0,12"/>
+                </StackPanel>
+            </ScrollViewer>
         </Border>
     </Grid>
 </UserControl>

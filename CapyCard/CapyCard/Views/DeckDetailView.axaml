@@ -75,13 +75,16 @@
         <Grid IsVisible="{Binding IsSubDeckSelectionVisible}" Background="#80000000">
             <Border Background="{DynamicResource SurfaceBrush}" 
                     CornerRadius="28" Padding="24" 
-                    VerticalAlignment="Center" HorizontalAlignment="Center" 
-                    MinWidth="320" MaxHeight="500"
+                    Margin="24"
+                    VerticalAlignment="Center" HorizontalAlignment="Stretch" 
+                    MaxWidth="400" MaxHeight="500"
                     BoxShadow="0 4 16 0 #40000000">
-                <Grid RowDefinitions="Auto,*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch" Margin="0,0,12,24">
                     <TextBlock Text="Themen auswählen" 
                                FontSize="20" FontWeight="Bold" 
                                Margin="0,0,0,16"
+                               TextWrapping="Wrap"
                                Foreground="{DynamicResource TextControlForeground}"/>
                     
                     <ScrollViewer Grid.Row="1">
@@ -96,15 +99,24 @@
                         </ItemsControl>
                     </ScrollViewer>
                     
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16" Margin="0,24,0,0">
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,24,0,12">
                         <Button Command="{Binding CancelSubDeckSelectionCommand}" 
                                 Content="Abbrechen" 
-                                Classes="secondary"/>
+                                Classes="secondary"
+                                Grid.Column="0"
+                                Margin="0,0,8,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
                         <Button Command="{Binding StartLearningCustomCommand}" 
                                 Content="Starten" 
-                                Classes="primary"/>
-                    </StackPanel>
-                </Grid>
+                                Classes="primary"
+                                Grid.Column="1"
+                                Margin="8,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                    </Grid>
+                    </Grid>
+                </ScrollViewer>
             </Border>
         </Grid>
 
@@ -112,20 +124,23 @@
         <Grid IsVisible="{Binding IsConfirmingDeleteSubDeck}" Background="#80000000">
             <Border Background="{DynamicResource SurfaceBrush}" 
                     Padding="24"
-                    HorizontalAlignment="Center"
+                    Margin="24"
+                    HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
+                    MaxWidth="400"
                     CornerRadius="28"
-                    MinWidth="320"
                     BoxShadow="0 4 16 0 #40000000">
-                <StackPanel Spacing="16">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="16" HorizontalAlignment="Stretch" Margin="0,0,12,24">
                     <TextBlock Text="Thema löschen?" 
                                FontSize="20" FontWeight="Bold"
+                               TextWrapping="Wrap"
                                Foreground="{DynamicResource TextControlForeground}"/>
                     <TextBlock Text="Möchtest du dieses Thema und alle Karten wirklich löschen?"
                                TextWrapping="Wrap"
                                Foreground="{DynamicResource TextMutedBrush}"/>
                     
-                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,12">
                         <Button Content="Abbrechen" 
                                 Command="{Binding CancelDeleteSubDeckCommand}"
                                 Classes="secondary"
@@ -142,7 +157,8 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Center"/>
                     </Grid>
-                </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
         
