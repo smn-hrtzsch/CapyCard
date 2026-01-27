@@ -72,19 +72,22 @@
         </Grid>
         
         <!-- POPUP OVERLAY (Selection) -->
-        <Grid IsVisible="{Binding IsSubDeckSelectionVisible}" Background="#80000000">
+        <Grid IsVisible="{Binding IsSubDeckSelectionVisible}" Background="#80000000" ZIndex="200">
             <Border Background="{DynamicResource SurfaceBrush}" 
                     CornerRadius="28" Padding="24" 
-                    VerticalAlignment="Center" HorizontalAlignment="Center" 
-                    MinWidth="320" MaxHeight="500"
+                    Margin="24"
+                    VerticalAlignment="Center" HorizontalAlignment="Stretch" 
+                    MaxWidth="450" MaxHeight="600"
                     BoxShadow="0 4 16 0 #40000000">
-                <Grid RowDefinitions="Auto,*,Auto">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch" MinWidth="300" Margin="0,0,12,12">
                     <TextBlock Text="Themen auswählen" 
                                FontSize="20" FontWeight="Bold" 
                                Margin="0,0,0,16"
+                               TextWrapping="Wrap"
                                Foreground="{DynamicResource TextControlForeground}"/>
                     
-                    <ScrollViewer Grid.Row="1">
+                    <ScrollViewer Grid.Row="1" MaxHeight="300">
                         <ItemsControl ItemsSource="{Binding SubDeckSelectionList}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -96,30 +99,43 @@
                         </ItemsControl>
                     </ScrollViewer>
                     
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="16" Margin="0,24,0,0">
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,16,0,4">
                         <Button Command="{Binding CancelSubDeckSelectionCommand}" 
-                                Content="Abbrechen" 
-                                Classes="secondary"/>
+                                Classes="secondary"
+                                Grid.Column="0"
+                                Margin="0,0,4,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Abbrechen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
                         <Button Command="{Binding StartLearningCustomCommand}" 
-                                Content="Starten" 
-                                Classes="primary"/>
-                    </StackPanel>
-                </Grid>
+                                Classes="primary"
+                                Grid.Column="1"
+                                Margin="4,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Starten" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                    </Grid>
+                </ScrollViewer>
             </Border>
         </Grid>
 
         <!-- DELETE CONFIRMATION OVERLAY -->
-        <Grid IsVisible="{Binding IsConfirmingDeleteSubDeck}" Background="#80000000">
+        <Grid IsVisible="{Binding IsConfirmingDeleteSubDeck}" Background="#80000000" ZIndex="200">
             <Border Background="{DynamicResource SurfaceBrush}" 
                     Padding="24"
-                    HorizontalAlignment="Center"
+                    Margin="24"
+                    HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
+                    MaxWidth="400"
                     CornerRadius="28"
-                    MinWidth="320"
                     BoxShadow="0 4 16 0 #40000000">
                 <StackPanel Spacing="16">
                     <TextBlock Text="Thema löschen?" 
                                FontSize="20" FontWeight="Bold"
+                               TextWrapping="Wrap"
                                Foreground="{DynamicResource TextControlForeground}"/>
                     <TextBlock Text="Möchtest du dieses Thema und alle Karten wirklich löschen?"
                                TextWrapping="Wrap"
@@ -130,17 +146,21 @@
                                 Command="{Binding CancelDeleteSubDeckCommand}"
                                 Classes="secondary"
                                 Grid.Column="0"
-                                Margin="0,0,8,0"
+                                Margin="0,0,4,0"
                                 HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"/>
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Abbrechen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
                         
                         <Button Content="Löschen" 
                                 Command="{Binding ConfirmDeleteSubDeckCommand}"
                                 Classes="destructive"
                                 Grid.Column="1"
-                                Margin="8,0,0,0"
+                                Margin="4,0,0,0"
                                 HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"/>
+                                HorizontalContentAlignment="Center">
+                            <TextBlock Text="Löschen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
                     </Grid>
                 </StackPanel>
             </Border>
