@@ -50,6 +50,7 @@
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FF333333"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FF808080"/>
                     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
+                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
                     
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFE0E0E0"/>
@@ -84,6 +85,7 @@
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FFDDDDDD"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA5A5A7"/>
                     <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FF000000"/>
+                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
 
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FF424242"/>

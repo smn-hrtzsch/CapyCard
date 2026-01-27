@@ -23,18 +23,18 @@
         <Grid RowDefinitions="Auto,*,Auto" ClipToBounds="False">
             <!-- 1. HEADER (Top) -->
             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="16">
-                <Button Command="{Binding GoBackCommand}" 
-                        Classes="primary"
-                        Grid.Column="0"
-                        HorizontalAlignment="Left"
-                        Margin="0,0,12,0"
-                        ToolTip.Tip="{Binding BackButtonText}"
-                        Padding="12,8">
-                     <StackPanel Orientation="Horizontal" Spacing="8">
-                         <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" Foreground="#FFDDDDDD"/>
-                         <TextBlock Text="{Binding BackButtonText}" Foreground="#FFDDDDDD" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                     </StackPanel>
-                </Button>
+                 <Button Command="{Binding GoBackCommand}" 
+                         Classes="primary"
+                         Grid.Column="0"
+                         HorizontalAlignment="Left"
+                         Margin="0,0,12,0"
+                         ToolTip.Tip="{Binding BackButtonText}"
+                         Padding="12,8">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                          <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
+                          <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                      </StackPanel>
+                 </Button>
                 
                 <TextBlock Text="{Binding DeckName}" 
                            Grid.Column="1"
@@ -53,9 +53,8 @@
                         ToolTip.Tip="Kartenstapel exportieren"
                         IsVisible="{Binding IsRootDeck}">
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                        <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="24" Height="24" Foreground="{DynamicResource BackgroundBrush}"/>
+                        <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="24" Height="24"/>
                         <TextBlock Text="Export" 
-                                   Foreground="{DynamicResource BackgroundBrush}" 
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding !#Root.IsCompactMode}"/>
                     </StackPanel>
