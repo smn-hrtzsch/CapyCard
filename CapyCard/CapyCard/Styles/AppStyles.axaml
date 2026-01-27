@@ -4,7 +4,7 @@
     <!-- Primary Button (Pill Shape) - Filled teal button with light text -->
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="20,10"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
@@ -12,43 +12,43 @@
     
     <!-- Force light text on hover by targeting the ContentPresenter -->
     <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
     </Style>
     
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
     
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.7"/>
     </Style>
 
     <!-- Destructive Button (Delete/Remove actions - Red with light text) -->
     <Style Selector="Button.destructive">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="20,10"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
     
     <Style Selector="Button.destructive /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
     </Style>
     
     <Style Selector="Button.destructive:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
     
     <Style Selector="Button.destructive:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource ErrorBrush}"/>
-        <Setter Property="Foreground" Value="#FFDDDDDD"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.7"/>
     </Style>
 
@@ -126,8 +126,8 @@
     
     <!-- FAB Button (Floating Action Button - Bright teal) -->
     <Style Selector="Button.fab">
-        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="MinWidth" Value="50"/>
         <Setter Property="MinHeight" Value="50"/>
@@ -135,18 +135,18 @@
     </Style>
     
     <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
     </Style>
     
     <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.85"/>
     </Style>
     
     <Style Selector="Button.fab:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource BackgroundBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
         <Setter Property="Opacity" Value="0.7"/>
     </Style>
 
