@@ -20,12 +20,13 @@
                 MaxHeight="800"
                 BoxShadow="0 4 16 0 #40000000">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <StackPanel Spacing="20" HorizontalAlignment="Stretch" Margin="0,0,12,24">
+                <StackPanel Spacing="20" HorizontalAlignment="Stretch" MinWidth="320" Margin="0,0,12,12">
                 <!-- Header -->
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Import/Export Formate"
                                FontSize="20"
                                FontWeight="Bold"
+                               TextWrapping="Wrap"
                                Foreground="{DynamicResource TextControlForeground}"
                                Grid.Column="0"/>
                     <Button Command="{Binding CloseCommand}"
@@ -43,6 +44,7 @@
                                                    Foreground="{DynamicResource PrimaryBrush}"/>
                         <TextBlock Text="CAPYCARD (.capycard)"
                                    FontWeight="Bold"
+                                   TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextControlForeground}"/>
                     </StackPanel>
                     <TextBlock Text="Das native Format von CapyCard. Enthält alle Karten mit Formatierung, Bildern und optional deinen Lernfortschritt. Ideal zum Teilen mit anderen CapyCard-Nutzern."
@@ -60,6 +62,7 @@
                                                    Foreground="{DynamicResource PrimaryBrush}"/>
                         <TextBlock Text="ANKI (.apkg)"
                                    FontWeight="Bold"
+                                   TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextControlForeground}"/>
                     </StackPanel>
                     <TextBlock Text="Kompatibel mit Anki und AnkiDroid. Ermöglicht den Austausch mit Millionen von geteilten Kartenstapeln auf ankiweb.net. Bilder werden unterstützt."
@@ -77,6 +80,7 @@
                                                    Foreground="{DynamicResource PrimaryBrush}"/>
                         <TextBlock Text="CSV (.csv)"
                                    FontWeight="Bold"
+                                   TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextControlForeground}"/>
                     </StackPanel>
                     <TextBlock Text="Einfaches Tabellenformat. Öffne die Datei in Excel oder Google Sheets zum Bearbeiten. Bilder werden nicht unterstützt und als Platzhalter exportiert."
@@ -91,7 +95,7 @@
                         Classes="primary"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        Margin="0,8,0,12"/>
+                        Margin="0,8,0,4"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>
