@@ -19,8 +19,8 @@
     </UserControl.KeyBindings>
     
     <!-- OUTER GRID FOR OVERLAYS -->
-    <Grid>
-        <Grid RowDefinitions="Auto,*,Auto">
+    <Grid ClipToBounds="False">
+        <Grid RowDefinitions="Auto,*,Auto" ClipToBounds="False">
             <!-- 1. HEADER (Top) -->
             <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="16">
                 <Button Command="{Binding GoBackCommand}" 
@@ -63,10 +63,11 @@
             </Grid>
             
             <!-- 2. DECK EDITOR (Content) -->
-            <views:DeckEditorControl Grid.Row="1" />
+            <views:DeckEditorControl Grid.Row="1" BottomSpacerHeight="{Binding #SubDeckList.FooterHeight}" />
 
             <!-- 3. SUBDECK LIST OVERLAY (Bottom of Content Area) -->
-            <views:SubDeckListControl Grid.Row="2" 
+            <views:SubDeckListControl x:Name="SubDeckList" Grid.Row="1" Grid.RowSpan="2" ZIndex="100"
+                                      VerticalAlignment="Bottom"
                                       IsVisible="{Binding CanAddSubDecks}"
                                       IsCompactMode="{Binding #Root.IsCompactMode}"/>
         </Grid>

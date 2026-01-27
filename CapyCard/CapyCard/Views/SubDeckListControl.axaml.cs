@@ -24,10 +24,38 @@ namespace CapyCard.Views
             set => SetValue(IsCompactModeProperty, value);
         }
 
+        public static readonly StyledProperty<double> FooterHeightProperty =
+            AvaloniaProperty.Register<SubDeckListControl, double>(nameof(FooterHeight));
+
+        public double FooterHeight
+        {
+            get => GetValue(FooterHeightProperty);
+            private set => SetValue(FooterHeightProperty, value);
+        }
+
         public SubDeckListControl()
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            
+            ToggleContainer.SizeChanged += OnFooterElementSizeChanged;
+            InputContainer.SizeChanged += OnFooterElementSizeChanged;
+        }
+
+        private void OnFooterElementSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+             // Calculate total height of the fixed footer area (Toggle Button + Input)
+             // Toggle Button is in Row 0 but bottom aligned (so it sits on top of Input)
+             // Input is in Row 1
+             // Total Height = ToggleButton.Bounds.Height + InputContainer.Bounds.Height
+             
+             // We use Bounds.Height because e.NewSize might only be for one element
+             // But be careful about Margins. ToggleContainer has Bottom Margin.
+             
+             var toggleHeight = ToggleContainer.Bounds.Height + ToggleContainer.Margin.Bottom + ToggleContainer.Margin.Top;
+             var inputHeight = InputContainer.Bounds.Height + InputContainer.Margin.Bottom + InputContainer.Margin.Top;
+             
+             FooterHeight = toggleHeight + inputHeight;
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
