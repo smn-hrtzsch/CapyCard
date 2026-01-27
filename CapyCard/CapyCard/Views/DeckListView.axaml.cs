@@ -2,30 +2,84 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using CapyCard.Services;
 using CapyCard.ViewModels;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CapyCard.Views
 {
     public partial class DeckListView : UserControl
     {
+        public static readonly StyledProperty<bool> IsCompactModeProperty =
+            AvaloniaProperty.Register<DeckListView, bool>(nameof(IsCompactMode));
+
+        public bool IsCompactMode
+        {
+            get => GetValue(IsCompactModeProperty);
+            set => SetValue(IsCompactModeProperty, value);
+        }
+
         public DeckListView()
         {
             InitializeComponent();
+            SizeChanged += OnSizeChanged;
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < 600;
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
             NewDeckTextBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
+            
+            // Wire up file picker for import
+            if (DataContext is DeckListViewModel vm)
+            {
+                vm.OnRequestFileOpen += OpenFilePickerAsync;
+            }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
             NewDeckTextBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
+            
+            // Unwire file picker
+            if (DataContext is DeckListViewModel vm)
+            {
+                vm.OnRequestFileOpen -= OpenFilePickerAsync;
+            }
+        }
+
+        private async Task<IStorageFile?> OpenFilePickerAsync()
+        {
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return null;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Kartenstapel importieren",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("Alle unterstützten Formate")
+                    {
+                        Patterns = new[] { "*.capycard", "*.apkg", "*.csv" }
+                    },
+                    new FilePickerFileType("CapyCard") { Patterns = new[] { "*.capycard" } },
+                    new FilePickerFileType("Anki Deck") { Patterns = new[] { "*.apkg" } },
+                    new FilePickerFileType("CSV") { Patterns = new[] { "*.csv" } }
+                }
+            });
+
+            return files.FirstOrDefault();
         }
 
         private void OnInputKeyDown(object? sender, KeyEventArgs e)

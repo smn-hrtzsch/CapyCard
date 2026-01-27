@@ -22,20 +22,27 @@
 
 ## UI-Overhaul
 
-- [ ] Komplett neues App Design:
-  - [ ] Orientierung am Design der Shopping List App (siehe Referenz für Farben und Styles)
-  - [ ] Neues Farbschema
-  - [ ] einheitliche Design-Sprache bei Icons
-  - [ ] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
-  - [ ] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
+- [x] Komplett neues App Design:
+  - [x] Orientierung am Design der Shopping List App (siehe Referenz für Farben und Styles)
+  - [x] Neues Farbschema
+  - [x] einheitliche Design-Sprache bei Icons
+  - [x] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
+  - [x] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
 
 ## Bugs
 
+- [ ] Text oder Icon Farbe für die Hinzufügen-Buttons und Import/Export-Buttons im DeckListView und DeckdetailView sollten auch in einem Grau sein, wie der Text der "Zurück zur Fächerliste" Button zum Beispiel. Das Design sollte einheitlich sein.
+- [ ] Der Export Dialog und der Import Dialog sollten noch breiter sein und kann auch, solange es die Bildschirmgröße zulässt höher sein. Momentan ist auch der die Scroll Leiste viel zu nah am Text und dem Inhalt des Dialogs, da muss mehr Abstand hin, siehe Screenshot: 
+- [ ] Styling der Radio Buttons im Import und Export Dialog sind noch nicht korrekt: es wird noch die System Akzentfarbe für den Rahmen benutzt, obwohl es einfach nur der Teal sein sollte, wenn die Option ausgewählt ist. Siehe Screenshot: 
+- [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
+- [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen. Es sollte aber an der aktuellen Position bleiben.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 
 ## Fixed Bugs
 
+- [x] Beim Build des Projekts werden einige Warnungen für WASM angezeigt. Ich möchte bis aus weiteres erstmal keine WASM Entwicklung anstreben, entferne es also erstmal aus der sln oder der csproj Datei, sodass die Warnungen weg sind. Wenn man es einfach deaktivieren kann, dass WASM immer mit gebaut wird, dann wäre das auch okay.
+- [x] "Themen"-Button im CardDetailView funktioniert nicht mehr (öffnet das Themen-Auswahl-Menü nicht mehr)
 - [x] Wenn das Fenster vertikel zu klein wird, dann überlappt der "Themen"-Ausklapp-Button mit der Section für die Lern Buttons. (Siehe Screenshot) Es muss also die Aufteilung, die die obere Sektion des CardDetailView zum Scrollview mach angepasst werden, sodass sie nicht mehr überlappen, schau dir im Detail an, wie es momentan geregelt ist und fixe das.
 - [x] Im Lern Modus sollten auf Desktop die Buttons für das Zurücksetzen des Lernfortschritts und das Wechseln des Lern Modus zusätztlich zum Icon auch mit Text angezeigt werden und als umrandete Buttons gestylt sein. 
 - [x] Doppelklick auf Image Preview auf Mobile sollte auch zoomen können. Einmal Doppelklicken sollte 50% ran zoomen und nochmal Doppelklicken sollte wieder zurück zoomen.

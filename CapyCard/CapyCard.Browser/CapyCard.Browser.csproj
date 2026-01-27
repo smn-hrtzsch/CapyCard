@@ -1,14 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0-browser</TargetFramework>
-    <OutputType>Exe</OutputType>
+    <!-- WASM development temporarily disabled to suppress build warnings -->
+    <!-- Revert SDK to Microsoft.NET.Sdk.WebAssembly and TargetFramework to net9.0-browser to re-enable -->
+    <TargetFramework>net9.0</TargetFramework>
+    <!-- <TargetFramework>net9.0-browser</TargetFramework> -->
+    <OutputType>Library</OutputType>
+    <!-- <OutputType>Exe</OutputType> -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    <!-- Disable default compile items to avoid errors with missing references -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
+  <!--
   <ItemGroup>
     <PackageReference Include="Avalonia.Browser" />
   </ItemGroup>
+  -->
 
   <ItemGroup>
     <ProjectReference Include="..\CapyCard\CapyCard.csproj" />

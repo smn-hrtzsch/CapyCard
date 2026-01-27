@@ -3,14 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:views="using:CapyCard.Views"
              xmlns:behaviors="using:CapyCard.Behaviors"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.DeckListView"
-             x:DataType="vm:DeckListViewModel">
+             x:DataType="vm:DeckListViewModel"
+             x:Name="DeckListRoot">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <Grid RowDefinitions="*">
+    <!-- OUTER GRID FOR OVERLAYS -->
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Grid RowDefinitions="*">
             <DockPanel Margin="16">
                 <!-- TOP AREA: Create New Deck -->
                 <StackPanel DockPanel.Dock="Top" Spacing="16" Margin="0,0,0,16">
@@ -19,7 +23,7 @@
                                FontSize="22"
                                Foreground="{DynamicResource TextControlForeground}"/>
                     
-                    <Grid ColumnDefinitions="*, Auto">
+                    <Grid ColumnDefinitions="*, Auto, Auto, Auto">
                         <TextBox x:Name="NewDeckTextBox"
                                  Classes="floating"
                                  Text="{Binding NewDeckName, Mode=TwoWay}"
@@ -35,6 +39,30 @@
                                 Grid.Column="1"
                                 ToolTip.Tip="Fach hinzufügen">
                             <materialIcons:MaterialIcon Kind="Plus" Width="24" Height="24" Foreground="{DynamicResource BackgroundBrush}"/>
+                        </Button>
+                        
+                        <!-- Import Button -->
+                        <Button Classes="fab"
+                                Command="{Binding ImportCommand}"
+                                Grid.Column="2"
+                                Margin="8,0,0,0"
+                                ToolTip.Tip="Kartenstapel importieren">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="24" Height="24" Foreground="{DynamicResource BackgroundBrush}"/>
+                                <TextBlock Text="Import" 
+                                           Foreground="{DynamicResource BackgroundBrush}" 
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding !#DeckListRoot.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Format Info Button -->
+                        <Button Classes="icon"
+                                Command="{Binding ShowFormatInfoCommand}"
+                                Grid.Column="3"
+                                Margin="4,0,0,0"
+                                ToolTip.Tip="Unterstützte Formate">
+                            <materialIcons:MaterialIcon Kind="InformationOutline" Width="20" Height="20" Foreground="{DynamicResource TextMutedBrush}"/>
                         </Button>
                     </Grid>
                 </StackPanel>
@@ -226,6 +254,13 @@
                 </Border>
             </Grid>
             
-        </Grid>
-    </ScrollViewer>
+            </Grid>
+        </ScrollViewer>
+        
+        <!-- Import Dialog Overlay -->
+        <views:ImportDialog DataContext="{Binding ImportViewModel}"/>
+        
+        <!-- Format Info Dialog Overlay -->
+        <views:FormatInfoDialog DataContext="{Binding FormatInfoViewModel}"/>
+    </Grid>
 </UserControl>

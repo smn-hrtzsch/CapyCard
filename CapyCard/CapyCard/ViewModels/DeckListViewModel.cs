@@ -2,11 +2,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapyCard.Data;
 using CapyCard.Models;
+using CapyCard.Services.ImportExport.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
 
 namespace CapyCard.ViewModels
 {
@@ -23,6 +25,13 @@ namespace CapyCard.ViewModels
 
         // KORREKTUR: Die Liste verwaltet jetzt DeckItemViewModels
         public ObservableCollection<DeckItemViewModel> Decks { get; } = new();
+
+        // Import/Export ViewModels
+        public ImportViewModel ImportViewModel { get; }
+        public FormatInfoViewModel FormatInfoViewModel { get; }
+
+        // Event for file picker (to be wired up from View)
+        public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
 
         
         // KORREKTUR: Die Eigenschaft für das ausgewählte Item ist jetzt vom Typ DeckItemViewModel
@@ -53,6 +62,19 @@ namespace CapyCard.ViewModels
         public DeckListViewModel()
         {
             // _dbContext removed
+            ImportViewModel = new ImportViewModel();
+            FormatInfoViewModel = new FormatInfoViewModel();
+            
+            // Wire up import events
+            ImportViewModel.OnRequestFileOpen += async () => await (OnRequestFileOpen?.Invoke() ?? Task.FromResult<IStorageFile?>(null));
+            ImportViewModel.OnImportCompleted += OnImportCompleted;
+            
+            LoadDecks();
+        }
+
+        private void OnImportCompleted(ImportResult result)
+        {
+            // Refresh deck list after successful import
             LoadDecks();
         }
 
@@ -254,6 +276,18 @@ namespace CapyCard.ViewModels
             {
                 OnDeckSelected?.Invoke(subDeckVM.Deck);
             }
+        }
+
+        [RelayCommand]
+        private async Task Import()
+        {
+            await ImportViewModel.ShowAsync();
+        }
+
+        [RelayCommand]
+        private void ShowFormatInfo()
+        {
+            FormatInfoViewModel.Show();
         }
     }
 }

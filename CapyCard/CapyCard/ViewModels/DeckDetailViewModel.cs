@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapyCard.Data;
 using CapyCard.Models;
+using CapyCard.Services.ImportExport.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
+using Avalonia.Platform.Storage;
 
 namespace CapyCard.ViewModels
 {
@@ -73,6 +75,9 @@ namespace CapyCard.ViewModels
         public ObservableCollection<Card> Cards { get; } = new();
         public ObservableCollection<DeckItemViewModel> SubDecks { get; } = new();
         public ObservableCollection<SubDeckSelectionItem> SubDeckSelectionList { get; } = new();
+        
+        // Export ViewModel
+        public ExportViewModel ExportViewModel { get; }
 
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
@@ -81,10 +86,18 @@ namespace CapyCard.ViewModels
         public event Action<Deck, int>? OnCardCountUpdated;
         public event Action? OnSubDeckAdded; // New event for subdeck addition
         public event Action? RequestFrontFocus;
+        
+        // Event for file picker (to be wired up from View)
+        public event Func<string, string, Task<IStorageFile?>>? OnRequestFileSave;
 
         public DeckDetailViewModel()
         {
             // _dbContext removed. We use short-lived contexts now.
+            ExportViewModel = new ExportViewModel();
+            
+            // Wire up export events
+            ExportViewModel.OnRequestFileSave += async (name, ext) => 
+                await (OnRequestFileSave?.Invoke(name, ext) ?? Task.FromResult<IStorageFile?>(null));
         }
 
         public async Task LoadDeck(Deck deck)
@@ -452,7 +465,6 @@ namespace CapyCard.ViewModels
         {
             if (_currentDeck == null) return;
 
-            IsSubDeckSelectionVisible = true;
             SubDeckSelectionList.Clear();
 
             foreach (var subDeckVM in SubDecks)
@@ -460,29 +472,38 @@ namespace CapyCard.ViewModels
                 SubDeckSelectionList.Add(new SubDeckSelectionItem(subDeckVM.Deck));
             }
 
-            using (var context = new FlashcardDbContext())
-            {
-                var lastSession = await context.LearningSessions
-                    .AsNoTracking()
-                    .Where(s => s.DeckId == _currentDeck.Id && s.Scope == LearningMode.CustomSelection)
-                    .OrderByDescending(s => s.LastAccessed)
-                    .FirstOrDefaultAsync();
+            IsSubDeckSelectionVisible = true;
 
-                if (lastSession != null && !string.IsNullOrEmpty(lastSession.SelectedDeckIdsJson))
+            try
+            {
+                using (var context = new FlashcardDbContext())
                 {
-                    try 
+                    var lastSession = await context.LearningSessions
+                        .AsNoTracking()
+                        .Where(s => s.DeckId == _currentDeck.Id && s.Scope == LearningMode.CustomSelection)
+                        .OrderByDescending(s => s.LastAccessed)
+                        .FirstOrDefaultAsync();
+
+                    if (lastSession != null && !string.IsNullOrEmpty(lastSession.SelectedDeckIdsJson))
                     {
-                        var selectedIds = JsonSerializer.Deserialize<List<int>>(lastSession.SelectedDeckIdsJson);
-                        if (selectedIds != null)
+                        try 
                         {
-                            foreach (var item in SubDeckSelectionList)
+                            var selectedIds = JsonSerializer.Deserialize<List<int>>(lastSession.SelectedDeckIdsJson);
+                            if (selectedIds != null)
                             {
-                                item.IsSelected = selectedIds.Contains(item.Deck.Id);
+                                foreach (var item in SubDeckSelectionList)
+                                {
+                                    item.IsSelected = selectedIds.Contains(item.Deck.Id);
+                                }
                             }
                         }
+                        catch { /* Ignore json errors */ }
                     }
-                    catch { /* Ignore json errors */ }
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load previous selection: {ex.Message}");
             }
         }
         
@@ -545,6 +566,15 @@ namespace CapyCard.ViewModels
             NewCardBack = string.Empty;
             SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
             IsEditing = false;
+        }
+
+        [RelayCommand]
+        private async Task Export()
+        {
+            if (_currentDeck != null)
+            {
+                await ExportViewModel.ShowAsync(_currentDeck);
+            }
         }
     }
 }
