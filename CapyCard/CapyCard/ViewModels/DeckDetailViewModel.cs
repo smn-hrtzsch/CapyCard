@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapyCard.Data;
 using CapyCard.Models;
+using CapyCard.Services.ImportExport.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.Json;
+using Avalonia.Platform.Storage;
 
 namespace CapyCard.ViewModels
 {
@@ -73,6 +75,9 @@ namespace CapyCard.ViewModels
         public ObservableCollection<Card> Cards { get; } = new();
         public ObservableCollection<DeckItemViewModel> SubDecks { get; } = new();
         public ObservableCollection<SubDeckSelectionItem> SubDeckSelectionList { get; } = new();
+        
+        // Export ViewModel
+        public ExportViewModel ExportViewModel { get; }
 
         public event Action? OnNavigateBack;
         public event Action<Deck>? OnNavigateToCardList; 
@@ -81,10 +86,18 @@ namespace CapyCard.ViewModels
         public event Action<Deck, int>? OnCardCountUpdated;
         public event Action? OnSubDeckAdded; // New event for subdeck addition
         public event Action? RequestFrontFocus;
+        
+        // Event for file picker (to be wired up from View)
+        public event Func<string, string, Task<IStorageFile?>>? OnRequestFileSave;
 
         public DeckDetailViewModel()
         {
             // _dbContext removed. We use short-lived contexts now.
+            ExportViewModel = new ExportViewModel();
+            
+            // Wire up export events
+            ExportViewModel.OnRequestFileSave += async (name, ext) => 
+                await (OnRequestFileSave?.Invoke(name, ext) ?? Task.FromResult<IStorageFile?>(null));
         }
 
         public async Task LoadDeck(Deck deck)
@@ -545,6 +558,15 @@ namespace CapyCard.ViewModels
             NewCardBack = string.Empty;
             SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
             IsEditing = false;
+        }
+
+        [RelayCommand]
+        private async Task Export()
+        {
+            if (_currentDeck != null)
+            {
+                await ExportViewModel.ShowAsync(_currentDeck);
+            }
         }
     }
 }

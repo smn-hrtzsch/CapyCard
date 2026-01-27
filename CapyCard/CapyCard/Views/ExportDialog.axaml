@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="CapyCard.Views.ExportDialog"
+             x:DataType="vm:ExportViewModel">
+
+    <!-- Export Dialog Overlay -->
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000">
+        <Border Background="{DynamicResource SurfaceBrush}"
+                CornerRadius="28"
+                Padding="24"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                MinWidth="420"
+                MaxWidth="560"
+                MaxHeight="650"
+                BoxShadow="0 4 16 0 #40000000">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Kartenstapel exportieren"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextControlForeground}"
+                                   Grid.Column="0"/>
+                        <Button Command="{Binding CancelCommand}"
+                                Classes="icon"
+                                Grid.Column="1">
+                            <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Deck Info -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{Binding DeckName}"
+                                   FontWeight="SemiBold"
+                                   FontSize="16"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                        <TextBlock Text="{Binding TotalCardCount}"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+
+                    <!-- Error Message -->
+                    <Border Background="#40FF5252"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding HasError}">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   TextWrapping="Wrap"
+                                   Foreground="#FFFF5252"/>
+                    </Border>
+
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                    <!-- Format Selection -->
+                    <TextBlock Text="Format:"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextControlForeground}"/>
+
+                    <RadioButton IsChecked="{Binding FormatCapyCardSelected}"
+                                 GroupName="ExportFormat">
+                        <StackPanel>
+                            <TextBlock Text="CapyCard (.capycard)" 
+                                       FontWeight="Medium"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                            <TextBlock Text="Empfohlen - Enthält alle Daten inkl. Bilder"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton IsChecked="{Binding FormatAnkiSelected}"
+                                 GroupName="ExportFormat"
+                                 IsEnabled="{Binding IsAnkiAvailable}">
+                        <StackPanel>
+                            <TextBlock Text="Anki (.apkg)" 
+                                       FontWeight="Medium"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                            <TextBlock Text="Kompatibel mit Anki und AnkiDroid"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <RadioButton IsChecked="{Binding FormatCsvSelected}"
+                                 GroupName="ExportFormat">
+                        <StackPanel>
+                            <TextBlock Text="CSV (.csv)" 
+                                       FontWeight="Medium"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                            <TextBlock Text="Für Excel/Google Sheets - Ohne Bilder"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                    <!-- Scope Selection -->
+                    <TextBlock Text="Was exportieren:"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextControlForeground}"/>
+
+                    <RadioButton IsChecked="{Binding ScopeFullDeckSelected}"
+                                 GroupName="ExportScope">
+                        <TextBlock Text="Ganzes Fach inkl. aller Themen" 
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </RadioButton>
+
+                    <RadioButton IsChecked="{Binding ScopeSelectedSubDecksSelected}"
+                                 GroupName="ExportScope"
+                                 IsEnabled="{Binding SubDecks.Count}">
+                        <TextBlock Text="Ausgewählte Themen" 
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </RadioButton>
+
+                    <!-- SubDeck Selection List -->
+                    <Border Background="{DynamicResource BackgroundBrush}"
+                            CornerRadius="12"
+                            Padding="12"
+                            IsVisible="{Binding ScopeSelectedSubDecksSelected}"
+                            Margin="24,0,0,0"
+                            MaxHeight="150">
+                        <ScrollViewer>
+                            <ItemsControl ItemsSource="{Binding SubDecks}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,4">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           Foreground="{DynamicResource TextControlForeground}"/>
+                                                <TextBlock Text="{Binding CardCount, StringFormat='({0} Karten)'}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                                            </StackPanel>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <RadioButton IsChecked="{Binding ScopeSelectedCardsSelected}"
+                                 GroupName="ExportScope"
+                                 IsEnabled="{Binding HasSelectedCards}"
+                                 IsVisible="{Binding HasSelectedCards}">
+                        <TextBlock Text="{Binding SelectedCardsText}"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </RadioButton>
+
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                    <!-- Options -->
+                    <TextBlock Text="Optionen:"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextControlForeground}"/>
+
+                    <CheckBox IsChecked="{Binding IncludeProgress}">
+                        <TextBlock Text="Lernfortschritt mit exportieren" 
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </CheckBox>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Content="Abbrechen"
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"
+                                Grid.Column="0"
+                                Margin="0,0,8,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+
+                        <Button Content="Exportieren"
+                                Command="{Binding ExportCommand}"
+                                Classes="primary"
+                                Grid.Column="1"
+                                Margin="8,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Export Progress -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsExporting}"
+                                HorizontalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True" Width="100"/>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,199 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="CapyCard.Views.ImportDialog"
+             x:DataType="vm:ImportViewModel">
+
+    <!-- Import Dialog Overlay -->
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000">
+        <Border Background="{DynamicResource SurfaceBrush}"
+                CornerRadius="28"
+                Padding="24"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                MinWidth="420"
+                MaxWidth="560"
+                MaxHeight="600"
+                BoxShadow="0 4 16 0 #40000000">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="16">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Kartenstapel importieren"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextControlForeground}"
+                                   Grid.Column="0"/>
+                        <Button Command="{Binding CancelCommand}"
+                                Classes="icon"
+                                Grid.Column="1">
+                            <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- File Selection -->
+                    <Button Command="{Binding SelectFileCommand}"
+                            Classes="secondary"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            IsEnabled="{Binding !IsAnalyzing}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="FileUpload" Width="20" Height="20"/>
+                            <TextBlock Text="Datei auswählen..."/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Loading Indicator -->
+                    <StackPanel Orientation="Horizontal" 
+                                Spacing="8" 
+                                IsVisible="{Binding IsAnalyzing}"
+                                HorizontalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True" Width="100"/>
+                        <TextBlock Text="{Binding StatusMessage}" 
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+
+                    <!-- Error Message -->
+                    <Border Background="#40FF5252"
+                            CornerRadius="8"
+                            Padding="12"
+                            IsVisible="{Binding HasError}">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   TextWrapping="Wrap"
+                                   Foreground="#FFFF5252"/>
+                    </Border>
+
+                    <!-- Preview Section -->
+                    <StackPanel Spacing="12" IsVisible="{Binding ShowPreview}">
+                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+                        
+                        <!-- File Info -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Datei:" 
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                            <TextBlock Text="{Binding PreviewFileName}"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+
+                        <Grid ColumnDefinitions="*,*">
+                            <StackPanel Spacing="2" Grid.Column="0">
+                                <TextBlock Text="{Binding PreviewCardCount}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextControlForeground}"/>
+                                <TextBlock Text="{Binding PreviewSubDeckCount}"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                                <TextBlock Text="{Binding PreviewFormatName}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryBrush}"/>
+                                <TextBlock Text="Mit Lernfortschritt"
+                                           FontSize="12"
+                                           IsVisible="{Binding PreviewHasProgress}"
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                        <!-- Import Target -->
+                        <TextBlock Text="Importieren als:"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+
+                        <RadioButton IsChecked="{Binding IsNewDeckSelected}"
+                                     GroupName="ImportTarget">
+                            <TextBlock Text="Neues Fach" Foreground="{DynamicResource TextControlForeground}"/>
+                        </RadioButton>
+                        
+                        <TextBox Text="{Binding NewDeckName}"
+                                 Classes="floating"
+                                 Watermark="Name des neuen Fachs"
+                                 IsVisible="{Binding IsNewDeckSelected}"
+                                 Margin="24,0,0,0"/>
+
+                        <RadioButton IsChecked="{Binding IsExistingDeckSelected}"
+                                     GroupName="ImportTarget"
+                                     IsEnabled="{Binding AvailableDecks.Count}">
+                            <TextBlock Text="In bestehendes Fach" Foreground="{DynamicResource TextControlForeground}"/>
+                        </RadioButton>
+
+                        <ComboBox ItemsSource="{Binding AvailableDecks}"
+                                  SelectedItem="{Binding SelectedExistingDeck}"
+                                  IsVisible="{Binding IsExistingDeckSelected}"
+                                  Margin="24,0,0,0"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                        <!-- Options -->
+                        <TextBlock Text="Optionen:"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+
+                        <CheckBox IsChecked="{Binding IncludeProgress}"
+                                  IsEnabled="{Binding PreviewHasProgress}">
+                            <TextBlock Text="Lernfortschritt übernehmen" 
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </CheckBox>
+
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Bei doppelten Karten:"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                            <ComboBox SelectedIndex="{Binding DuplicateHandlingIndex}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBoxItem Content="Überspringen"/>
+                                <ComboBoxItem Content="Ersetzen"/>
+                                <ComboBoxItem Content="Beide behalten"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Content="Abbrechen"
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"
+                                Grid.Column="0"
+                                Margin="0,0,8,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"/>
+
+                        <Button Content="Importieren"
+                                Command="{Binding ImportCommand}"
+                                Classes="primary"
+                                Grid.Column="1"
+                                Margin="8,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                IsEnabled="{Binding ShowPreview}"/>
+                    </Grid>
+
+                    <!-- Import Progress -->
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsImporting}"
+                                HorizontalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True" Width="100"/>
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
