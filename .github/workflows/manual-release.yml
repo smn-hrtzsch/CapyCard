@@ -65,6 +65,7 @@ jobs:
           "new_version=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       - name: Commit Version Bump & Tag
+        id: create_tag
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
@@ -73,6 +74,16 @@ jobs:
           git tag "v${{ steps.bump_version.outputs.new_version }}"
           git push
           git push origin "v${{ steps.bump_version.outputs.new_version }}"
+          echo "tag_name=v${{ steps.bump_version.outputs.new_version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create v${{ steps.bump_version.outputs.new_version }} \
+            --title "${{ inputs.release_title != '' && inputs.release_title || format('Release v{0}', steps.bump_version.outputs.new_version) }}" \
+            --draft \
+            --notes "Automated release build for v${{ steps.bump_version.outputs.new_version }}"
 
   call-build-android:
     needs: bump-version
@@ -108,30 +119,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download Android Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk
-          path: release-assets
+      - name: Publish Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit v${{ needs.bump-version.outputs.new_version }} --draft=false
 
-      - name: Download Windows Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-msi
-          path: release-assets
-
-      - name: Download macOS Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-dmg
-          path: release-assets
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.bump-version.outputs.new_version }}
-          name: ${{ inputs.release_title != '' && inputs.release_title || format('Release v{0}', needs.bump-version.outputs.new_version) }}
-          files: release-assets/*
-          generate_release_notes: true
-          draft: false
-          prerelease: false

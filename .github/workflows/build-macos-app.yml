@@ -143,8 +143,8 @@ jobs:
           rm -rf "$WORK_DIR"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
-      - name: Upload macOS app artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-dmg
-          path: ${{ steps.dmg.outputs.dmgPath }}
+      - name: Upload to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v${{ inputs.version }} "${{ steps.dmg.outputs.dmgPath }}" --clobber

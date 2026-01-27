@@ -106,8 +106,8 @@ jobs:
           echo "Renamed APK to: $NEW_PATH"
           echo "apkPath=$NEW_PATH" >> "$GITHUB_OUTPUT"
 
-      - name: Rename and Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: ${{ steps.apk.outputs.apkPath }}
+      - name: Upload to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v${{ inputs.version }} "${{ steps.apk.outputs.apkPath }}" --clobber

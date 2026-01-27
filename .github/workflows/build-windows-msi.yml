@@ -92,8 +92,8 @@ jobs:
           $newName = "CapyCard-windows-${{ steps.version.outputs.fullVersion }}.msi"
           Rename-Item -Path $msiPath.FullName -NewName $newName
 
-      - name: Archive MSI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-msi
-          path: CapyCard/Installer/bin/${{ env.Configuration }}/*.msi
+      - name: Upload to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v${{ inputs.version }} "CapyCard/Installer/bin/${{ env.Configuration }}/$newName" --clobber
