@@ -12,19 +12,20 @@
     <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="1000">
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
-                Padding="24"
-                Margin="24"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Stretch"
-                MaxWidth="420"
-                MaxHeight="850"
-                BoxShadow="0 4 16 0 #40000000">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                 Padding="12"
+                 Margin="24"
+                 VerticalAlignment="Center"
+                 HorizontalAlignment="Stretch"
+                 MaxWidth="450"
+                 MaxHeight="850"
+                 BoxShadow="0 4 16 0 #40000000">
+            <ScrollViewer x:Name="DialogScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <StackPanel Spacing="20" 
-                            HorizontalAlignment="Stretch" 
-                            MinWidth="300" 
-                            MaxWidth="370"
-                            Margin="0,0,16,16">
+                            HorizontalAlignment="Center"
+                            Width="{Binding #DialogScrollViewer.Bounds.Width}"
+                            MinWidth="200"
+                            MaxWidth="380"
+                            Margin="16">
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="Import/Export Formate"

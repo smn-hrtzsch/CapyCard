@@ -34,7 +34,6 @@
 
 ## Bugs
 
-- [ ] Der Infor Dialog für "Import/Export Formate" hat einen Scrollbar, obwohl der Dialog einfach breiter gemacht werden kann, sodass der Scrollbar nicht nötig ist. Mach ihn nur etwas breiter, dann ist der Scrollbar weg.
 - [ ] Info Button beim File Selection Dialog für "Datei auswählen" Button muss noch hinzufgefügt werden, der erklärt, welche Formate unterstützt werden und wie der Import funktioniert. Ebenso ein Info Button für den "Via KI/Text importieren" Button.
 - [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
 - [ ] Breite der Auswahl der Themen beim Export ist viel zu breit. Sie sollte auf die Breite des Dialogs begrenzt sein und lange Themennamen sollten einfach umgebrochen werden.
@@ -51,6 +50,7 @@
 
 ## Fixed Bugs
 
+- [x] Der Infor Dialog für "Import/Export Formate" hat einen Scrollbar, obwohl der Dialog einfach breiter gemacht werden kann, sodass der Scrollbar nicht nötig ist. Mach ihn nur etwas breiter, dann ist der Scrollbar weg.
 - [x] Größe des Export Buttons sollte so angepasst werden, dass er wie der Filled Button "Zurück zur Fächerliste" aussieht (gleiche Höhe und Padding).
 - [x] Styling der Radio Buttons im Import und Export Dialog sind noch nicht korrekt: es wird noch die System Akzentfarbe für den Rahmen benutzt, obwohl es einfach nur der Teal sein sollte, wenn die Option ausgewählt ist. Auch beim Hovern sollte nicht die System Akzentfarbe genutzt werden. Zwischen Rahmen und innerem Kreis sollte es einfach transparent sein. Der Kreis in der Mitte des Radio Buttons sollte auch ein bisschen größer sein. Siehe Screenshot:
 - [x] Der Export Dialog und der Import Dialog sollten noch breiter sein und kann auch, solange es die Bildschirmgröße zulässt höher sein. Momentan ist auch der die Scroll Leiste viel zu nah am Text und dem Inhalt des Dialogs, da muss mehr Abstand hin, siehe Screenshot:
