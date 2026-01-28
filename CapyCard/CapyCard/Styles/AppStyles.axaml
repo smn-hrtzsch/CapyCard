@@ -164,7 +164,7 @@
     </Style>
     
     <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#10808080"/>
+        <Setter Property="Background" Value="#25808080"/>
     </Style>
     
     <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter">
@@ -181,7 +181,7 @@
     </Style>
 
     <Style Selector="ToggleButton.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#10808080"/>
+        <Setter Property="Background" Value="#25808080"/>
     </Style>
 
     <Style Selector="ToggleButton.icon:checked /template/ ContentPresenter#PART_ContentPresenter">
@@ -189,7 +189,7 @@
     </Style>
     
     <Style Selector="ToggleButton.icon:checked:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#10808080"/>
+        <Setter Property="Background" Value="#25808080"/>
     </Style>
 
     <!-- List Item Button (Transparent, fills space) -->
@@ -201,7 +201,7 @@
     </Style>
     
     <Style Selector="Button.list-item:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#08808080"/>
+        <Setter Property="Background" Value="#15808080"/>
     </Style>
     
     <Style Selector="Button.list-item:pressed /template/ ContentPresenter#PART_ContentPresenter">

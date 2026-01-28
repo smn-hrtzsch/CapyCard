@@ -12,30 +12,26 @@
     <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000">
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
-                Padding="24"
+                Padding="0"
                 Margin="24"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
                 MaxWidth="400"
                 MaxHeight="800"
                 BoxShadow="0 4 16 0 #40000000">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Spacing="16" HorizontalAlignment="Stretch" Margin="0,0,12,12">
-                    <!-- Header -->
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="Kartenstapel exportieren"
-                                   FontSize="20"
-                                   FontWeight="Bold"
-                                   TextWrapping="Wrap"
-                                   Foreground="{DynamicResource TextControlForeground}"
-                                   Grid.Column="0"/>
-                        <Button Command="{Binding CancelCommand}"
-                                Classes="icon"
-                                Grid.Column="1">
-                            <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
-                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                        </Button>
-                    </Grid>
+            <Panel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Border Padding="24">
+                        <StackPanel Spacing="16" HorizontalAlignment="Stretch">
+                        <!-- Header -->
+                        <Grid ColumnDefinitions="*">
+                            <TextBlock Text="Kartenstapel exportieren"
+                                       FontSize="20"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextControlForeground}"
+                                       Grid.Column="0"/>
+                        </Grid>
 
                     <!-- Deck Info -->
                     <StackPanel Spacing="4">
@@ -216,8 +212,20 @@
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextMutedBrush}"/>
                     </StackPanel>
-                </StackPanel>
-            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </ScrollViewer>
+                
+                <!-- Close Button -->
+                <Button Command="{Binding CancelCommand}"
+                        Classes="icon"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Right"
+                        Margin="12">
+                    <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                </Button>
+            </Panel>
         </Border>
     </Grid>
 </UserControl>
