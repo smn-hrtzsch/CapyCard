@@ -97,6 +97,8 @@
                         <TextBox Text="{Binding NewDeckName}"
                                  Classes="floating"
                                  Watermark="Name des neuen Fachs"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="False"
                                  IsVisible="{Binding IsNewDeckSelected}"
                                  Margin="24,0,0,0"/>
 
@@ -111,6 +113,7 @@
                         <ComboBox ItemsSource="{Binding AvailableDecks}"
                                   SelectedItem="{Binding SelectedExistingDeck}"
                                   IsVisible="{Binding IsExistingDeckSelected}"
+                                  Classes="floating"
                                   Margin="24,0,0,0"
                                   HorizontalAlignment="Stretch">
                             <ComboBox.ItemTemplate>
@@ -145,11 +148,12 @@
                                        Foreground="{DynamicResource TextControlForeground}"/>
                         </CheckBox>
 
-                        <StackPanel Spacing="4">
+                        <StackPanel Spacing="16">
                             <TextBlock Text="Bei doppelten Karten:"
-                                       FontSize="12"
-                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                       Foreground="{DynamicResource TextControlForeground}"/>
                             <ComboBox SelectedIndex="{Binding DuplicateHandlingIndex}"
+                                      Classes="floating"
+                                      Margin="24,0,0,0"
                                       HorizontalAlignment="Stretch">
                                 <ComboBoxItem Content="Überspringen"/>
                                 <ComboBoxItem Content="Ersetzen"/>
