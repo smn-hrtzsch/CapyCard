@@ -41,19 +41,19 @@
                             <materialIcons:MaterialIcon Kind="Plus" Width="24" Height="24"/>
                         </Button>
                         
-                        <!-- Import Button -->
-                        <Button Classes="fab"
-                                Command="{Binding ImportCommand}"
-                                Grid.Column="2"
-                                Margin="8,0,0,0"
-                                ToolTip.Tip="Kartenstapel importieren">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="24" Height="24"/>
-                                <TextBlock Text="Import" 
-                                           VerticalAlignment="Center"
-                                           IsVisible="{Binding !#DeckListRoot.IsCompactMode}"/>
-                            </StackPanel>
-                        </Button>
+                         <!-- Import Button -->
+                         <Button Classes="fab"
+                                 Command="{Binding ImportCommand}"
+                                 Grid.Column="2"
+                                 Margin="8,0,0,0"
+                                 ToolTip.Tip="Kartenstapel importieren">
+                             <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                 <materialIcons:MaterialIcon Kind="TrayArrowDown" Width="24" Height="24" VerticalAlignment="Center"/>
+                                 <TextBlock Text="Import" 
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding !#DeckListRoot.IsCompactMode}"/>
+                             </StackPanel>
+                         </Button>
                         
                         <!-- Format Info Button -->
                         <Button Classes="icon"

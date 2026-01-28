@@ -30,10 +30,12 @@
                          Margin="0,0,12,0"
                          ToolTip.Tip="{Binding BackButtonText}"
                          Padding="12,8">
-                      <StackPanel Orientation="Horizontal" Spacing="8">
-                          <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
-                          <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                      </StackPanel>
+                       <StackPanel Orientation="Horizontal" Spacing="8">
+                           <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" VerticalAlignment="Center"/>
+                           <TextBlock Text="{Binding BackButtonText}" 
+                                      VerticalAlignment="Center"
+                                      IsVisible="{Binding !#Root.IsCompactMode}"/>
+                       </StackPanel>
                  </Button>
                 
                 <TextBlock Text="{Binding DeckName}" 
