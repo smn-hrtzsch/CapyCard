@@ -96,7 +96,7 @@ namespace CapyCard.ViewModels
 
         // Options
         [ObservableProperty]
-        private bool _includeProgress = true;
+        private bool _includeProgress;
 
         public event Func<string, string, Task<IStorageFile?>>? OnRequestFileSave;
         public event Action<ExportResult>? OnExportCompleted;
@@ -124,7 +124,7 @@ namespace CapyCard.ViewModels
             ScopeFullDeckSelected = true;
             ScopeSelectedSubDecksSelected = false;
             ScopeSelectedCardsSelected = false;
-            IncludeProgress = true;
+            IncludeProgress = false;
 
             DeckName = deck.Name;
             HasSelectedCards = selectedCardIds?.Count > 0;

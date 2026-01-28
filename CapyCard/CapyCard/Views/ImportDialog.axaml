@@ -143,7 +143,7 @@
                                    Foreground="{DynamicResource TextControlForeground}"/>
 
                         <CheckBox IsChecked="{Binding IncludeProgress}"
-                                  IsEnabled="{Binding PreviewHasProgress}">
+                                  IsVisible="{Binding PreviewHasProgress}">
                             <TextBlock Text="Lernfortschritt übernehmen" 
                                        TextWrapping="Wrap"
                                        Foreground="{DynamicResource TextControlForeground}"/>

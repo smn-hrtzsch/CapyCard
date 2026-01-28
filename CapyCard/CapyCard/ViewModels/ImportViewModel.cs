@@ -77,7 +77,7 @@ namespace CapyCard.ViewModels
 
         // Options
         [ObservableProperty]
-        private bool _includeProgress = true;
+        private bool _includeProgress;
 
         [ObservableProperty]
         private int _duplicateHandlingIndex; // 0=Skip, 1=Replace, 2=KeepBoth
@@ -113,7 +113,7 @@ namespace CapyCard.ViewModels
             ShowPreview = false;
             IsNewDeckSelected = true;
             IsExistingDeckSelected = false;
-            IncludeProgress = true;
+            IncludeProgress = false;
             DuplicateHandlingIndex = 2; // KeepBoth as default
 
             await LoadAvailableDecksAsync();
@@ -206,6 +206,7 @@ namespace CapyCard.ViewModels
                 PreviewCardCount = $"{preview.CardCount} Karten";
                 PreviewSubDeckCount = preview.SubDeckCount > 0 ? $"{preview.SubDeckCount} Themen" : "Keine Themen";
                 PreviewHasProgress = preview.HasProgress;
+                IncludeProgress = false;
                 NewDeckName = preview.DeckName ?? "Mein KI Import";
                 
                 ShowPreview = true;
@@ -293,6 +294,7 @@ Wichtig: Antworte nur mit dem JSON-Objekt, idealerweise in einem Code-Block.";
                 PreviewCardCount = $"{preview.CardCount} Karten";
                 PreviewSubDeckCount = preview.SubDeckCount > 0 ? $"{preview.SubDeckCount} Themen" : "Keine Themen";
                 PreviewHasProgress = preview.HasProgress;
+                IncludeProgress = false;
                 NewDeckName = preview.DeckName ?? Path.GetFileNameWithoutExtension(_fileName);
                 ShowPreview = true;
 
