@@ -34,6 +34,7 @@
 
 ## Bugs
 
+- [ ] Der Infor Dialog für "Import/Export Formate" hat einen Scrollbar, obwohl der Dialog einfach breiter gemacht werden kann, sodass der Scrollbar nicht nötig ist. Mach ihn nur etwas breiter, dann ist der Scrollbar weg.
 - [ ] Info Button beim File Selection Dialog für "Datei auswählen" Button muss noch hinzufgefügt werden, der erklärt, welche Formate unterstützt werden und wie der Import funktioniert. Ebenso ein Info Button für den "Via KI/Text importieren" Button.
 - [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
 - [ ] Breite der Auswahl der Themen beim Export ist viel zu breit. Sie sollte auf die Breite des Dialogs begrenzt sein und lange Themennamen sollten einfach umgebrochen werden.
