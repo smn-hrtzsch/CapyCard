@@ -56,6 +56,7 @@
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFE0E0E0"/>
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FF808080"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FF757575"/>
+                    <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FFE0E0E0"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFEEEEEE"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF616161"/>
@@ -100,7 +101,7 @@
                     <Color x:Key="PrimaryLightColor">#FF03DAC5</Color>
                     <Color x:Key="SecondaryColor">#FFBB86FC</Color>
                     <Color x:Key="BackgroundColor">#FF333333</Color>
-                    <Color x:Key="SurfaceColor">#FF494949</Color>
+                    <Color x:Key="SurfaceColor">#FF505050</Color>
                     <Color x:Key="ErrorColor">#FFE57373</Color>
                     
                     <!-- Brushes -->
@@ -122,6 +123,7 @@
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FF424242"/>
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FFBDBDBD"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FFEEEEEE"/>
+                    <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FF707070"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FF616161"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFEEEEEE"/>

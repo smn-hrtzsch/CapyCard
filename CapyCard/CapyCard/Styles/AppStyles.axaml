@@ -108,7 +108,156 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="BorderBrush" Value="{DynamicResource InputStrokeBrush}"/>
         <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="MinHeight" Value="45"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:focus /template/ Border#Background">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem">
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Margin" Value="4,2"/>
         <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#25808080"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+
+    <!-- Rounding the dropdown popup itself -->
+    <Style Selector="ComboBox /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource PopupBackgroundBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BoxShadow" Value="0 8 24 0 #60000000"/>
+        <Setter Property="Margin" Value="0,4,0,4"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+        <Setter Property="MaxWidth" Value="350"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:pointerover /template/ Border#Background">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:focus /template/ Border#Background">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:dropdownopen /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+
+    <!-- Rounding the dropdown popup itself -->
+    <Style Selector="ComboBox /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BoxShadow" Value="0 4 12 0 #40000000"/>
+        <Setter Property="Margin" Value="0,4,0,4"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+    </Style>
+
+    <!-- ComboBox Items styling -->
+    <Style Selector="ComboBoxItem">
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Margin" Value="4,2"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem TextBlock">
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#25808080"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.9"/>
+    </Style>
+
+    <Style Selector="ComboBox.floating:dropdownopen /template/ Border#Background">
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+    </Style>
+
+    <!-- Rounding the dropdown popup itself -->
+    <Style Selector="ComboBox /template/ Border#PopupBorder">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="BoxShadow" Value="0 4 12 0 #40000000"/>
+        <Setter Property="Margin" Value="0,4,0,4"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+    </Style>
+
+    <!-- Ensure the scrollviewer inside popup doesn't have a dark background -->
+    <Style Selector="ComboBox /template/ ScrollViewer">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#20808080"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="ComboBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.9"/>
     </Style>
 
     <!-- Floating Card (List Items) -->

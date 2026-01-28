@@ -35,7 +35,6 @@
 
 ## Bugs
 
-- [ ] Drop Down Auswahl für Import Einstellungen ("In bestehendes Fach" und "Bei doppelten Karten") sind immer noch in der System Akzentfarbe, sie sollten aber im Teal Farbschema der App sein. Außerdem sind die Drop Downs zu eckig und passen nicht zum restlichen Design der App. Sie haben auch viel zu aggressive dunkle Fareben im Dark Mode und zu helle im Light Mode. Siehe Screenshot:
 - [ ] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
 - [ ] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
 - [ ] Wenn die Fenstergröße zu schmal wird, sollte im DeckDetailView die Eingabe für die Karten untereinander sein, wie auf Mobile Geräten, um den Platz besser zu nutzen. Momentan wird die Eingabe für die Karten immer kleiner, wenn das Fenster schmaler wird, was nicht schön aussieht.
@@ -47,6 +46,7 @@
 
 ## Fixed Bugs
 
+- [x] Drop Down Auswahl für Import Einstellungen ("In bestehendes Fach" und "Bei doppelten Karten") sind immer noch in der System Akzentfarbe, sie sollten aber im Teal Farbschema der App sein. Außerdem sind die Drop Downs zu eckig und passen nicht zum restlichen Design der App. Sie haben auch viel zu aggressive dunkle Fareben im Dark Mode und zu helle im Light Mode. Siehe Screenshot:
 - [x] Position des x-Buttons zum Schließen des Import/Export Dialogs ist nicht schön, sie sollte wirklich oben rechts am Rand sein, sie ist aber viel weiter richtung Mitte versetzt. Außerdem ist der Hover Effekt zu dezent.
 - [x] Wenn man eine Datei importiert, die nicht das .capycard Format hat, dann ist der "Lernfortschritt übernehmen" Button stuck auf aktiviert. Man kann ihn nicht einmal manuell deaktivieren, ganz geschweige davon, dass er standardmäßig deaktiviert sein sollte, wenn man eine Datei importiert, egal welches Format. Fixe das.
 - [x] Die Visualisierung, dass der System-Prompt korrekt ins Clipboard kopiert wurde, ist nicht gut lesbar, nutze einfach den normalen Style für Outlined Buttons, mit dem Teal als Rahmen und Textfarbe.
