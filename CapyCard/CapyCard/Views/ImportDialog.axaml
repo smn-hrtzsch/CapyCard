@@ -14,6 +14,9 @@
         <!-- Step 1: File Selection (Visible when NO preview is shown) -->
         <views:FileSelectionDialog IsVisible="{Binding !ShowPreview}"/>
 
+        <!-- LLM Import Overlay (Only when active) -->
+        <views:LlmImportDialog IsVisible="{Binding IsLlmImportVisible}" ZIndex="10"/>
+
         <!-- Step 2: Import Options (Visible when preview IS shown) -->
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
@@ -88,7 +91,7 @@
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextControlForeground}"/>
 
-                        <RadioButton IsChecked="{Binding IsNewDeckSelected}"
+                        <RadioButton IsChecked="{Binding IsNewDeckSelected, Mode=TwoWay}"
                                      GroupName="ImportTarget">
                             <TextBlock Text="Neues Fach" 
                                        TextWrapping="Wrap"
@@ -101,7 +104,7 @@
                                  IsVisible="{Binding IsNewDeckSelected}"
                                  Margin="24,0,0,0"/>
 
-                        <RadioButton IsChecked="{Binding IsExistingDeckSelected}"
+                        <RadioButton IsChecked="{Binding IsExistingDeckSelected, Mode=TwoWay}"
                                      GroupName="ImportTarget"
                                      IsEnabled="{Binding AvailableDecks.Count}">
                             <TextBlock Text="In bestehendes Fach" 
@@ -122,6 +125,17 @@
                         </ComboBox>
 
                         <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.3"/>
+
+                        <!-- Error Message in Preview -->
+                        <Border Background="#40FF5252"
+                                CornerRadius="8"
+                                Padding="12"
+                                IsVisible="{Binding HasError}">
+                            <TextBlock Text="{Binding ErrorMessage}"
+                                       TextWrapping="Wrap"
+                                       Foreground="#FFFF5252"
+                                       FontSize="12"/>
+                        </Border>
 
                         <!-- Options -->
                         <TextBlock Text="Optionen:"

@@ -7,6 +7,7 @@ namespace CapyCard.Services
     {
         Task<Stream?> GetImageAsync();
         Task<bool> HasImageAsync();
+        Task SetTextAsync(string text);
     }
 
     public static class ClipboardService

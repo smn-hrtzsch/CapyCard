@@ -37,5 +37,18 @@ namespace CapyCard.iOS.Services
             }
             return Task.FromResult<Stream?>(null);
         }
+
+        public Task SetTextAsync(string text)
+        {
+            try
+            {
+                UIPasteboard.General.String = text;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ClipboardiOS] SetTextAsync Error: {ex}");
+            }
+            return Task.CompletedTask;
+        }
     }
 }

@@ -43,6 +43,12 @@ public partial class App : Application
         // 3. Datenbank Initialisierung
         InitializeDatabase();
 
+        // 4. Clipboard Service Initialisierung (falls noch nicht von Plattform gesetzt)
+        if (CapyCard.Services.ClipboardService.Current == null)
+        {
+            CapyCard.Services.ClipboardService.Current = new CapyCard.Services.DesktopClipboardService();
+        }
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             DisableAvaloniaDataAnnotationValidation();
