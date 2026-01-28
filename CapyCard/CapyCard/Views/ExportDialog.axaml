@@ -16,11 +16,11 @@
                 Margin="24"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
-                MaxWidth="450"
+                MaxWidth="400"
                 MaxHeight="800"
                 BoxShadow="0 4 16 0 #40000000">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <StackPanel Spacing="16" HorizontalAlignment="Stretch" MinWidth="350" Margin="0,0,12,12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="16" HorizontalAlignment="Stretch" Margin="0,0,12,12">
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="Kartenstapel exportieren"
@@ -143,16 +143,19 @@
                             <ItemsControl ItemsSource="{Binding SubDecks}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,4">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,4" HorizontalAlignment="Stretch">
+                                            <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Text="{Binding Name}" 
                                                            TextWrapping="Wrap"
                                                            Foreground="{DynamicResource TextControlForeground}"/>
-                                                <TextBlock Text="{Binding CardCount, StringFormat='({0} Karten)'}"
+                                                <TextBlock Grid.Column="1" 
+                                                           Text="{Binding CardCount, StringFormat='({0} Karten)'}"
                                                            FontSize="12"
-                                                           TextWrapping="Wrap"
+                                                           Margin="8,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           TextWrapping="NoWrap"
                                                            Foreground="{DynamicResource TextMutedBrush}"/>
-                                            </StackPanel>
+                                            </Grid>
                                         </CheckBox>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
