@@ -28,7 +28,17 @@ namespace CapyCard.ViewModels
         private string _editText;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(TopicCountText))]
         private int _cardCount;
+
+        public string TopicCountText
+        {
+            get
+            {
+                if (Deck.ParentDeckId != null) return $"{CardCount} Karten";
+                return $"{SubDecks.Count} Themen • {CardCount} Karten";
+            }
+        }
 
         [ObservableProperty]
         private bool _isExpanded;
@@ -54,6 +64,7 @@ namespace CapyCard.ViewModels
             _editText = deck.Name;
             _isEditing = false;
             _cardCount = cardCount;
+            SubDecks.CollectionChanged += (s, e) => OnPropertyChanged(nameof(TopicCountText));
         }
 
         [RelayCommand]

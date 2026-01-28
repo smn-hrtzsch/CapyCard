@@ -120,7 +120,7 @@
                                                                FontSize="16"
                                                                TextWrapping="Wrap"
                                                                Foreground="{DynamicResource TextControlForeground}"/>
-                                                    <TextBlock Text="{Binding CardCount, StringFormat='{}{0} Karten'}"
+                                                    <TextBlock Text="{Binding TopicCountText}"
                                                                FontSize="12"
                                                                Foreground="{DynamicResource TextMutedBrush}"/>
                                                 </StackPanel>
@@ -196,11 +196,14 @@
                                             </TextBox.KeyBindings>
                                         </TextBox>
                                         <Button Command="{Binding AddSubDeckCommand}"
-                                                Classes="icon"
+                                                Classes="secondary"
+                                                Padding="8"
+                                                Width="36"
+                                                Height="36"
                                                 Grid.Column="1"
                                                 ToolTip.Tip="Thema hinzufügen"
                                                 VerticalAlignment="Center">
-                                            <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="{DynamicResource PrimaryBrush}"/>
+                                            <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20"/>
                                         </Button>
                                     </Grid>
 
