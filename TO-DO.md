@@ -13,6 +13,7 @@
 - [x] Das Hinzufügen, Löschen und Bearbeiten von Themen sollte auch im DeckListView möglich sein. Aktuell ist das nur im CardDetailView möglich. Dazu sollte ein Eingabefeld für das Thema und einen Button zum Hinzufügen geben, das sollte aber dezenter sein, als die Eingabefelder für Fächer im DeckListView. Vielleicht am Anfang der Themen-Liste, wenn man ein Fach ausgeklappt hat.
 - [x] Datei-Import sollte auch .txt oder .json Dateien im bereits unterstützem Format (KI/Text-Import Format) möglich sein.
 - [ ] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig.
+- [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import integrieren.
 - [ ] Tippfehler Rot unterstreichen
 - [ ] Fenstergröße automatisch an Bildschirmgröße anpassen (Desktop-Fenster ist auf kleineren Bildschirmen zu groß)
 - [ ] Textgröße auf Mobile anpassen
@@ -34,8 +35,6 @@
 
 ## Bugs
 
-- [ ] Wenn man eine Datei importiert, die nicht das .capycard Format hat, dann ist der "Lernfortschritt übernehmen" Button stuck auf aktiviert. Man kann ihn nicht einmal manuell deaktivieren, ganz geschweige davon, dass er standardmäßig deaktiviert sein sollte, wenn man eine Datei importiert, egal welches Format. Fixe das.
-- [ ] Option "Lernfortschritt übernehmen" und "Lernfortschritt mit exportieren" sollte standardmäßig deaktiviert sein.
 - [ ] Position des x-Buttons zum Schließen des Import/Export Dialogs ist nicht schön, sie sollte wirklich oben rechts am Rand sein, sie ist aber viel weiter richtung Mitte versetzt. Außerdem ist der Hover Effekt zu dezent.
 - [ ] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
 - [ ] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
@@ -48,6 +47,7 @@
 
 ## Fixed Bugs
 
+- [x] Wenn man eine Datei importiert, die nicht das .capycard Format hat, dann ist der "Lernfortschritt übernehmen" Button stuck auf aktiviert. Man kann ihn nicht einmal manuell deaktivieren, ganz geschweige davon, dass er standardmäßig deaktiviert sein sollte, wenn man eine Datei importiert, egal welches Format. Fixe das.
 - [x] Die Visualisierung, dass der System-Prompt korrekt ins Clipboard kopiert wurde, ist nicht gut lesbar, nutze einfach den normalen Style für Outlined Buttons, mit dem Teal als Rahmen und Textfarbe.
 - [x] Breite der Auswahl der Themen beim Export ist viel zu breit. Sie sollte auf die Breite des Dialogs begrenzt sein und lange Themennamen sollten einfach umgebrochen werden.
 - [x] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
