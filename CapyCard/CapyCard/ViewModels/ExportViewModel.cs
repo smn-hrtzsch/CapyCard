@@ -25,7 +25,7 @@ namespace CapyCard.ViewModels
         public int CardCount { get; }
 
         [ObservableProperty]
-        private bool _isSelected = true;
+        private bool _isSelected;
 
         public ExportSubDeckItem(Deck deck, int cardCount)
         {
