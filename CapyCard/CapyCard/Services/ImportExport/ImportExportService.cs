@@ -22,6 +22,7 @@ namespace CapyCard.Services.ImportExport
                 new CapyCardFormatHandler(),
                 new CsvFormatHandler(),
                 new AnkiFormatHandler(),
+                new JsonFormatHandler(),
             };
         }
 

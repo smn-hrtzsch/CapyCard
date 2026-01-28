@@ -88,5 +88,17 @@ namespace CapyCard.Android.Services
             }
             return null;
         }
+
+        public async Task SetTextAsync(string text)
+        {
+            try
+            {
+                await Xamarin.Essentials.Clipboard.SetTextAsync(text);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ClipboardAndroid] SetTextAsync Error: {ex}");
+            }
+        }
     }
 }

@@ -93,6 +93,24 @@
                                    Foreground="{DynamicResource TextMutedBrush}"/>
                     </StackPanel>
 
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
+
+                    <!-- JSON / AI Format -->
+                    <StackPanel Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="AutoFix" Width="20" Height="20" 
+                                                       Foreground="{DynamicResource PrimaryBrush}"/>
+                            <TextBlock Text="KI / JSON (.json)"
+                                       FontWeight="Bold"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </StackPanel>
+                        <TextBlock Text="Importiere Karten direkt aus KI-generiertem Text. Kopiere den System-Prompt in ChatGPT oder Claude und füge das Ergebnis hier ein. Unterstützt verschachtelte Themen."
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    </StackPanel>
+
                     <!-- Close Button -->
                     <Button Content="Verstanden"
                             Command="{Binding CloseCommand}"

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:views="using:CapyCard.Views"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
              x:Class="CapyCard.Views.FileSelectionDialog"
              x:DataType="vm:ImportViewModel">
@@ -33,17 +34,33 @@
                 </Button>
             </Grid>
 
-            <!-- File Selection -->
-            <Button Command="{Binding SelectFileCommand}"
-                    Classes="secondary"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    IsEnabled="{Binding !IsAnalyzing}">
-                <Grid ColumnDefinitions="Auto,*" Margin="8,0">
-                    <materialIcons:MaterialIcon Kind="FileUpload" Width="20" Height="20" Grid.Column="0" Margin="0,0,8,0"/>
-                    <TextBlock Text="Datei auswählen..." TextWrapping="Wrap" Grid.Column="1"/>
-                </Grid>
-            </Button>
+            <StackPanel Spacing="12">
+                <!-- File Selection -->
+                <Button Command="{Binding SelectFileCommand}"
+                        Classes="secondary"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsEnabled="{Binding !IsAnalyzing}">
+                    <Grid ColumnDefinitions="Auto,*" Margin="8,0">
+                        <materialIcons:MaterialIcon Kind="FileUpload" Width="20" Height="20" Grid.Column="0" Margin="0,0,8,0"/>
+                        <TextBlock Text="Datei auswählen..." TextWrapping="Wrap" Grid.Column="1"/>
+                    </Grid>
+                </Button>
+
+                <Separator Height="1" Background="{DynamicResource DividerBrush}" Margin="0,4"/>
+
+                <!-- LLM / Text Import -->
+                <Button Command="{Binding OpenLlmImportCommand}"
+                        Classes="secondary"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsEnabled="{Binding !IsAnalyzing}">
+                    <Grid ColumnDefinitions="Auto,*" Margin="8,0">
+                        <materialIcons:MaterialIcon Kind="AutoFix" Width="20" Height="20" Grid.Column="0" Margin="0,0,8,0"/>
+                        <TextBlock Text="Via KI / Text importieren" TextWrapping="Wrap" Grid.Column="1"/>
+                    </Grid>
+                </Button>
+            </StackPanel>
 
             <!-- Loading Indicator -->
             <StackPanel Orientation="Horizontal" 

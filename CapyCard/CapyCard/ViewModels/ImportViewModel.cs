@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -81,6 +82,15 @@ namespace CapyCard.ViewModels
         [ObservableProperty]
         private int _duplicateHandlingIndex; // 0=Skip, 1=Replace, 2=KeepBoth
 
+        [ObservableProperty]
+        private bool _isLlmImportVisible;
+
+        [ObservableProperty]
+        private bool _isCopySuccess;
+
+        [ObservableProperty]
+        private string _importJsonText = string.Empty;
+
         public event Action<ImportResult>? OnImportCompleted;
         public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
 
@@ -92,6 +102,8 @@ namespace CapyCard.ViewModels
         public async Task ShowAsync()
         {
             IsVisible = true;
+            IsLlmImportVisible = false;
+            ImportJsonText = string.Empty;
             HasError = false;
             ErrorMessage = string.Empty;
             ShowPreview = false;
@@ -121,6 +133,125 @@ namespace CapyCard.ViewModels
             {
                 SelectedExistingDeck = AvailableDecks.First();
             }
+        }
+
+        [RelayCommand]
+        private void OpenLlmImport()
+        {
+            IsLlmImportVisible = true;
+            ImportJsonText = string.Empty;
+            HasError = false;
+            ErrorMessage = string.Empty;
+        }
+
+        [RelayCommand]
+        private void CloseLlmImport()
+        {
+            IsLlmImportVisible = false;
+        }
+
+        [RelayCommand]
+        private async Task CopyPrompt()
+        {
+            if (CapyCard.Services.ClipboardService.Current != null)
+            {
+                await CapyCard.Services.ClipboardService.Current.SetTextAsync(GenerateSystemPrompt());
+                IsCopySuccess = true;
+                await Task.Delay(2000);
+                IsCopySuccess = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task AnalyzeText()
+        {
+            if (string.IsNullOrWhiteSpace(ImportJsonText))
+            {
+                HasError = true;
+                ErrorMessage = "Bitte füge zuerst den JSON-Text ein.";
+                return;
+            }
+
+            HasError = false;
+            ErrorMessage = string.Empty;
+            IsAnalyzing = true;
+            StatusMessage = "Text wird analysiert...";
+
+            try
+            {
+                var bytes = Encoding.UTF8.GetBytes(ImportJsonText);
+                var stream = new MemoryStream(bytes);
+                
+                _fileStream?.Dispose();
+                _fileStream = stream;
+                _fileName = "llm_import.json";
+
+                PreviewFileName = "KI / Text Import";
+
+                var preview = await _importExportService.AnalyzeFileAsync(_fileStream, _fileName);
+
+                if (!preview.Success)
+                {
+                    HasError = true;
+                    ErrorMessage = preview.ErrorMessage ?? "Fehler beim Analysieren des Textes.";
+                    ShowPreview = false;
+                    return;
+                }
+
+                PreviewFormatName = preview.FormatName ?? "JSON";
+                PreviewCardCount = $"{preview.CardCount} Karten";
+                PreviewSubDeckCount = preview.SubDeckCount > 0 ? $"{preview.SubDeckCount} Themen" : "Keine Themen";
+                PreviewHasProgress = preview.HasProgress;
+                NewDeckName = preview.DeckName ?? "Mein KI Import";
+                
+                ShowPreview = true;
+                IsLlmImportVisible = false;
+
+                _fileStream.Position = 0;
+            }
+            catch (Exception ex)
+            {
+                HasError = true;
+                ErrorMessage = $"Fehler bei der Analyse: {ex.Message}";
+                ShowPreview = false;
+            }
+            finally
+            {
+                IsAnalyzing = false;
+                StatusMessage = string.Empty;
+            }
+        }
+
+        private string GenerateSystemPrompt()
+        {
+            return @"Du bist ein Experte für die Erstellung von Karteikarten (Flashcards). 
+Deine Aufgabe ist es, aus dem bereitgestellten Material oder Thema hochwertige, verständliche Karteikarten zu erstellen.
+
+Regeln für die Karten:
+1. Formuliere klare Fragen auf der Vorderseite (front) und präzise Antworten auf der Rückseite (back).
+2. Nutze Markdown für Formatierungen (Fett, Kursiv, Listen, Code-Blöcke).
+3. Bilder können via Markdown eingebettet werden, wenn sie als Base64-Data-URIs vorliegen (z.B. ![Bild](data:image/png;base64,...)).
+4. Erstelle bei komplexen Themen eine hierarchische Struktur mit 'subDecks'.
+
+Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne weiteren Text:
+
+{
+  ""name"": ""Name des Fachs"",
+  ""cards"": [
+    { ""front"": ""Frage 1"", ""back"": ""Antwort 1"" },
+    { ""front"": ""Frage 2"", ""back"": ""Antwort 2"" }
+  ],
+  ""subDecks"": [
+    {
+      ""name"": ""Unterthema A"",
+      ""cards"": [
+        { ""front"": ""Frage A1"", ""back"": ""Antwort A1"" }
+      ]
+    }
+  ]
+}
+
+Wichtig: Antworte nur mit dem JSON-Objekt, idealerweise in einem Code-Block.";
         }
 
         [RelayCommand]
@@ -180,10 +311,17 @@ namespace CapyCard.ViewModels
         [RelayCommand]
         private async Task Import()
         {
-            if (_fileStream == null || string.IsNullOrEmpty(_fileName))
+            if (_fileStream == null)
             {
                 HasError = true;
-                ErrorMessage = "Bitte wähle zuerst eine Datei aus.";
+                ErrorMessage = "Fehler: Datenstrom ist verloren gegangen.";
+                return;
+            }
+
+            if (!_fileStream.CanRead)
+            {
+                HasError = true;
+                ErrorMessage = "Fehler: Datenstrom wurde bereits geschlossen.";
                 return;
             }
 
@@ -239,7 +377,7 @@ namespace CapyCard.ViewModels
             catch (Exception ex)
             {
                 HasError = true;
-                ErrorMessage = $"Fehler beim Import: {ex.Message}";
+                ErrorMessage = $"Kritischer Fehler: {ex.Message}";
             }
             finally
             {
@@ -254,16 +392,26 @@ namespace CapyCard.ViewModels
             _fileStream?.Dispose();
             _fileStream = null;
             IsVisible = false;
+            ShowPreview = false;
+            IsLlmImportVisible = false;
         }
 
         partial void OnIsNewDeckSelectedChanged(bool value)
         {
-            if (value) IsExistingDeckSelected = false;
+            if (value) 
+            {
+                _isExistingDeckSelected = false;
+                OnPropertyChanged(nameof(IsExistingDeckSelected));
+            }
         }
 
         partial void OnIsExistingDeckSelectedChanged(bool value)
         {
-            if (value) IsNewDeckSelected = false;
+            if (value) 
+            {
+                _isNewDeckSelected = false;
+                OnPropertyChanged(nameof(IsNewDeckSelected));
+            }
         }
     }
 }

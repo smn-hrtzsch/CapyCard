@@ -34,41 +34,41 @@ Ermöglichen, dass Nutzer Inhalte von LLMs (wie ChatGPT, Claude, etc.) direkt in
 ## Schritte
 
 ### 1. Datenmodelle & Format-Handler
-- [ ] **Modelle:** Erstelle `JsonImportModels.cs`.
-- [ ] **Handler:** Implementiere `JsonFormatHandler.cs`.
+- [x] **Modelle:** Erstelle `JsonImportModels.cs`.
+- [x] **Handler:** Implementiere `JsonFormatHandler.cs`.
     - Muss `AnalyzeAsync` (Parsing, Validierung) und `ImportAsync` unterstützen.
     - Muss robust gegenüber Markdown-Code-Fences (` ```json ... ``` `) sein.
     - Muss Base64-Bilder extrahieren und temporär speichern.
-- [ ] **Service:** Registriere den Handler in `ImportExportService`.
+- [x] **Service:** Registriere den Handler in `ImportExportService`.
 
 ### 2. Clipboard Service Erweiterung
-- [ ] Erweitere `IClipboardService` Interface um `Task SetTextAsync(string text)`.
-- [ ] Implementiere dies für die Plattformen (Android, iOS, Desktop).
+- [x] Erweitere `IClipboardService` Interface um `Task SetTextAsync(string text)`.
+- [x] Implementiere dies für die Plattformen (Android, iOS, Desktop).
 
 ### 3. ViewModel Erweiterung (`ImportViewModel`)
-- [ ] **Properties:** `IsLlmImportVisible` (bool), `ImportJsonText` (string).
-- [ ] **Prompt-Logik:** Erstelle `GenerateSystemPrompt()`.
+- [x] **Properties:** `IsLlmImportVisible` (bool), `ImportJsonText` (string).
+- [x] **Prompt-Logik:** Erstelle `GenerateSystemPrompt()`.
     - *Vielseitigkeit:* Der Prompt muss sowohl für spezifisches Material (PDF, Folien) als auch für allgemeine Themen funktionieren.
     - *Struktur:* Klare JSON-Vorgabe, Feldbezeichnungen (Front, Back).
     - *Bilder:* Anleitung für Base64-Einbindung oder Verweise auf Quellen.
-- [ ] **Commands:**
+- [x] **Commands:**
     - `OpenLlmImportCommand`: Setzt `IsLlmImportVisible = true`.
     - `CloseLlmImportCommand`: Setzt `IsLlmImportVisible = false`.
     - `CopyPromptCommand`: Nutzt `ClipboardService.SetTextAsync` mit dem Prompt.
     - `AnalyzeTextCommand`: Wandelt `ImportJsonText` in Stream um und ruft `AnalyzeFileAsync` auf.
 
 ### 4. UI: FileSelectionDialog & LlmImportDialog
-- [ ] **FileSelectionDialog:** Füge Button "Via AI / Text importieren" hinzu.
-- [ ] **LlmImportDialog:** Erstelle UserControl basierend auf `SurfaceBrush` und `CornerRadius="28"`.
+- [x] **FileSelectionDialog:** Füge Button "Via AI / Text importieren" hinzu.
+- [x] **LlmImportDialog:** Erstelle UserControl basierend auf `SurfaceBrush` und `CornerRadius="28"`.
     - **Anleitung:** Schritt-für-Schritt Erklärung (Chat öffnen, Material/Thema angeben, Prompt nutzen, JSON einfügen).
     - **Hinweise:** "Scheibchenweise importieren" für bessere Qualität.
     - **Aktion:** Button "Prompt kopieren" und Textfeld für JSON.
-- [ ] **FormatInfoDialog:** Ergänze JSON Formatbeschreibung.
+- [x] **FormatInfoDialog:** Ergänze JSON Formatbeschreibung.
 
 ### 5. Verifikation
-- [ ] Teste den Flow: Klick auf "Via AI", Prompt kopieren, (Simulierter Chat), JSON einfügen, Import.
-- [ ] Prüfe Fehlerbehandlung bei ungültigem JSON.
-- [ ] Prüfe Bild-Import via Base64.
+- [x] Teste den Flow: Klick auf "Via AI", Prompt kopieren, (Simulierter Chat), JSON einfügen, Import.
+- [x] Prüfe Fehlerbehandlung bei ungültigem JSON.
+- [x] Prüfe Bild-Import via Base64.
 
 ## Risiken & Hinweise
 - **Prompt:** Muss so formuliert sein, dass er *immer* JSON liefert ("Antworte ausschließlich im JSON-Format...").
