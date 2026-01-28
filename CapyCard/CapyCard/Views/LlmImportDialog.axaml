@@ -10,28 +10,24 @@
 
     <Border Background="{DynamicResource SurfaceBrush}"
             CornerRadius="28"
-            Padding="24"
+            Padding="0"
             Margin="24"
             VerticalAlignment="Center"
             HorizontalAlignment="Stretch"
             MaxWidth="500"
             BoxShadow="0 4 16 0 #40000000">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="16">
-                <!-- Header -->
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Via KI / Text importieren"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               Foreground="{DynamicResource TextControlForeground}"
-                               Grid.Column="0"/>
-                    <Button Command="{Binding CloseLlmImportCommand}"
-                            Classes="icon"
-                            Grid.Column="1">
-                        <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
-                                                   Foreground="{DynamicResource TextMutedBrush}"/>
-                    </Button>
-                </Grid>
+        <Panel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Border Padding="24">
+                    <StackPanel Spacing="16">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*">
+                        <TextBlock Text="Via KI / Text importieren"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextControlForeground}"
+                                   Grid.Column="0"/>
+                    </Grid>
 
                 <!-- Anleitung -->
                 <Border Background="{DynamicResource BadgeBackgroundBrush}"
@@ -117,7 +113,19 @@
                         <TextBlock Text="Analysieren"/>
                     </Button>
                 </Grid>
-            </StackPanel>
-        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <!-- Close Button -->
+            <Button Command="{Binding CloseLlmImportCommand}"
+                    Classes="icon"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    Margin="12">
+                <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+            </Button>
+        </Panel>
     </Border>
 </UserControl>

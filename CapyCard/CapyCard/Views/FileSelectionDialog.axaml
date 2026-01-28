@@ -9,38 +9,25 @@
               x:Class="CapyCard.Views.FileSelectionDialog"
              x:DataType="vm:ImportViewModel">
     <Border Background="{DynamicResource SurfaceBrush}"
-
             CornerRadius="28"
-            Padding="24"
+            Padding="0"
             Margin="24"
             VerticalAlignment="Center"
             HorizontalAlignment="Stretch"
             MaxWidth="400"
             BoxShadow="0 4 16 0 #40000000">
-        <StackPanel Spacing="16">
-            <!-- Header -->
-            <Grid ColumnDefinitions="*,Auto,Auto">
-                <TextBlock Text="Kartenstapel importieren"
-                           FontSize="20"
-                           FontWeight="Bold"
-                           TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextControlForeground}"
-                           Grid.Column="0"/>
-                <Button Command="{Binding ShowFormatInfoCommand}"
-                        Classes="icon"
-                        Grid.Column="1"
-                        Margin="0,0,4,0"
-                        ToolTip.Tip="Hilfe zu Import-Formaten">
-                    <materialIcons:MaterialIcon Kind="InformationOutline" Width="20" Height="20" 
-                                               Foreground="{DynamicResource TextMutedBrush}"/>
-                </Button>
-                <Button Command="{Binding CancelCommand}"
-                        Classes="icon"
-                        Grid.Column="2">
-                    <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
-                                               Foreground="{DynamicResource TextMutedBrush}"/>
-                </Button>
-             </Grid>
+        <Panel>
+            <Border Padding="24">
+                <StackPanel Spacing="16">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*">
+                        <TextBlock Text="Kartenstapel importieren"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextControlForeground}"
+                                   Grid.Column="0"/>
+                    </Grid>
             <StackPanel Spacing="12">
                 <!-- File Selection -->
 
@@ -110,7 +97,28 @@
                         IsEnabled="False">
                     <TextBlock Text="Importieren" TextWrapping="Wrap" HorizontalAlignment="Center"/>
                 </Button>
-            </Grid>
-        </StackPanel>
+                </Grid>
+            </StackPanel>
+            </Border>
+
+            <!-- Top Right Buttons -->
+            <StackPanel Orientation="Horizontal" 
+                        Spacing="0"
+                        VerticalAlignment="Top" 
+                        HorizontalAlignment="Right" 
+                        Margin="8">
+                <Button Command="{Binding ShowFormatInfoCommand}"
+                        Classes="icon"
+                        ToolTip.Tip="Hilfe zu Import-Formaten">
+                    <materialIcons:MaterialIcon Kind="InformationOutline" Width="20" Height="20" 
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                </Button>
+                <Button Command="{Binding CancelCommand}"
+                        Classes="icon">
+                    <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" 
+                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                </Button>
+            </StackPanel>
+        </Panel>
     </Border>
 </UserControl>
