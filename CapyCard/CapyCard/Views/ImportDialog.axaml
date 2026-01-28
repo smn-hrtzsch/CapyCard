@@ -24,12 +24,12 @@
                 Margin="24"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
-                MaxWidth="450"
+                MaxWidth="400"
                 MaxHeight="800"
                 IsVisible="{Binding ShowPreview}"
                 BoxShadow="0 4 16 0 #40000000">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <StackPanel Spacing="16" HorizontalAlignment="Stretch" MinWidth="350" Margin="0,0,12,12">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Spacing="16" HorizontalAlignment="Stretch" Margin="0,0,12,12">
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Text="Import-Einstellungen"

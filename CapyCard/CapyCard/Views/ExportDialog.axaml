@@ -16,7 +16,7 @@
                 Margin="24"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Stretch"
-                MaxWidth="450"
+                MaxWidth="400"
                 MaxHeight="800"
                 BoxShadow="0 4 16 0 #40000000">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
