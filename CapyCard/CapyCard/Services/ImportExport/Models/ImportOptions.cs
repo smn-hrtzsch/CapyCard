@@ -29,6 +29,12 @@ namespace CapyCard.Services.ImportExport.Models
         /// Verhalten bei doppelten Karten.
         /// </summary>
         public DuplicateHandling OnDuplicate { get; set; } = DuplicateHandling.KeepBoth;
+
+        /// <summary>
+        /// Das Format, welches für den Import genutzt werden soll (optional).
+        /// Wird aus der Vorschau übernommen.
+        /// </summary>
+        public string? FormatName { get; set; }
     }
 
     /// <summary>

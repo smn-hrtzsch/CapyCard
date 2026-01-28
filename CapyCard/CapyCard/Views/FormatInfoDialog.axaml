@@ -100,12 +100,12 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <materialIcons:MaterialIcon Kind="AutoFix" Width="20" Height="20" 
                                                        Foreground="{DynamicResource PrimaryBrush}"/>
-                            <TextBlock Text="KI / JSON (.json)"
+                            <TextBlock Text="KI / JSON (.json, .txt)"
                                        FontWeight="Bold"
                                        TextWrapping="Wrap"
                                        Foreground="{DynamicResource TextControlForeground}"/>
                         </StackPanel>
-                        <TextBlock Text="Importiere Karten direkt aus KI-generiertem Text. Kopiere den System-Prompt in ChatGPT oder Claude und füge das Ergebnis hier ein. Unterstützt verschachtelte Themen."
+                        <TextBlock Text="Importiere Karten direkt aus KI-generiertem Text oder entsprechenden .json/.txt Dateien. Kopiere den System-Prompt in ChatGPT oder Claude und füge das Ergebnis ein. Unterstützt verschachtelte Themen und Bilder via Base64."
                                    TextWrapping="Wrap"
                                    FontSize="13"
                                    Foreground="{DynamicResource TextMutedBrush}"/>

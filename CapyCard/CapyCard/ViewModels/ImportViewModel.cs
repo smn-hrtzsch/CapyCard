@@ -358,7 +358,8 @@ Wichtig: Antworte nur mit dem JSON-Objekt, idealerweise in einem Code-Block.";
                         0 => DuplicateHandling.Skip,
                         1 => DuplicateHandling.Replace,
                         _ => DuplicateHandling.KeepBoth
-                    }
+                    },
+                    FormatName = PreviewFormatName
                 };
 
                 var result = await _importExportService.ImportAsync(_fileStream, _fileName, options);
