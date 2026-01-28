@@ -65,7 +65,9 @@
             </Grid>
             
             <!-- 2. DECK EDITOR (Content) -->
-            <views:DeckEditorControl Grid.Row="1" BottomSpacerHeight="{Binding #SubDeckList.FooterHeight}" />
+            <views:DeckEditorControl Grid.Row="1" 
+                                     BottomSpacerHeight="{Binding #SubDeckList.FooterHeight}"
+                                     IsCompactMode="{Binding #Root.IsCompactMode}" />
 
             <!-- 3. SUBDECK LIST OVERLAY (Bottom of Content Area) -->
             <views:SubDeckListControl x:Name="SubDeckList" Grid.Row="1" Grid.RowSpan="2" ZIndex="100"
