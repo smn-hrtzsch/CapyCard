@@ -34,7 +34,6 @@
 
 ## Bugs
 
-- [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
 - [ ] Breite der Auswahl der Themen beim Export ist viel zu breit. Sie sollte auf die Breite des Dialogs begrenzt sein und lange Themennamen sollten einfach umgebrochen werden.
 - [ ] Option "Lernfortschritt übernehmen" und "Lernfortschritt mit exportieren" sollte standardmäßig deaktiviert sein.
 - [ ] Position des x-Buttons zum Schließen des Import/Export Dialogs ist nicht schön, sie sollte wirklich oben rechts am Rand sein, sie ist aber viel weiter richtung Mitte versetzt. Außerdem ist der Hover Effekt zu dezent.
@@ -49,6 +48,7 @@
 
 ## Fixed Bugs
 
+- [x] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
 - [x] Info Button beim File Selection Dialog für "Datei auswählen" Button muss noch hinzufgefügt werden, der erklärt, welche Formate unterstützt werden und wie der Import funktioniert. Ebenso ein Info Button für den "Via KI/Text importieren" Button.
 - [x] Der Infor Dialog für "Import/Export Formate" hat einen Scrollbar, obwohl der Dialog einfach breiter gemacht werden kann, sodass der Scrollbar nicht nötig ist. Mach ihn nur etwas breiter, dann ist der Scrollbar weg.
 - [x] Größe des Export Buttons sollte so angepasst werden, dass er wie der Filled Button "Zurück zur Fächerliste" aussieht (gleiche Höhe und Padding).
