@@ -17,6 +17,15 @@ namespace CapyCard.Views
             set => SetValue(BottomSpacerHeightProperty, value);
         }
 
+        public static readonly StyledProperty<bool> IsCompactModeProperty =
+            AvaloniaProperty.Register<DeckEditorControl, bool>(nameof(IsCompactMode), defaultValue: false);
+
+        public bool IsCompactMode
+        {
+            get => GetValue(IsCompactModeProperty);
+            set => SetValue(IsCompactModeProperty, value);
+        }
+
         private DeckDetailViewModel? _viewModel;
 
         public DeckEditorControl()
@@ -24,13 +33,24 @@ namespace CapyCard.Views
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
             
+            IsCompactModeProperty.Changed.AddClassHandler<DeckEditorControl>((x, e) => x.UpdateLayout((bool)e.NewValue!));
+
             if (OperatingSystem.IsIOS() || OperatingSystem.IsAndroid())
             {
-                // Adjust layout for mobile (Vertical stacking)
-                EditorsGrid.ColumnDefinitions.Clear();
+                IsCompactMode = true;
+            }
+        }
+
+        private void UpdateLayout(bool isCompact)
+        {
+            EditorsGrid.ColumnDefinitions.Clear();
+            EditorsGrid.RowDefinitions.Clear();
+
+            if (isCompact)
+            {
+                // Adjust layout for mobile/compact (Vertical stacking)
                 EditorsGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
 
-                EditorsGrid.RowDefinitions.Clear();
                 EditorsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto)); // Label Front
                 EditorsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Star)); // Editor Front
                 EditorsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto)); // Arrow
@@ -47,6 +67,26 @@ namespace CapyCard.Views
 
                 Grid.SetColumn(BackLabel, 0); Grid.SetRow(BackLabel, 3);
                 Grid.SetColumn(BackEditor, 0); Grid.SetRow(BackEditor, 4);
+            }
+            else
+            {
+                // Desktop layout (Horizontal)
+                EditorsGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+                EditorsGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
+                EditorsGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+
+                EditorsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+                EditorsGrid.RowDefinitions.Add(new RowDefinition(GridLength.Star));
+
+                Grid.SetColumn(FrontLabel, 0); Grid.SetRow(FrontLabel, 0);
+                Grid.SetColumn(BackLabel, 2); Grid.SetRow(BackLabel, 0);
+
+                Grid.SetColumn(FrontEditor, 0); Grid.SetRow(FrontEditor, 1);
+                Grid.SetColumn(ArrowIcon, 1); Grid.SetRow(ArrowIcon, 1);
+                Grid.SetColumn(BackEditor, 2); Grid.SetRow(BackEditor, 1);
+
+                ArrowIcon.RenderTransform = null;
+                ArrowIcon.Margin = new Thickness(12, 0);
             }
         }
 
