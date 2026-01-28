@@ -205,32 +205,83 @@
         <Setter Property="Background" Value="#15808080"/>
     </Style>
 
-    <!-- CheckBox - Teal accent color -->
+    <!-- CheckBox - Teal accent color (Matching Filled Button) -->
     <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
-        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
     
     <Style Selector="CheckBox:checked:pointerover /template/ Border#NormalRectangle">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+
+    <Style Selector="CheckBox /template/ Path#CheckGlyph">
+        <Setter Property="Fill" Value="{DynamicResource ButtonForegroundBrush}"/>
     </Style>
 
     <!-- RadioButton - Teal accent color -->
+    <Style Selector="RadioButton /template/ Ellipse#OuterEllipse">
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="Stroke" Value="{DynamicResource TextMutedBrush}"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+    </Style>
+    
+    <Style Selector="RadioButton /template/ Ellipse#CheckOuterEllipse">
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="Stroke" Value="Transparent"/>
+        <Setter Property="StrokeThickness" Value="1.5"/>
+    </Style>
+
+    <Style Selector="RadioButton:pointerover /template/ Ellipse#OuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+    </Style>
+
+    <!-- Force both ellipses to be teal and transparent when checked -->
     <Style Selector="RadioButton:checked /template/ Ellipse#OuterEllipse">
-        <Setter Property="Stroke" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="IsVisible" Value="True"/>
+    </Style>
+    
+    <Style Selector="RadioButton:checked /template/ Ellipse#CheckOuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Fill" Value="Transparent"/>
+        <Setter Property="IsVisible" Value="True"/>
     </Style>
     
     <Style Selector="RadioButton:checked /template/ Ellipse#CheckGlyph">
-        <Setter Property="Fill" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Width" Value="12"/>
+        <Setter Property="Height" Value="12"/>
     </Style>
     
+    <!-- PointerOver States -->
     <Style Selector="RadioButton:checked:pointerover /template/ Ellipse#OuterEllipse">
         <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+    
+    <Style Selector="RadioButton:checked:pointerover /template/ Ellipse#CheckOuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
     </Style>
     
     <Style Selector="RadioButton:checked:pointerover /template/ Ellipse#CheckGlyph">
         <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+
+    <!-- Pressed States -->
+    <Style Selector="RadioButton:pressed /template/ Ellipse#OuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+    
+    <Style Selector="RadioButton:pressed /template/ Ellipse#CheckOuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource PrimaryBrush}"/>
+        <Setter Property="Opacity" Value="0.7"/>
     </Style>
     
 </Styles>
