@@ -71,11 +71,12 @@ namespace CapyCard.Views
                 {
                     new FilePickerFileType("Alle unterstützten Formate")
                     {
-                        Patterns = new[] { "*.capycard", "*.apkg", "*.csv" }
+                        Patterns = new[] { "*.capycard", "*.apkg", "*.csv", "*.json", "*.txt" }
                     },
                     new FilePickerFileType("CapyCard") { Patterns = new[] { "*.capycard" } },
                     new FilePickerFileType("Anki Deck") { Patterns = new[] { "*.apkg" } },
-                    new FilePickerFileType("CSV") { Patterns = new[] { "*.csv" } }
+                    new FilePickerFileType("KI / JSON") { Patterns = new[] { "*.json", "*.txt" } },
+                    new FilePickerFileType("CSV") { Patterns = new[] { "*.csv", "*.txt" } }
                 }
             });
 

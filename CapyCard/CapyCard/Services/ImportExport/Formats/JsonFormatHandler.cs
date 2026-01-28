@@ -20,7 +20,7 @@ namespace CapyCard.Services.ImportExport.Formats
     /// </summary>
     public class JsonFormatHandler : IFormatHandler
     {
-        public string[] SupportedExtensions => new[] { ".json" };
+        public string[] SupportedExtensions => new[] { ".json", ".txt" };
         public string FormatName => "KI / JSON";
         public string FormatDescription => "Importiere Karten direkt aus KI-generiertem Text. Unterstützt verschachtelte Themen und Bilder via Base64.";
         public bool IsAvailable => true;

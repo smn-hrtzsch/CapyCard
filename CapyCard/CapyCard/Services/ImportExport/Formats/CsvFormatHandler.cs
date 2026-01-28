@@ -33,7 +33,7 @@ namespace CapyCard.Services.ImportExport.Formats
         {
             try
             {
-                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
                 var content = await reader.ReadToEndAsync();
 
                 if (string.IsNullOrWhiteSpace(content))
@@ -71,7 +71,7 @@ namespace CapyCard.Services.ImportExport.Formats
         {
             try
             {
-                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
                 var content = await reader.ReadToEndAsync();
 
                 var lines = content.Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries);

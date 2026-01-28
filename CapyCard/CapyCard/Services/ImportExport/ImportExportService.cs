@@ -20,9 +20,9 @@ namespace CapyCard.Services.ImportExport
             _handlers = new List<IFormatHandler>
             {
                 new CapyCardFormatHandler(),
+                new JsonFormatHandler(),
                 new CsvFormatHandler(),
                 new AnkiFormatHandler(),
-                new JsonFormatHandler(),
             };
         }
 
@@ -78,39 +78,110 @@ namespace CapyCard.Services.ImportExport
         /// <inheritdoc/>
         public async Task<ImportPreview> AnalyzeFileAsync(Stream stream, string fileName)
         {
-            var handler = GetHandlerForFile(fileName);
-            if (handler == null)
+            var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension))
             {
-                return ImportPreview.Failed($"Unbekanntes Dateiformat: {Path.GetExtension(fileName)}");
+                return ImportPreview.Failed("Datei hat keine Dateiendung.");
             }
 
-            try
+            var handlers = GetAvailableHandlers()
+                .Where(h => h.SupportedExtensions.Contains(extension))
+                .ToList();
+
+            if (!handlers.Any())
             {
-                return await handler.AnalyzeAsync(stream, fileName);
+                return ImportPreview.Failed($"Unbekanntes Dateiformat: {extension}");
             }
-            catch (Exception ex)
+
+            var errors = new List<string>();
+
+            foreach (var handler in handlers)
             {
-                return ImportPreview.Failed($"Fehler beim Analysieren: {ex.Message}");
+                try
+                {
+                    if (stream.CanSeek)
+                    {
+                        stream.Position = 0;
+                    }
+
+                    var preview = await handler.AnalyzeAsync(stream, fileName);
+                    if (preview.Success)
+                    {
+                        return preview;
+                    }
+                    
+                    errors.Add($"{handler.FormatName}: {preview.ErrorMessage}");
+                }
+                catch (Exception ex)
+                {
+                    errors.Add($"{handler.FormatName}: {ex.Message}");
+                }
             }
+
+            return ImportPreview.Failed($"Datei konnte nicht analysiert werden.\n{string.Join("\n", errors)}");
         }
 
         /// <inheritdoc/>
         public async Task<ImportResult> ImportAsync(Stream stream, string fileName, ImportOptions options)
         {
-            var handler = GetHandlerForFile(fileName);
-            if (handler == null)
+            var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
+            if (string.IsNullOrEmpty(extension))
             {
-                return ImportResult.Failed($"Unbekanntes Dateiformat: {Path.GetExtension(fileName)}");
+                return ImportResult.Failed("Datei hat keine Dateiendung.");
             }
 
-            try
+            var availableHandlers = GetAvailableHandlers()
+                .Where(h => h.SupportedExtensions.Contains(extension))
+                .ToList();
+
+            // Wenn wir einen FormatNamen in den Optionen haben, nutzen wir diesen bevorzugt
+            if (!string.IsNullOrEmpty(options.FormatName))
             {
-                return await handler.ImportAsync(stream, fileName, options);
+                var handler = availableHandlers.FirstOrDefault(h => h.FormatName == options.FormatName);
+                if (handler != null)
+                {
+                    try
+                    {
+                        if (stream.CanSeek)
+                        {
+                            stream.Position = 0;
+                        }
+                        return await handler.ImportAsync(stream, fileName, options);
+                    }
+                    catch (Exception ex)
+                    {
+                        return ImportResult.Failed($"Fehler beim Import mit {handler.FormatName}: {ex.Message}");
+                    }
+                }
             }
-            catch (Exception ex)
+            
+            // Fallback: Probiere alle passenden Handler
+            foreach (var handler in availableHandlers)
             {
-                return ImportResult.Failed($"Fehler beim Import: {ex.Message}");
+                try
+                {
+                    if (stream.CanSeek)
+                    {
+                        stream.Position = 0;
+                    }
+
+                    var preview = await handler.AnalyzeAsync(stream, fileName);
+                    if (preview.Success)
+                    {
+                        if (stream.CanSeek)
+                        {
+                            stream.Position = 0;
+                        }
+                        return await handler.ImportAsync(stream, fileName, options);
+                    }
+                }
+                catch
+                {
+                    // Nächster Handler
+                }
             }
+
+            return ImportResult.Failed($"Kein passender Importer für {extension} gefunden.");
         }
 
         /// <inheritdoc/>
