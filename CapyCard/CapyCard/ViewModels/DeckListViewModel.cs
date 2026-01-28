@@ -209,10 +209,24 @@ namespace CapyCard.ViewModels
             }
 
             // KORREKTUR: Entfernt das Wrapper-ViewModel aus der UI-Liste
-            Decks.Remove(_deckToConfirmDelete);
+            if (!RemoveRecursive(Decks, _deckToConfirmDelete))
+            {
+                // Fallback, falls es aus irgendeinem Grund nicht gefunden wurde (sollte nicht passieren)
+                Decks.Remove(_deckToConfirmDelete);
+            }
 
             _deckToConfirmDelete = null;
             IsConfirmingDelete = false;
+        }
+
+        private bool RemoveRecursive(ObservableCollection<DeckItemViewModel> list, DeckItemViewModel itemToRemove)
+        {
+            if (list.Remove(itemToRemove)) return true;
+            foreach (var item in list)
+            {
+                if (RemoveRecursive(item.SubDecks, itemToRemove)) return true;
+            }
+            return false;
         }
 
         [RelayCommand]

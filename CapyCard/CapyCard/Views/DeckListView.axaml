@@ -83,9 +83,9 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             
-                                            <!-- Expand/Collapse Button -->
+                                             <!-- Expand/Collapse Button -->
                                             <ToggleButton IsChecked="{Binding IsExpanded, Mode=TwoWay}"
-                                                          IsVisible="{Binding HasSubDecks}"
+                                                          IsVisible="{Binding CanExpand}"
                                                           Classes="icon"
                                                           Grid.Column="0"
                                                           VerticalAlignment="Center"
@@ -104,7 +104,7 @@
                                             
                                             <!-- Spacer -->
                                             <Border Width="44" Height="40" 
-                                                    IsVisible="{Binding !HasSubDecks}" 
+                                                    IsVisible="{Binding !CanExpand}" 
                                                     Grid.Column="0"/>
 
                                             <!-- CLICKABLE AREA -->
@@ -181,32 +181,107 @@
                                     </Grid>
                                 </Border>
                                 
-                                <!-- Subdecks List -->
-                                <ItemsControl ItemsSource="{Binding SubDecks}"
-                                              IsVisible="{Binding IsExpanded}"
-                                              Margin="32,0,0,16">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Classes="card" Margin="0,0,0,8" Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Padding="0">
-                                                <Button Command="{Binding $parent[UserControl].DataContext.OpenDeckCommand}" 
-                                                        CommandParameter="{Binding}"
-                                                        Classes="list-item"
-                                                        HorizontalAlignment="Stretch">
-                                                    <Grid ColumnDefinitions="*, Auto">
-                                                        <StackPanel Grid.Column="0">
-                                                            <TextBlock Text="{Binding Name}" 
-                                                                       Foreground="{DynamicResource TextControlForeground}"
-                                                                       FontWeight="Medium"/>
-                                                            <TextBlock Text="{Binding CardCount, StringFormat='{}{0} Karten'}" 
-                                                                       FontSize="11" 
-                                                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                                                        </StackPanel>
+                                 <!-- Subdecks Area -->
+                                <StackPanel IsVisible="{Binding IsExpanded}" Margin="32,0,0,16">
+                                    <!-- Subtle Add Topic Input -->
+                                    <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+                                        <TextBox Text="{Binding NewSubDeckName, Mode=TwoWay}"
+                                                 Classes="floating"
+                                                 Watermark="Neues Thema..."
+                                                 FontSize="14"
+                                                 Grid.Column="0"
+                                                 Margin="0,0,8,0">
+                                            <TextBox.KeyBindings>
+                                                <KeyBinding Command="{Binding AddSubDeckCommand}" Gesture="Enter"/>
+                                            </TextBox.KeyBindings>
+                                        </TextBox>
+                                        <Button Command="{Binding AddSubDeckCommand}"
+                                                Classes="icon"
+                                                Grid.Column="1"
+                                                ToolTip.Tip="Thema hinzufügen"
+                                                VerticalAlignment="Center">
+                                            <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="{DynamicResource PrimaryBrush}"/>
+                                        </Button>
+                                    </Grid>
+
+                                    <ItemsControl ItemsSource="{Binding SubDecks}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:DeckItemViewModel">
+                                                <Border Classes="card" Margin="0,0,0,8" Background="{DynamicResource BackgroundBrush}" CornerRadius="12" Padding="0">
+                                                    <Grid>
+                                                        <!-- DISPLAY MODE -->
+                                                        <Grid IsVisible="{Binding !IsEditing}" ColumnDefinitions="*, Auto, Auto">
+                                                            <Button Command="{Binding $parent[UserControl].DataContext.OpenDeckCommand}" 
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="list-item"
+                                                                    Grid.Column="0"
+                                                                    HorizontalAlignment="Stretch">
+                                                                <StackPanel>
+                                                                    <TextBlock Text="{Binding Name}" 
+                                                                               Foreground="{DynamicResource TextControlForeground}"
+                                                                               FontWeight="Medium"
+                                                                               TextWrapping="Wrap"/>
+                                                                    <TextBlock Text="{Binding CardCount, StringFormat='{}{0} Karten'}" 
+                                                                               FontSize="11" 
+                                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                </StackPanel>
+                                                            </Button>
+                                                            
+                                                            <!-- Edit Button -->
+                                                            <Button Command="{Binding StartEditCommand}"
+                                                                    Classes="icon"
+                                                                    Grid.Column="1"
+                                                                    VerticalAlignment="Center"
+                                                                    IsVisible="{Binding !IsStatic}">
+                                                                <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                            </Button>
+                            
+                                                            <!-- Delete Button -->
+                                                            <Button Command="{Binding $parent[UserControl].DataContext.DeleteDeckCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="icon"
+                                                                    Grid.Column="2"
+                                                                    VerticalAlignment="Center"
+                                                                    Margin="0,0,4,0"
+                                                                    IsVisible="{Binding !IsStatic}">
+                                                                <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                            </Button>
+                                                        </Grid>
+                                                        
+                                                        <!-- EDIT MODE -->
+                                                        <Grid IsVisible="{Binding IsEditing}" ColumnDefinitions="*, Auto, Auto" Margin="8">
+                                                            <TextBox Text="{Binding EditText, Mode=TwoWay}"
+                                                                     Classes="floating"
+                                                                     FontSize="14"
+                                                                     Grid.Column="0"
+                                                                     Margin="0,0,8,0"
+                                                                     behaviors:FocusBehaviors.FocusOnTrue="{Binding IsEditing}">
+                                                                <TextBox.KeyBindings>
+                                                                    <KeyBinding Command="{Binding $parent[UserControl].DataContext.SaveDeckEditCommand}"
+                                                                                CommandParameter="{Binding}"
+                                                                                Gesture="Enter"/>
+                                                                    <KeyBinding Command="{Binding CancelEditCommand}"
+                                                                                Gesture="Escape"/>
+                                                                </TextBox.KeyBindings>
+                                                            </TextBox>
+                                                            <Button Command="{Binding $parent[UserControl].DataContext.SaveDeckEditCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="icon"
+                                                                    Grid.Column="1">
+                                                                <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="{DynamicResource PrimaryLightBrush}"/>
+                                                            </Button>
+                                                            <Button Command="{Binding CancelEditCommand}"
+                                                                    Classes="icon"
+                                                                    Grid.Column="2">
+                                                                <materialIcons:MaterialIcon Kind="Close" Width="20" Height="20" Foreground="{DynamicResource ErrorBrush}"/>
+                                                            </Button>
+                                                        </Grid>
                                                     </Grid>
-                                                </Button>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
