@@ -31,7 +31,7 @@
 
 ## Bugs
 
-- [ ] Styling der Radio Buttons im Import und Export Dialog sind noch nicht korrekt: es wird noch die System Akzentfarbe für den Rahmen benutzt, obwohl es einfach nur der Teal sein sollte, wenn die Option ausgewählt ist. Siehe Screenshot:
+- [ ] Styling der Radio Buttons im Import und Export Dialog sind noch nicht korrekt: es wird noch die System Akzentfarbe für den Rahmen benutzt, obwohl es einfach nur der Teal sein sollte, wenn die Option ausgewählt ist. Auch beim Hovern sollte nicht die System Akzentfarbe genutzt werden. Zwischen Rahmen und innerem Kreis sollte es einfach transparent sein. Der Kreis in der Mitte des Radio Buttons sollte auch ein bisschen größer sein. Siehe Screenshot:
 - [ ] Bei der Auswahl, was exportiert werden soll ist bei der Option "Ausgewählte Themen" standardmäßig jedes Thema ausgewählt. Aber es sollten standardmäßig keine Themen ausgewählt sein, damit der Nutzer explizit die Themen auswählen muss, die er exportieren möchte.
 - [ ] Position des x-Buttons zum Schließen des Import/Export Dialogs ist nicht schön, sie sollte wirklich oben rechts am Rand sein, sie ist aber viel weiter richtung Mitte versetzt. Außerdem ist der Hover Effekt zu dezent.
 - [ ] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
