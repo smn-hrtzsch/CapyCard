@@ -49,13 +49,14 @@
                 
                 <!-- Export Button -->
                 <Button Command="{Binding ExportCommand}"
-                        Classes="fab"
+                        Classes="primary"
                         Grid.Column="2"
                         VerticalAlignment="Center"
                         ToolTip.Tip="Kartenstapel exportieren"
-                        IsVisible="{Binding IsRootDeck}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="24" Height="24"/>
+                        IsVisible="{Binding IsRootDeck}"
+                        Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="20" Height="20"/>
                         <TextBlock Text="Export" 
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding !#Root.IsCompactMode}"/>
