@@ -47,17 +47,18 @@
                         <Button Command="{Binding CopyPromptCommand}"
                                 Classes="secondary"
                                 HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
                                 Margin="0,8,0,0">
-                            <Grid>
-                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding !IsCopySuccess}">
+                            <Panel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding !IsCopySuccess}">
                                     <materialIcons:MaterialIcon Kind="ContentCopy" Width="18" Height="18"/>
                                     <TextBlock Text="System-Prompt kopieren"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding IsCopySuccess}">
-                                    <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18" Foreground="{DynamicResource PrimaryBrush}"/>
-                                    <TextBlock Text="Kopiert!" Foreground="{DynamicResource PrimaryBrush}"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding IsCopySuccess}">
+                                    <materialIcons:MaterialIcon Kind="Check" Width="18" Height="18"/>
+                                    <TextBlock Text="Kopiert!"/>
                                 </StackPanel>
-                            </Grid>
+                            </Panel>
                         </Button>
                     </StackPanel>
                 </Border>
