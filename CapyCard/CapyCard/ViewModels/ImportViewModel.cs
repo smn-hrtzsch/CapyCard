@@ -93,12 +93,16 @@ namespace CapyCard.ViewModels
 
         public event Action<ImportResult>? OnImportCompleted;
         public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
-
+        public event Action? RequestShowFormatInfo;
         public ImportViewModel()
         {
             _importExportService = new ImportExportService();
         }
-
+        [RelayCommand]
+        private void ShowFormatInfo()
+        {
+            RequestShowFormatInfo?.Invoke();
+        }
         public async Task ShowAsync()
         {
             IsVisible = true;

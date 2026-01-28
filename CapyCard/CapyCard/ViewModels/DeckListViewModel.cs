@@ -29,11 +29,9 @@ namespace CapyCard.ViewModels
         // Import/Export ViewModels
         public ImportViewModel ImportViewModel { get; }
         public FormatInfoViewModel FormatInfoViewModel { get; }
-
+        public ImportHelpViewModel ImportHelpViewModel { get; }
         // Event for file picker (to be wired up from View)
         public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
-
-        
         // KORREKTUR: Die Eigenschaft für das ausgewählte Item ist jetzt vom Typ DeckItemViewModel
         private DeckItemViewModel? _selectedDeck;
         public DeckItemViewModel? SelectedDeck
@@ -55,20 +53,17 @@ namespace CapyCard.ViewModels
                 }
             }
         }
-
         public event Action<Deck>? OnDeckSelected;
-
-
         public DeckListViewModel()
         {
             // _dbContext removed
             ImportViewModel = new ImportViewModel();
             FormatInfoViewModel = new FormatInfoViewModel();
-            
+            ImportHelpViewModel = new ImportHelpViewModel();
             // Wire up import events
             ImportViewModel.OnRequestFileOpen += async () => await (OnRequestFileOpen?.Invoke() ?? Task.FromResult<IStorageFile?>(null));
             ImportViewModel.OnImportCompleted += OnImportCompleted;
-            
+            ImportViewModel.RequestShowFormatInfo += () => ImportHelpViewModel.Show();
             LoadDecks();
         }
 
