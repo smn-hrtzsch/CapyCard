@@ -3,12 +3,12 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CapyCard.ViewModels
 {
-    public partial class FormatInfoViewModel : ObservableObject
+    public partial class ImportHelpViewModel : ObservableObject
     {
         [ObservableProperty]
         private bool _isVisible;
         [ObservableProperty]
-        private bool _isAiFormatDetailsExpanded;
+        private bool _isFormatDetailsExpanded;
         public string JsonExample { get; } = @"{
   ""name"": ""Thema"",
   ""cards"": [
@@ -19,20 +19,20 @@ namespace CapyCard.ViewModels
   ]
 }";
         [RelayCommand]
-        private void ToggleAiFormatDetails()
+        private void ToggleFormatDetails()
         {
-            IsAiFormatDetailsExpanded = !IsAiFormatDetailsExpanded;
+            IsFormatDetailsExpanded = !IsFormatDetailsExpanded;
         }
         [RelayCommand]
         private void Close()
         {
             IsVisible = false;
-            IsAiFormatDetailsExpanded = false;
+            IsFormatDetailsExpanded = false;
         }
         public void Show()
         {
             IsVisible = true;
-            IsAiFormatDetailsExpanded = false;
+            IsFormatDetailsExpanded = false;
         }
     }
 }

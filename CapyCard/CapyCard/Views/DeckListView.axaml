@@ -344,5 +344,8 @@
         
         <!-- Format Info Dialog Overlay -->
         <views:FormatInfoDialog DataContext="{Binding FormatInfoViewModel}"/>
+        
+        <!-- Import Help Dialog Overlay -->
+        <views:ImportHelpDialog DataContext="{Binding ImportHelpViewModel}"/>
     </Grid>
 </UserControl>

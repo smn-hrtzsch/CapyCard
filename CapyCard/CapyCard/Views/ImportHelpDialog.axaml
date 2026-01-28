@@ -5,10 +5,10 @@
              xmlns:vm="using:CapyCard.ViewModels"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
-             x:Class="CapyCard.Views.FormatInfoDialog"
-             x:DataType="vm:FormatInfoViewModel">
-    <!-- Format Info Dialog Overlay -->
-    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="1000">
+             x:Class="CapyCard.Views.ImportHelpDialog"
+             x:DataType="vm:ImportHelpViewModel">
+    <!-- Help Dialog Overlay -->
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="2000">
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
                 Padding="12"
@@ -27,7 +27,7 @@
                             Margin="16">
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Text="Import/Export Formate"
+                        <TextBlock Text="Import-Möglichkeiten"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    TextWrapping="Wrap"
@@ -40,91 +40,60 @@
                                                        Foreground="{DynamicResource TextMutedBrush}"/>
                         </Button>
                     </Grid>
+                    <TextBlock Text="Es gibt zwei Wege, Karten in CapyCard zu importieren:"
+                               TextWrapping="Wrap"
+                               FontSize="14"
+                               Foreground="{DynamicResource TextControlForeground}"/>
                     <StackPanel Spacing="16">
-                        <!-- CapyCard Format -->
-                        <StackPanel Spacing="4">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="Archive" Width="20" Height="20" 
-                                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="CAPYCARD (.capycard)"
-                                           FontWeight="Bold"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextControlForeground}"/>
-                            </StackPanel>
-                            <TextBlock Text="Das native Format von CapyCard. Enthält alle Karten mit Formatierung, Bildern und optional deinen Lernfortschritt."
-                                       TextWrapping="Wrap"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                        </StackPanel>
-                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
-                        <!-- Anki Format -->
-                        <StackPanel Spacing="4">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="Cards" Width="20" Height="20" 
-                                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="ANKI (.apkg)"
-                                           FontWeight="Bold"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextControlForeground}"/>
-                            </StackPanel>
-                            <TextBlock Text="Kompatibel mit Anki und AnkiDroid. Ermöglicht den Austausch mit Millionen von geteilten Kartenstapeln auf ankiweb.net."
-                                       TextWrapping="Wrap"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                        </StackPanel>
-                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
-                        <!-- CSV Format -->
-                        <StackPanel Spacing="4">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="FileDelimited" Width="20" Height="20" 
-                                                           Foreground="{DynamicResource PrimaryBrush}"/>
-                                <TextBlock Text="CSV (.csv)"
-                                           FontWeight="Bold"
-                                           TextWrapping="Wrap"
-                                           Foreground="{DynamicResource TextControlForeground}"/>
-                            </StackPanel>
-                            <TextBlock Text="Einfaches Tabellenformat. Öffne die Datei in Excel oder Google Sheets zum Bearbeiten."
-                                       TextWrapping="Wrap"
-                                       FontSize="13"
-                                       Foreground="{DynamicResource TextMutedBrush}"/>
-                        </StackPanel>
-                        <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
-                        <!-- JSON / AI Format -->
+                        <!-- Option 1: File -->
                         <StackPanel Spacing="8">
-                            <StackPanel Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="FileUpload" Width="20" Height="20" 
+                                                           Foreground="{DynamicResource PrimaryBrush}"/>
+                                <TextBlock Text="Datei auswählen"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource TextControlForeground}"/>
+                            </StackPanel>
+                            <TextBlock Text="Nutze diese Option, wenn du bereits eine fertige Datei hast. Unterstützt werden .capycard, .apkg (Anki), .csv sowie .json/.txt Dateien."
+                                       TextWrapping="Wrap"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </StackPanel>
+                        <!-- Option 2: AI -->
+                        <StackPanel Spacing="8">
+                            <StackPanel Spacing="8">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <materialIcons:MaterialIcon Kind="AutoFix" Width="20" Height="20" 
                                                                Foreground="{DynamicResource PrimaryBrush}"/>
-                                    <TextBlock Text="KI / JSON (.json, .txt)"
+                                    <TextBlock Text="Via KI / Text importieren"
                                                FontWeight="Bold"
-                                               TextWrapping="Wrap"
                                                Foreground="{DynamicResource TextControlForeground}"/>
                                 </StackPanel>
-                                <TextBlock Text="Importiere Karten direkt aus KI-generiertem Text. Kopiere den System-Prompt in ChatGPT oder Claude und füge das Ergebnis ein."
+                                <TextBlock Text="Füge Text direkt ein (z.B. von ChatGPT). Du kannst den System-Prompt kopieren und das Ergebnis hier nutzen, ohne eine Datei speichern zu müssen."
                                            TextWrapping="Wrap"
                                            FontSize="13"
                                            Foreground="{DynamicResource TextMutedBrush}"/>
                             </StackPanel>
-                            <!-- NEW: Collapsible Details -->
+                            <!-- NEW: Collapsible Details (Same as FormatInfo) -->
                             <StackPanel Spacing="8">
-                                <ToggleButton IsChecked="{Binding IsAiFormatDetailsExpanded}"
+                                <ToggleButton IsChecked="{Binding IsFormatDetailsExpanded}"
                                               Classes="icon"
                                               Width="NaN" Height="NaN"
                                               Padding="0"
                                               Background="Transparent"
                                               HorizontalAlignment="Left">
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <materialIcons:MaterialIcon Kind="{Binding IsAiFormatDetailsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
+                                        <materialIcons:MaterialIcon Kind="{Binding IsFormatDetailsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
                                                                    Width="18" Height="18"
                                                                    Foreground="{DynamicResource PrimaryBrush}"/>
-                                        <TextBlock Text="Format-Details anzeigen" 
+                                        <TextBlock Text="Format-Details (JSON) anzeigen" 
                                                    FontWeight="SemiBold"
                                                    FontSize="14"
                                                    Foreground="{DynamicResource PrimaryBrush}"
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </ToggleButton>
-                                <Border IsVisible="{Binding IsAiFormatDetailsExpanded}"
+                                <Border IsVisible="{Binding IsFormatDetailsExpanded}"
                                         Background="{DynamicResource BackgroundBrush}" 
                                         Padding="16" 
                                         CornerRadius="16"
@@ -147,6 +116,12 @@
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
+                    <Separator Background="{DynamicResource TextMutedBrush}" Opacity="0.2"/>
+                    <TextBlock Text="Tipp: Beide Optionen führen zur selben Vorschau, in der du Karten prüfen und das Ziel-Fach wählen kannst."
+                               TextWrapping="Wrap"
+                               FontSize="12"
+                               FontStyle="Italic"
+                               Foreground="{DynamicResource TextMutedBrush}"/>
                     <!-- Close Button -->
                     <Button Content="Verstanden"
                             Command="{Binding CloseCommand}"
