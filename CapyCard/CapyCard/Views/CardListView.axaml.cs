@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using System.ComponentModel;
 
 namespace CapyCard.Views
 {
@@ -18,6 +20,7 @@ namespace CapyCard.Views
     {
         private CardListViewModel? _boundViewModel;
         private TopLevel? _topLevel;
+        private CardListViewModel? _subscribedViewModel;
         
         // Selection state
         private bool _isPointerSelecting;
@@ -57,6 +60,21 @@ namespace CapyCard.Views
                 _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
                 _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
             }
+
+            // Image Preview Handlers
+            var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
+            if (overlay != null)
+            {
+                overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
+                overlay.AddHandler(PointerPressedEvent, OnOverlayPointerPressed, RoutingStrategies.Tunnel);
+                overlay.AddHandler(PointerReleasedEvent, OnOverlayPointerReleased, RoutingStrategies.Tunnel);
+            }
+
+            if (DataContext is CardListViewModel vm)
+            {
+                _subscribedViewModel = vm;
+                vm.PropertyChanged += ViewModel_PropertyChanged;
+            }
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -68,6 +86,84 @@ namespace CapyCard.Views
                 _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
                 _topLevel = null;
             }
+
+            if (_subscribedViewModel != null)
+            {
+                _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                _subscribedViewModel = null;
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(CardListViewModel.IsImagePreviewOpen))
+            {
+                if (DataContext is CardListViewModel vm)
+                {
+                    if (vm.IsImagePreviewOpen)
+                    {
+                        CalculateInitialZoom(vm);
+                        Dispatcher.UIThread.Post(() =>
+                        {
+                            var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
+                            overlay?.Focus();
+                        });
+                    }
+                }
+            }
+        }
+
+        private void CalculateInitialZoom(CardListViewModel vm)
+        {
+            if (vm.PreviewImageSource is Bitmap bitmap && _topLevel != null)
+            {
+                var containerWidth = this.Bounds.Width;
+                var containerHeight = this.Bounds.Height;
+                if (containerWidth <= 0 || containerHeight <= 0) return;
+
+                var targetWidth = containerWidth * 0.85;
+                var targetHeight = containerHeight * 0.85;
+
+                var imgWidth = bitmap.Size.Width;
+                var imgHeight = bitmap.Size.Height;
+                if (imgWidth <= 0 || imgHeight <= 0) return;
+
+                var zoom = Math.Min(targetWidth / imgWidth, targetHeight / imgHeight);
+                vm.ImageZoomLevel = zoom;
+                vm.DefaultZoomLevel = zoom;
+            }
+        }
+
+        private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+        {
+            if (DataContext is not CardListViewModel vm || !vm.IsImagePreviewOpen) return;
+            var modifiers = e.KeyModifiers;
+            if ((modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0)
+            {
+                vm.ImageZoomLevel += e.Delta.Y * 0.05;
+                e.Handled = true;
+            }
+        }
+
+        private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (DataContext is not CardListViewModel vm || !vm.IsImagePreviewOpen) return;
+            if (sender is Control control) control.Focus();
+            if (e.ClickCount == 2 && e.Source is Image)
+            {
+                 if (vm.ImageZoomLevel > vm.DefaultZoomLevel * 1.1) CalculateInitialZoom(vm);
+                 else vm.ImageZoomLevel *= 1.75;
+                 e.Handled = true;
+            }
+        }
+
+        private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+             if (DataContext is not CardListViewModel vm || !vm.IsImagePreviewOpen) return;
+             if (e.InitialPressMouseButton == MouseButton.Left && sender is Grid grid && e.Source == grid) 
+             {
+                vm.CloseImagePreviewCommand.Execute(null);
+             }
         }
 
         private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
@@ -84,7 +180,33 @@ namespace CapyCard.Views
                     return;
                 }
 
-                // 2. Close Card Preview/Editor if open
+                // 2. Handle Editing Mode
+                if (vm.IsEditing)
+                {
+                    var focused = _topLevel?.FocusManager?.GetFocusedElement();
+                    bool isInsideTextBox = focused is TextBox;
+                    if (!isInsideTextBox && focused is Visual v)
+                    {
+                        isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                    }
+
+                    if (isInsideTextBox)
+                    {
+                        // 1st Escape: Clear focus from the editor
+                        _topLevel?.FocusManager?.ClearFocus();
+                        this.Focus();
+                        e.Handled = true;
+                    }
+                    else
+                    {
+                        // 2nd Escape: Cancel editing
+                        vm.CancelEditCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                    return;
+                }
+
+                // 3. Close Card Preview if open
                 if (vm.IsPreviewOpen)
                 {
                     vm.ClosePreviewCommand.Execute(null);
@@ -92,21 +214,34 @@ namespace CapyCard.Views
                     return;
                 }
 
-                // 3. Handle focus clearing
-                var topLevel = TopLevel.GetTopLevel(this);
-                var focused = topLevel?.FocusManager?.GetFocusedElement();
-                
-                bool isInsideTextBox = focused is TextBox;
-                if (!isInsideTextBox && focused is Visual v)
+                // 4. Handle focus clearing for other cases
+                var focusedElement = _topLevel?.FocusManager?.GetFocusedElement();
+                if (focusedElement is TextBox)
                 {
-                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
-                }
-
-                if (isInsideTextBox)
-                {
-                    topLevel?.FocusManager?.ClearFocus();
+                    _topLevel?.FocusManager?.ClearFocus();
                     this.Focus();
                     e.Handled = true;
+                }
+            }
+
+            // Arrow Navigation: Only if preview is open AND not editing AND image preview is closed
+            if (vm.IsPreviewOpen && !vm.IsEditing && !vm.IsImagePreviewOpen)
+            {
+                if (e.Key == Key.Right)
+                {
+                    if (vm.NavigateNextPreviewCommand.CanExecute(null))
+                    {
+                        vm.NavigateNextPreviewCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                }
+                else if (e.Key == Key.Left)
+                {
+                    if (vm.NavigatePreviousPreviewCommand.CanExecute(null))
+                    {
+                        vm.NavigatePreviousPreviewCommand.Execute(null);
+                        e.Handled = true;
+                    }
                 }
             }
         }

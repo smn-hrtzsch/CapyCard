@@ -84,19 +84,24 @@ namespace CapyCard.Controls
             var sourceLines = hasText ? text.Split('\n') : Array.Empty<string>();
             
             bool willShowHint = ShowImageHint;
-            int totalDesiredLines = sourceLines.Length + (willShowHint ? 1 : 0);
             bool isTruncated = false;
             int maxTextLines = sourceLines.Length;
 
             // Manual truncation logic for explicit line breaks
-            if (MaxLines > 0 && totalDesiredLines > MaxLines)
+            if (MaxLines > 0 && sourceLines.Length > 0)
             {
-                isTruncated = true;
-                maxTextLines = (int)MaxLines - (willShowHint ? 1 : 0);
-                if (maxTextLines < 0)
+                int totalNeededLines = sourceLines.Length + (willShowHint ? 1 : 0);
+                
+                if (totalNeededLines > MaxLines)
                 {
-                    maxTextLines = 0;
-                    willShowHint = false;
+                    isTruncated = true;
+                    // If we show a hint, we have 1 less line for text
+                    maxTextLines = (int)MaxLines - (willShowHint ? 1 : 0);
+                    if (maxTextLines < 0)
+                    {
+                        maxTextLines = 0;
+                        willShowHint = false;
+                    }
                 }
             }
 
@@ -117,7 +122,7 @@ namespace CapyCard.Controls
                     Kind = MaterialIconKind.ImageOutline,
                     Width = 16,
                     Height = 16,
-                    Margin = new Thickness(0, 2, 3, 0) // Mehr Abstand nach oben, weniger nach rechts
+                    Margin = new Thickness(0, 2, 3, 0)
                 };
                 
                 var container = new InlineUIContainer(icon)
@@ -137,6 +142,10 @@ namespace CapyCard.Controls
 
             if (isTruncated)
             {
+                // If we are NOT in hint mode (e.g. Preview Dialog), we don't want manual "..." 
+                // because we want everything to show. But if MaxLines is set there too, 
+                // then we should show it.
+                // IMPORTANT: In the Preview Dialog, MaxLines should be 0.
                 Inlines?.Add(new Run("..."));
             }
         }

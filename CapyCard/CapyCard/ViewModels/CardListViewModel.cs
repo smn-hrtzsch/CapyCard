@@ -87,11 +87,42 @@ namespace CapyCard.ViewModels
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        [NotifyPropertyChangedFor(nameof(CanNavigateNext))]
+        [NotifyPropertyChangedFor(nameof(CanNavigatePrevious))]
         private bool _isPreviewOpen;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
         private bool _isEditing = false;
+
+        public bool CanNavigateNext => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) < AllCards.Count() - 1;
+        public bool CanNavigatePrevious => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) > 0;
+
+        [RelayCommand]
+        private void NavigateNextPreview()
+        {
+            var cards = AllCards.ToList();
+            int index = cards.FindIndex(c => c.Card.Id == PreviewCard?.Id);
+            if (index >= 0 && index < cards.Count - 1)
+            {
+                PreviewCard = cards[index + 1].Card;
+                OnPropertyChanged(nameof(CanNavigateNext));
+                OnPropertyChanged(nameof(CanNavigatePrevious));
+            }
+        }
+
+        [RelayCommand]
+        private void NavigatePreviousPreview()
+        {
+            var cards = AllCards.ToList();
+            int index = cards.FindIndex(c => c.Card.Id == PreviewCard?.Id);
+            if (index > 0)
+            {
+                PreviewCard = cards[index - 1].Card;
+                OnPropertyChanged(nameof(CanNavigateNext));
+                OnPropertyChanged(nameof(CanNavigatePrevious));
+            }
+        }
 
         [ObservableProperty] private string _editFrontText = string.Empty;
         [ObservableProperty] private string _editBackText = string.Empty;
