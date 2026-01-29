@@ -433,7 +433,6 @@ namespace CapyCard.Views
 
             _activeListControl.Focus();
             e.Pointer.Capture(_activeListControl);
-            e.Handled = true;
         }
 
         private void DataGrid_OnPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -443,15 +442,14 @@ namespace CapyCard.Views
                 var point = e.GetCurrentPoint(this);
                 if (point.Properties.IsLeftButtonPressed)
                 {
-                    // Find the row that was clicked
-                    var visual = dg.InputHitTest(e.GetPosition(dg)) as Visual;
+                    var pos = e.GetPosition(dg);
+                    var visual = dg.InputHitTest(pos) as Visual;
                     var row = visual?.FindAncestorOfType<DataGridRow>();
-                    var item = row?.DataContext as CardItemViewModel;
                     
-                    if (item != null)
+                    if (row?.DataContext is CardItemViewModel item)
                     {
-                        // Start drag selection logic
                         StartPointerSelection(dg, item, e);
+                        e.Handled = true; 
                     }
                 }
             }
