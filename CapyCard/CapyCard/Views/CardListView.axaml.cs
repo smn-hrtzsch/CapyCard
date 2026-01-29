@@ -172,7 +172,15 @@ namespace CapyCard.Views
 
             if (e.Key == Key.Escape)
             {
-                // 1. Close Image Preview if open
+                // 1. Close Delete Confirmation if open
+                if (vm.IsConfirmingDelete)
+                {
+                    vm.CancelDeleteCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+
+                // 2. Close Image Preview if open
                 if (vm.IsImagePreviewOpen)
                 {
                     vm.CloseImagePreviewCommand.Execute(null);
@@ -180,7 +188,7 @@ namespace CapyCard.Views
                     return;
                 }
 
-                // 2. Handle Editing Mode
+                // 3. Handle Editing Mode
                 if (vm.IsEditing)
                 {
                     var focused = _topLevel?.FocusManager?.GetFocusedElement();
@@ -206,7 +214,7 @@ namespace CapyCard.Views
                     return;
                 }
 
-                // 3. Close Card Preview if open
+                // 4. Close Card Preview if open
                 if (vm.IsPreviewOpen)
                 {
                     vm.ClosePreviewCommand.Execute(null);
@@ -214,13 +222,41 @@ namespace CapyCard.Views
                     return;
                 }
 
-                // 4. Handle focus clearing for other cases
+                // 5. Handle focus clearing for other cases
                 var focusedElement = _topLevel?.FocusManager?.GetFocusedElement();
                 if (focusedElement is TextBox)
                 {
                     _topLevel?.FocusManager?.ClearFocus();
                     this.Focus();
                     e.Handled = true;
+                }
+            }
+
+            // CONFIRM DELETE SHORTCUT: Enter while confirming
+            if (vm.IsConfirmingDelete && e.Key == Key.Enter)
+            {
+                if (vm.ConfirmDeleteCommand.CanExecute(null))
+                {
+                    vm.ConfirmDeleteCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            // SAVE SHORTCUT: Cmd/Ctrl + Enter while editing
+            if (vm.IsEditing && e.Key == Key.Enter)
+            {
+                var modifiers = e.KeyModifiers;
+                bool isCtrlOrMeta = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
+
+                if (isCtrlOrMeta)
+                {
+                    if (vm.SaveEditCommand.CanExecute(null))
+                    {
+                        vm.SaveEditCommand.Execute(null);
+                        e.Handled = true;
+                        return;
+                    }
                 }
             }
 
@@ -253,8 +289,8 @@ namespace CapyCard.Views
                 }
             }
 
-            // Arrow Navigation: Only if preview is open AND not editing AND image preview is closed
-            if (vm.IsPreviewOpen && !vm.IsEditing && !vm.IsImagePreviewOpen)
+            // Arrow Navigation: Only if preview is open AND not editing AND image preview is closed AND not confirming delete
+            if (vm.IsPreviewOpen && !vm.IsEditing && !vm.IsImagePreviewOpen && !vm.IsConfirmingDelete)
             {
                 if (e.Key == Key.Right)
                 {
@@ -282,7 +318,7 @@ namespace CapyCard.Views
             if (e.Key == Key.Escape)
             {
                 // Only go back if NO overlay is open
-                if (!vm.IsImagePreviewOpen && !vm.IsPreviewOpen)
+                if (!vm.IsImagePreviewOpen && !vm.IsPreviewOpen && !vm.IsConfirmingDelete)
                 {
                     if (vm.GoBackCommand.CanExecute(null))
                     {

@@ -35,6 +35,7 @@ namespace CapyCard.ViewModels
             _deckDetailViewModel.OnSubDeckAdded += RefreshDeckList;
             
             _cardListViewModel.OnNavigateBack += GoBack;
+            _cardListViewModel.OnStartLearnRequest += (deck) => NavigateToLearn(deck, LearningMode.AllRecursive, null);
             _learnViewModel.OnNavigateBack += GoBack;
             
             // NEU: Abonniert das "Bearbeiten"-Event aus der Kartenliste

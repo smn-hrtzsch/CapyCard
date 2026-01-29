@@ -303,7 +303,7 @@
                                                                         </MenuItem>
                                                                         <Separator/>
                                                                         <MenuItem Header="Löschen" 
-                                                                                  Command="{Binding $parent[UserControl].DataContext.DeleteCardCommand}"
+                                                                                  Command="{Binding $parent[UserControl].DataContext.RequestDeleteCardCommand}"
                                                                                   CommandParameter="{Binding}"
                                                                                   Foreground="Red">
                                                                             <MenuItem.Icon><materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/></MenuItem.Icon>
@@ -401,7 +401,7 @@
                                                                                 <MenuItem.Icon><materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/></MenuItem.Icon>
                                                                             </MenuItem>
                                                                             <MenuItem Header="Löschen" 
-                                                                                      Command="{Binding $parent[UserControl].DataContext.DeleteCardCommand}"
+                                                                                      Command="{Binding $parent[UserControl].DataContext.RequestDeleteCardCommand}"
                                                                                       CommandParameter="{Binding}" Foreground="Red">
                                                                                 <MenuItem.Icon><materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/></MenuItem.Icon>
                                                                             </MenuItem>
@@ -426,7 +426,7 @@
 
         <!-- Preview Overlay -->
         <Border Background="#CC000000" IsVisible="{Binding IsPreviewOpen}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" Width="1000" MaxHeight="850" Margin="32" Padding="32" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" MaxHeight="850" Margin="12" Padding="24" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
@@ -449,7 +449,7 @@
                                 <materialIcons:MaterialIcon Kind="Pencil" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
                             </Button>
                             
-                            <Button Command="{Binding DeleteCardCommand}" CommandParameter="{Binding PreviewCard}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Löschen">
+                            <Button Command="{Binding RequestDeleteCardCommand}" CommandParameter="{Binding PreviewCard}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Löschen">
                                 <materialIcons:MaterialIcon Kind="Delete" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
                             </Button>
                             
@@ -504,6 +504,24 @@
                 </Grid>
             </Border>
         </Border>
+
+        <!-- Delete Confirmation Dialog Overlay -->
+        <Grid IsVisible="{Binding IsConfirmingDelete}" Background="#80000000" ZIndex="3000">
+            <Border Background="{DynamicResource SurfaceBrush}" Padding="24" Margin="24" HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="400" CornerRadius="28" BoxShadow="0 4 10 0 #40000000">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Karte löschen?" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource TextControlForeground}"/>
+                    <TextBlock Text="Möchtest du diese Karte wirklich löschen? Das kann nicht rückgängig gemacht werden." TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Content="Abbrechen" Command="{Binding CancelDeleteCommand}" Classes="secondary" Grid.Column="0" Margin="0,0,4,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                            <TextBlock Text="Abbrechen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Content="Löschen" Command="{Binding ConfirmDeleteCommand}" Classes="destructive" Grid.Column="1" Margin="4,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                            <TextBlock Text="Löschen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <!-- IMAGE PREVIEW OVERLAY -->
         <Grid IsVisible="{Binding IsImagePreviewOpen}" Background="#E6000000" ZIndex="2000" Name="ImagePreviewOverlay">

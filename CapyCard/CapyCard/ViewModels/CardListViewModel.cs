@@ -92,6 +92,11 @@ namespace CapyCard.ViewModels
         private bool _isPreviewOpen;
 
         [ObservableProperty]
+        private bool _isConfirmingDelete;
+
+        private Card? _cardToConfirmDelete;
+
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
         private bool _isEditing = false;
 
@@ -181,8 +186,15 @@ namespace CapyCard.ViewModels
                     await context.SaveChangesAsync();
 
                     // Update UI Models
-                    PreviewCard.Front = EditFrontText;
-                    PreviewCard.Back = EditBackText;
+                    var currentCard = PreviewCard;
+                    currentCard.Front = EditFrontText;
+                    currentCard.Back = EditBackText;
+                    
+                    // Trigger UI update by reassigning the property.
+                    // Since Card is a POCO, we need a reference change or manual notification for child properties.
+                    // Assigning a new reference or re-assigning the same one after nulling is a safe way.
+                    PreviewCard = null;
+                    PreviewCard = currentCard;
 
                     // Update the CardItemViewModel in the lists
                     var item = AllCards.FirstOrDefault(c => c.Card.Id == PreviewCard.Id);
@@ -346,6 +358,75 @@ namespace CapyCard.ViewModels
             {
                 OnStartLearnRequest?.Invoke(_currentDeck);
             }
+        }
+
+        [RelayCommand]
+        private void RequestDeleteCard(object? parameter)
+        {
+            if (parameter is CardItemViewModel itemVM)
+            {
+                _cardToConfirmDelete = itemVM.Card;
+                IsConfirmingDelete = true;
+            }
+            else if (parameter is Card card)
+            {
+                _cardToConfirmDelete = card;
+                IsConfirmingDelete = true;
+            }
+        }
+
+        [RelayCommand]
+        private void CancelDelete()
+        {
+            IsConfirmingDelete = false;
+            _cardToConfirmDelete = null;
+        }
+
+        [RelayCommand]
+        private async Task ConfirmDelete()
+        {
+            if (_cardToConfirmDelete == null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var cardToDelete = await context.Cards.FindAsync(_cardToConfirmDelete.Id);
+                if (cardToDelete != null)
+                {
+                    context.Cards.Remove(cardToDelete);
+                    await context.SaveChangesAsync();
+
+                    // Handle navigation if preview is open
+                    if (IsPreviewOpen && PreviewCard?.Id == _cardToConfirmDelete.Id)
+                    {
+                        var allCardsList = AllCards.ToList();
+                        int index = allCardsList.FindIndex(c => c.Card.Id == _cardToConfirmDelete.Id);
+                        
+                        if (allCardsList.Count > 1)
+                        {
+                            // Move to next card, or previous if deleting the last one
+                            int nextIndex = (index < allCardsList.Count - 1) ? index + 1 : index - 1;
+                            PreviewCard = allCardsList[nextIndex].Card;
+                        }
+                        else
+                        {
+                            ClosePreview();
+                        }
+                    }
+
+                    // UI updaten
+                    var itemVM = AllCards.FirstOrDefault(c => c.Card.Id == _cardToConfirmDelete.Id);
+                    if (itemVM != null)
+                    {
+                        var group = CardGroups.FirstOrDefault(g => g.Cards.Contains(itemVM));
+                        group?.Cards.Remove(itemVM);
+                    }
+                    
+                    UpdateSelectedCount();
+                }
+            }
+
+            IsConfirmingDelete = false;
+            _cardToConfirmDelete = null;
         }
 
         [RelayCommand]
