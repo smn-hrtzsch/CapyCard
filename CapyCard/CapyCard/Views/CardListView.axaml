@@ -336,51 +336,26 @@
                                                         <!-- Content Area -->
                                                         <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
                                                             <!-- FRONT SECTION -->
-                                                            <Grid Grid.Row="0" RowDefinitions="*,Auto" ClipToBounds="True">
-                                                                <local:FormattedTextBlock Grid.Row="0" 
-                                                                                         FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                         TextWrapping="Wrap" 
-                                                                                         MaxLines="3"
-                                                                                         TextTrimming="CharacterEllipsis"
-                                                                                         FontSize="14"
-                                                                                         Foreground="{DynamicResource TextControlForeground}"
-                                                                                         VerticalAlignment="Top"/>
-                                                                
-                                                                <!-- Image Hint (only visible if image exists) -->
-                                                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,2,0,0"
-                                                                          IsVisible="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}">
-                                                                    <materialIcons:MaterialIcon Kind="ImageOutline" Width="16" Height="16" Foreground="{DynamicResource TextControlForeground}"/>
-                                                                    <TextBlock Text="Zum Darstellen Karte in Vorschau öffnen" 
-                                                                             FontSize="14" 
-                                                                             FontStyle="Italic"
-                                                                             Foreground="{DynamicResource TextControlForeground}"
-                                                                             VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Grid>
+                                                            <local:FormattedTextBlock Grid.Row="0"
+                                                                                     FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     TextWrapping="Wrap" 
+                                                                                     MaxLines="3"
+                                                                                     FontSize="14"
+                                                                                     Foreground="{DynamicResource TextControlForeground}"
+                                                                                     VerticalAlignment="Top"/>
                                                             
                                                             <Separator Grid.Row="1" Margin="0,6" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
                                                             
                                                             <!-- BACK SECTION -->
-                                                            <Grid Grid.Row="2" RowDefinitions="*,Auto" ClipToBounds="True">
-                                                                <local:FormattedTextBlock Grid.Row="0"
-                                                                                         FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                         TextWrapping="Wrap" 
-                                                                                         MaxLines="3"
-                                                                                         TextTrimming="CharacterEllipsis"
-                                                                                         FontSize="14"
-                                                                                         Foreground="{DynamicResource TextMutedBrush}"
-                                                                                         VerticalAlignment="Top"/>
-                                                                
-                                                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,2,0,0"
-                                                                          IsVisible="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}">
-                                                                    <materialIcons:MaterialIcon Kind="ImageOutline" Width="16" Height="16" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                                    <TextBlock Text="Zum Darstellen Karte in Vorschau öffnen" 
-                                                                             FontSize="14" 
-                                                                             FontStyle="Italic"
-                                                                             Foreground="{DynamicResource TextMutedBrush}"
-                                                                             VerticalAlignment="Center"/>
-                                                                </StackPanel>
-                                                            </Grid>
+                                                            <local:FormattedTextBlock Grid.Row="2"
+                                                                                     FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     TextWrapping="Wrap" 
+                                                                                     MaxLines="3"
+                                                                                     FontSize="14"
+                                                                                     Foreground="{DynamicResource TextMutedBrush}"
+                                                                                     VerticalAlignment="Top"/>
                                                         </Grid>
                                                     </Grid>
                                                 </Border>
