@@ -456,13 +456,15 @@
             <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" MaxHeight="850" Margin="12" Padding="24" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Stretch">
                 <Grid RowDefinitions="Auto,*,Auto">
                     <!-- Header -->
-                    <Grid RowDefinitions="Auto,Auto" Margin="0,0,0,24">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
                         <TextBlock Text="{Binding PreviewTopic, StringFormat='Vorschau: {0}'}" 
                                  FontSize="22" FontWeight="Bold" 
                                  TextWrapping="Wrap" 
-                                 HorizontalAlignment="Left"/>
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Left"
+                                 Margin="0,0,16,0"/>
                         
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <Button Command="{Binding StartLearnCommand}"
                                     Classes="secondary"
                                     ToolTip.Tip="Zum Lern-Modus"
