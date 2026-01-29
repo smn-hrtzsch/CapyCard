@@ -72,10 +72,27 @@ namespace CapyCard.Views
 
         private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
         {
-            if (!IsEffectivelyVisible) return;
+            if (!IsEffectivelyVisible || DataContext is not CardListViewModel vm) return;
 
             if (e.Key == Key.Escape)
             {
+                // 1. Close Image Preview if open
+                if (vm.IsImagePreviewOpen)
+                {
+                    vm.CloseImagePreviewCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+
+                // 2. Close Card Preview/Editor if open
+                if (vm.IsPreviewOpen)
+                {
+                    vm.ClosePreviewCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+
+                // 3. Handle focus clearing
                 var topLevel = TopLevel.GetTopLevel(this);
                 var focused = topLevel?.FocusManager?.GetFocusedElement();
                 
@@ -100,10 +117,14 @@ namespace CapyCard.Views
 
             if (e.Key == Key.Escape)
             {
-                if (vm.GoBackCommand.CanExecute(null))
+                // Only go back if NO overlay is open
+                if (!vm.IsImagePreviewOpen && !vm.IsPreviewOpen)
                 {
-                    vm.GoBackCommand.Execute(null);
-                    e.Handled = true;
+                    if (vm.GoBackCommand.CanExecute(null))
+                    {
+                        vm.GoBackCommand.Execute(null);
+                        e.Handled = true;
+                    }
                 }
             }
         }

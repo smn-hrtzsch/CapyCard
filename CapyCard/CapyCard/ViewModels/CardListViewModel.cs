@@ -76,11 +76,120 @@ namespace CapyCard.ViewModels
         [ObservableProperty] 
         private List<int> _columnOptions = new() { 1, 2, 3, 4, 5 };
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private int _selectedColumnCount = 3;
+
+        [ObservableProperty]
+        private bool _isGridView = true;
+
+        [ObservableProperty]
+        private Card? _previewCard;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        private bool _isPreviewOpen;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        private bool _isEditing = false;
+
+        [ObservableProperty] private string _editFrontText = string.Empty;
+        [ObservableProperty] private string _editBackText = string.Empty;
+
+        [ObservableProperty] private bool _isImagePreviewOpen = false;
+        [ObservableProperty] private object? _previewImageSource;
+        private double _imageZoomLevel = 1.0;
+
+        public double ImageZoomLevel
+        {
+            get => _imageZoomLevel;
+            set => SetProperty(ref _imageZoomLevel, Math.Clamp(value, 0.1, 5.0));
+        }
+
+        [ObservableProperty] private double _defaultZoomLevel = 1.0;
+
+        public bool ShowEditButton => IsPreviewOpen && !IsEditing;
+
+        [RelayCommand]
+        private void ToggleView() => IsGridView = !IsGridView;
+
+        [RelayCommand]
+        private void ClosePreview()
+        {
+            IsPreviewOpen = false;
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private void StartEdit()
+        {
+            if (PreviewCard == null) return;
+            IsEditing = true;
+            EditFrontText = PreviewCard.Front;
+            EditBackText = PreviewCard.Back;
+        }
+
+        [RelayCommand]
+        private void CancelEdit()
+        {
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private async Task SaveEdit()
+        {
+            if (PreviewCard == null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var card = await context.Cards.FindAsync(PreviewCard.Id);
+                if (card != null)
+                {
+                    card.Front = EditFrontText;
+                    card.Back = EditBackText;
+                    await context.SaveChangesAsync();
+
+                    // Update UI Models
+                    PreviewCard.Front = EditFrontText;
+                    PreviewCard.Back = EditBackText;
+
+                    // Update the CardItemViewModel in the lists
+                    var item = AllCards.FirstOrDefault(c => c.Card.Id == PreviewCard.Id);
+                    if (item != null)
+                    {
+                        item.NotifyCardChanged();
+                    }
+                }
+            }
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private void OpenImagePreview(object imageSource)
+        {
+            PreviewImageSource = imageSource;
+            IsImagePreviewOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseImagePreview()
+        {
+            IsImagePreviewOpen = false;
+            PreviewImageSource = null;
+        }
+
+        [RelayCommand]
+        private void ZoomIn() => ImageZoomLevel += 0.05;
+
+        [RelayCommand]
+        private void ZoomOut() => ImageZoomLevel -= 0.05;
+
+        [RelayCommand]
+        private void ResetZoom() => ImageZoomLevel = DefaultZoomLevel;
 
         public event Action? OnNavigateBack;
         public event Action<Deck, Card>? OnEditCardRequest;
+        public event Action<Card>? OnShowPreviewRequest;
 
         // NEU: Event für den "Speichern unter"-Dialog.
         // Input: string (vorgeschlagener Name), Output: Task<Stream?> (Stream zum Schreiben)
@@ -231,6 +340,17 @@ namespace CapyCard.ViewModels
             if (itemVM != null && _currentDeck != null)
             {
                 OnEditCardRequest?.Invoke(_currentDeck, itemVM.Card);
+            }
+        }
+
+        [RelayCommand]
+        private void ShowPreview(CardItemViewModel? itemVM)
+        {
+            if (itemVM != null)
+            {
+                PreviewCard = itemVM.Card;
+                IsPreviewOpen = true;
+                OnShowPreviewRequest?.Invoke(itemVM.Card);
             }
         }
 
