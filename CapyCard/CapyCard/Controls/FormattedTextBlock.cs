@@ -117,11 +117,15 @@ namespace CapyCard.Controls
                     Kind = MaterialIconKind.ImageOutline,
                     Width = 16,
                     Height = 16,
-                    Margin = new Thickness(0, 0, 6, 0),
-                    VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                    Margin = new Thickness(0, 2, 3, 0) // Mehr Abstand nach oben, weniger nach rechts
                 };
                 
-                Inlines?.Add(new InlineUIContainer(icon));
+                var container = new InlineUIContainer(icon)
+                {
+                    BaselineAlignment = BaselineAlignment.Center
+                };
+                
+                Inlines?.Add(container);
 
                 var run = new Run("Zum Darstellen in Vorschau öffnen")
                 {
