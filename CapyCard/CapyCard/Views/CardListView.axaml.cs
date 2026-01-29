@@ -431,7 +431,8 @@ namespace CapyCard.Views
             
             ApplyRangeSelection(itemsSource, _anchorIndex);
 
-            _activeListControl.Focus();
+            // Don't focus to avoid scrolling
+            // _activeListControl.Focus();
             e.Pointer.Capture(_activeListControl);
         }
 
@@ -439,18 +440,114 @@ namespace CapyCard.Views
         {
             if (sender is DataGrid dg)
             {
-                var point = e.GetCurrentPoint(this);
+                var point = e.GetCurrentPoint(dg);
                 if (point.Properties.IsLeftButtonPressed)
                 {
                     var pos = e.GetPosition(dg);
                     var visual = dg.InputHitTest(pos) as Visual;
-                    var row = visual?.FindAncestorOfType<DataGridRow>();
                     
+                    // Check if clicking on checkbox directly - let checkbox handle it
+                    var checkbox = visual?.FindAncestorOfType<CheckBox>();
+                    if (checkbox != null)
+                    {
+                        // Let the checkbox handle its own click
+                        return;
+                    }
+                    
+                    // Check if clicking on a button - let button handle it
+                    var button = visual?.FindAncestorOfType<Button>();
+                    if (button != null)
+                    {
+                        // Let the button handle its own click
+                        return;
+                    }
+                    
+                    // Check if clicking on a row - handle this ourselves
+                    var row = visual?.FindAncestorOfType<DataGridRow>();
                     if (row?.DataContext is CardItemViewModel item)
                     {
-                        StartPointerSelection(dg, item, e);
-                        e.Handled = true; 
+                        // CRITICAL: Mark as handled IMMEDIATELY to prevent DataGrid scrolling
+                        e.Handled = true;
+                        
+                        // Toggle checkbox on row click
+                        item.IsSelected = !item.IsSelected;
+                        
+                        // Clear DataGrid selection to prevent orange highlight
+                        dg.SelectedItem = null;
+                        
+                        // Store state for potential drag selection
+                        var itemsSource = GetItemsSource(dg)?.ToList();
+                        if (itemsSource != null)
+                        {
+                            _activeListControl = dg;
+                            _anchorIndex = itemsSource.IndexOf(item);
+                            _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
+                            _selectionTargetState = item.IsSelected; // Target is the new state
+                            _isPointerSelecting = true;
+                            e.Pointer.Capture(dg);
+                        }
                     }
+                }
+            }
+        }
+
+        private void DataGrid_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+        {
+            // Always clear DataGrid selection to prevent orange highlight
+            // We use checkbox-based selection instead
+            if (sender is DataGrid dg)
+            {
+                dg.SelectedItem = null;
+            }
+        }
+
+        private void RowOverlay_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            // This handler is on a transparent overlay in the checkbox column
+            // It allows clicking anywhere on the row to toggle the checkbox
+            if (sender is Border overlay)
+            {
+                // Find the checkbox in the same panel
+                var panel = overlay.Parent as Panel;
+                var checkbox = panel?.Children.OfType<CheckBox>().FirstOrDefault();
+                
+                // Find the DataContext (CardItemViewModel)
+                if (overlay.DataContext is CardItemViewModel item)
+                {
+                    // Toggle the checkbox
+                    item.IsSelected = !item.IsSelected;
+                    
+                    // Update the CheckBox UI if found
+                    if (checkbox != null)
+                    {
+                        checkbox.IsChecked = item.IsSelected;
+                    }
+                    
+                    // Find the DataGrid and clear its selection
+                    var row = overlay.FindAncestorOfType<DataGridRow>();
+                    if (row != null)
+                    {
+                        var dg = row.FindAncestorOfType<DataGrid>();
+                        dg?.SetValue(DataGrid.SelectedItemProperty, null);
+                    }
+                    
+                    // Start drag selection
+                    var dgControl = overlay.FindAncestorOfType<DataGrid>();
+                    if (dgControl != null)
+                    {
+                        var itemsSource = GetItemsSource(dgControl)?.ToList();
+                        if (itemsSource != null)
+                        {
+                            _activeListControl = dgControl;
+                            _anchorIndex = itemsSource.IndexOf(item);
+                            _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
+                            _selectionTargetState = item.IsSelected;
+                            _isPointerSelecting = true;
+                            e.Pointer.Capture(dgControl);
+                        }
+                    }
+                    
+                    e.Handled = true;
                 }
             }
         }
@@ -475,11 +572,14 @@ namespace CapyCard.Views
         {
             if (_isPointerSelecting)
             {
-                if (_activeListControl != null)
+                // Find the list control - could be the sender or a parent
+                var listControl = FindParentListControl(sender as Control) ?? _activeListControl;
+                
+                if (listControl != null && listControl == _activeListControl)
                 {
-                    var position = e.GetPosition(_activeListControl);
-                    var item = HitTestCardItem(_activeListControl, position);
-                    var itemsSource = GetItemsSource(_activeListControl)?.ToList();
+                    var position = e.GetPosition(listControl);
+                    var item = HitTestCardItem(listControl, position);
+                    var itemsSource = GetItemsSource(listControl)?.ToList();
 
                     if (item != null && itemsSource != null)
                     {
@@ -510,11 +610,14 @@ namespace CapyCard.Views
                 return;
             }
 
-            if (sender != _activeListControl) return;
+            // Find the list control - could be the sender or a parent
+            var listControl = FindParentListControl(sender as Control) ?? _activeListControl;
+            
+            if (listControl != _activeListControl) return;
 
-            var position = e.GetPosition(_activeListControl);
-            var item = HitTestCardItem(_activeListControl, position);
-            var itemsSource = GetItemsSource(_activeListControl)?.ToList();
+            var position = e.GetPosition(listControl);
+            var item = HitTestCardItem(listControl, position);
+            var itemsSource = GetItemsSource(listControl)?.ToList();
 
             if (item != null && itemsSource != null)
             {
