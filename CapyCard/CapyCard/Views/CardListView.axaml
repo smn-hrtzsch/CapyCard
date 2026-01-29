@@ -335,7 +335,7 @@
                                                         <!-- Content (No Images here) -->
                                                         <StackPanel Grid.Row="1" Spacing="4" Margin="16,0,16,16">
                                                             <!-- FRONT SECTION -->
-                                                            <Panel>
+                                                            <StackPanel Spacing="2">
                                                                 <TextBlock Text="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
                                                                          TextWrapping="Wrap" 
                                                                          MaxLines="3"
@@ -343,7 +343,7 @@
                                                                          FontWeight="SemiBold"
                                                                          Foreground="{DynamicResource TextControlForeground}"/>
                                                                 
-                                                                <!-- Image Hint (only visible if text is empty but image exists) -->
+                                                                <!-- Image Hint (only visible if image exists) -->
                                                                 <StackPanel Orientation="Horizontal" Spacing="6"
                                                                           IsVisible="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}">
                                                                     <materialIcons:MaterialIcon Kind="ImageOutline" Width="16" Height="16" Foreground="{DynamicResource TextControlForeground}"/>
@@ -353,12 +353,12 @@
                                                                              Foreground="{DynamicResource TextControlForeground}"
                                                                              VerticalAlignment="Center"/>
                                                                 </StackPanel>
-                                                            </Panel>
+                                                            </StackPanel>
                                                             
                                                             <Separator Margin="0,8" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
                                                             
                                                             <!-- BACK SECTION -->
-                                                            <Panel>
+                                                            <StackPanel Spacing="2">
                                                                 <TextBlock Text="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
                                                                          TextWrapping="Wrap" 
                                                                          MaxLines="3"
@@ -373,7 +373,7 @@
                                                                              Foreground="{DynamicResource TextMutedBrush}"
                                                                              VerticalAlignment="Center"/>
                                                                 </StackPanel>
-                                                            </Panel>
+                                                            </StackPanel>
                                                         </StackPanel>
                                                     </Grid>
                                                 </Border>
