@@ -286,6 +286,23 @@ namespace CapyCard.Controls
                 return;
             }
             
+            // Escape: Fokus entfernen - muss im Tunneling-Handler sein, damit es vor der TextBox greift
+            // Die TextBox konsumiert Escape standardmäßig nicht, aber sicher ist sicher.
+            // WICHTIG: Das eigentliche Fokus-Entfernen muss die View machen, hier signalisieren wir nur "nicht handled"
+            // oder entfernen den Fokus explizit.
+            if (e.Key == Key.Escape)
+            {
+                // Fokus auf das Parent-Element setzen um aus dem Editor zu gehen
+                // Wir suchen das TopLevel (Window) und löschen den Fokus
+                var topLevel = TopLevel.GetTopLevel(this);
+                if (topLevel != null)
+                {
+                    topLevel.FocusManager?.ClearFocus();
+                    e.Handled = true;
+                    return;
+                }
+            }
+
             // Enter-Taste: Listen automatisch fortsetzen
             if (e.Key == Key.Enter && !isCtrlOrCmd)
             {

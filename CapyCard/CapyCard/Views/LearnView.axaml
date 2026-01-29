@@ -321,7 +321,6 @@
 
                 <!-- Close Button -->
                 <Button Command="{Binding CloseImagePreviewCommand}"
-                        HotKey="Escape"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
                         Margin="24"

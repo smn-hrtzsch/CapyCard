@@ -43,20 +43,17 @@ namespace CapyCard.Views
         {
             base.OnAttachedToVisualTree(e);
             _topLevel = TopLevel.GetTopLevel(this);
-            if (_topLevel != null)
-            {
-                // Register handlers on TopLevel (Window) just like in DeckDetailView
-                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
-                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
-            }
             
-            // Set initial focus
-            Dispatcher.UIThread.Post(() => {
-                this.Focus();
-                FocusMainActionButton();
-            }, DispatcherPriority.Loaded);
+            // 1. ESCAPE & ZOOM (Tunneling): Catch before anything else
+            this.AddHandler(KeyDownEvent, OnKeyDownTunnel, RoutingStrategies.Tunnel);
+            
+            // 2. ENTER/SPACE (Bubble): Catch if not handled by controls (like Buttons)
+            this.AddHandler(KeyDownEvent, OnKeyDownBubble, RoutingStrategies.Bubble);
+            
+            // Ensure we have focus or a child has focus
+            Dispatcher.UIThread.Post(FocusMainActionButton, DispatcherPriority.Input);
 
-            // Wire up image preview handlers
+            // Image Preview Handlers
             var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
             if (overlay != null)
             {
@@ -71,6 +68,7 @@ namespace CapyCard.Views
             var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
             if (scrollViewer != null)
             {
+                scrollViewer.RemoveHandler(Gestures.PinchEvent, OnGesturePinch);
                 scrollViewer.AddHandler(Gestures.PinchEvent, OnGesturePinch);
             }
 
@@ -81,31 +79,13 @@ namespace CapyCard.Views
             }
         }
 
-        private void FocusMainActionButton()
-        {
-            if (!this.IsVisible) return;
-
-            var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
-            var btnSmart = this.FindControl<Button>("ShowBackBtnSmart");
-            var btnNext = this.FindControl<Button>("NextCardBtnStandard");
-            var btnRate3 = this.FindControl<Button>("Rate3Btn");
-
-            if (btnStandard != null && btnStandard.IsEffectivelyVisible) btnStandard.Focus();
-            else if (btnSmart != null && btnSmart.IsEffectivelyVisible) btnSmart.Focus();
-            else if (btnNext != null && btnNext.IsEffectivelyVisible) btnNext.Focus();
-            else if (btnRate3 != null && btnRate3.IsEffectivelyVisible) btnRate3.Focus();
-            else this.Focus();
-        }
-
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
-            if (_topLevel != null)
-            {
-                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
-                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
-                _topLevel = null;
-            }
+            _topLevel = null;
+            
+            this.RemoveHandler(KeyDownEvent, OnKeyDownTunnel);
+            this.RemoveHandler(KeyDownEvent, OnKeyDownBubble);
 
             if (_subscribedViewModel != null)
             {
@@ -117,6 +97,7 @@ namespace CapyCard.Views
         protected override void OnDataContextChanged(EventArgs e)
         {
             base.OnDataContextChanged(e);
+            
             if (_subscribedViewModel != null)
             {
                 _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -150,7 +131,7 @@ namespace CapyCard.Views
                         _activePointers.Clear();
                         _initialPinchDistance = -1;
                         _initialZoomLevel = -1;
-                        Dispatcher.UIThread.Post(() => FocusMainActionButton());
+                        Dispatcher.UIThread.Post(FocusMainActionButton);
                     }
                 }
             }
@@ -158,81 +139,140 @@ namespace CapyCard.Views
             {
                 if (DataContext is LearnViewModel vm && !vm.IsEditing)
                 {
-                    Dispatcher.UIThread.Post(() => FocusMainActionButton());
+                    Dispatcher.UIThread.Post(FocusMainActionButton);
                 }
+            }
+            // Add focus restoration when card state changes
+            else if (e.PropertyName == nameof(LearnViewModel.IsBackVisible) || 
+                     e.PropertyName == nameof(LearnViewModel.CurrentCard) ||
+                     e.PropertyName == nameof(LearnViewModel.Strategy))
+            {
+                 Dispatcher.UIThread.Post(FocusMainActionButton, DispatcherPriority.Input);
             }
         }
 
-        private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
+        private void FocusMainActionButton()
         {
             if (!this.IsVisible) return;
 
+            var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
+            var btnSmart = this.FindControl<Button>("ShowBackBtnSmart");
+            var btnNext = this.FindControl<Button>("NextCardBtnStandard");
+            var btnRate3 = this.FindControl<Button>("Rate3Btn");
+
+            // Try to focus the most relevant button
+            if (btnStandard != null && btnStandard.IsEffectivelyVisible) btnStandard.Focus();
+            else if (btnSmart != null && btnSmart.IsEffectivelyVisible) btnSmart.Focus();
+            else if (btnNext != null && btnNext.IsEffectivelyVisible) btnNext.Focus();
+            else if (btnRate3 != null && btnRate3.IsEffectivelyVisible) btnRate3.Focus();
+            else this.Focus(); // Fallback to View
+        }
+
+        // TUNNEL: Priority Handling (Escape, Zoom Reset)
+        private void OnKeyDownTunnel(object? sender, KeyEventArgs e)
+        {
+            if (DataContext is not LearnViewModel vm) return;
+
+            // --- ESCAPE ---
             if (e.Key == Key.Escape)
             {
+                // 1. Check if input is focused
                 var focused = _topLevel?.FocusManager?.GetFocusedElement();
-                bool isInsideTextBox = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
+                bool isInput = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
 
-                if (isInsideTextBox)
+                if (isInput)
                 {
                     _topLevel?.FocusManager?.ClearFocus();
                     this.Focus();
                     e.Handled = true;
+                    return;
                 }
-            }
-        }
 
-        private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
-        {
-            if (e.Handled || !this.IsVisible || DataContext is not LearnViewModel vm) return;
-            
-            if (e.Key == Key.Escape)
-            {
+                // 2. Image Preview
                 if (vm.IsImagePreviewOpen)
                 {
                     vm.CloseImagePreviewCommand.Execute(null);
+                    e.Handled = true;
+                    return;
                 }
-                else if (vm.IsEditing)
+
+                // 3. Editing
+                if (vm.IsEditing)
                 {
                     vm.CancelEditCommand.Execute(null);
                     this.Focus();
+                    e.Handled = true;
+                    return;
                 }
-                else
+
+                // 4. Navigation Back
+                if (vm.GoBackCommand.CanExecute(null))
                 {
                     vm.GoBackCommand.Execute(null);
+                    e.Handled = true;
+                    return;
                 }
-                e.Handled = true;
-                return;
             }
-
-            if (e.Key is Key.Enter or Key.Return or Key.Space)
+            
+            // --- ZOOM SHORTCUTS ---
+            if (vm.IsImagePreviewOpen)
             {
-                var focused = _topLevel?.FocusManager?.GetFocusedElement();
-                bool isInsideTextBox = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
+                var modifiers = e.KeyModifiers;
+                bool isCtrlOrMeta = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
 
-                if (!isInsideTextBox)
+                if (isCtrlOrMeta)
                 {
-                    if (vm.AdvanceCommand.CanExecute(null))
+                    // Reset: Ctrl+0
+                    if (e.Key == Key.D0 || e.Key == Key.NumPad0)
                     {
-                        vm.AdvanceCommand.Execute(null);
+                        CalculateInitialZoom(vm);
+                        e.Handled = true;
+                    }
+                    // Zoom In: Ctrl + Plus
+                    else if (e.Key == Key.OemPlus || e.Key == Key.Add)
+                    {
+                        vm.ZoomInCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                    // Zoom Out: Ctrl + Minus
+                    else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
+                    {
+                        vm.ZoomOutCommand.Execute(null);
                         e.Handled = true;
                     }
                 }
             }
-            
-            if (vm.IsImagePreviewOpen)
+        }
+
+        // BUBBLE: Fallback Handling (Enter/Space)
+        private void OnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || DataContext is not LearnViewModel vm) return;
+
+            // Only handle if NO input is focused (inputs need Enter/Space)
+            var focused = _topLevel?.FocusManager?.GetFocusedElement();
+            bool isInput = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
+
+            if (isInput) return;
+
+            if (e.Key == Key.Enter || e.Key == Key.Return || e.Key == Key.Space)
             {
-                var modifiers = e.KeyModifiers;
-                if (((modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0) && e.Key == Key.D0)
+                // NOTE: If a Button has focus, it handles KeyDown before it bubbles here.
+                // So this code only runs if focus is on the View itself or a non-handling control.
+                
+                if (vm.AdvanceCommand.CanExecute(null))
                 {
-                    CalculateInitialZoom(vm);
+                    vm.AdvanceCommand.Execute(null);
                     e.Handled = true;
                 }
             }
         }
 
+        // --- Image Preview Logic ---
+
         private void CalculateInitialZoom(LearnViewModel vm)
         {
-            if (vm.PreviewImageSource is Bitmap bitmap)
+            if (vm.PreviewImageSource is Bitmap bitmap && _topLevel != null)
             {
                 var containerWidth = this.Bounds.Width;
                 var containerHeight = this.Bounds.Height;
@@ -314,6 +354,11 @@ namespace CapyCard.Views
              }
         }
         
+        private void OnResetZoomClick(object? sender, RoutedEventArgs e)
+        {
+            if (DataContext is LearnViewModel vm) CalculateInitialZoom(vm);
+        }
+
         private double Distance(Point p1, Point p2) => Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
 
         private void OnGesturePinch(object? sender, PinchEventArgs e)
