@@ -27,7 +27,7 @@ namespace CapyCard.Views
         private bool _selectionTargetState;
         private int _anchorIndex = -1;
         private List<bool>? _originalSelection;
-        private ItemsControl? _activeItemsControl; // The ItemsControl where selection started
+        private Control? _activeListControl; 
 
         public static readonly StyledProperty<bool> IsCompactModeProperty =
             AvaloniaProperty.Register<CardListView, bool>(nameof(IsCompactMode));
@@ -378,6 +378,85 @@ namespace CapyCard.Views
             return null;
         }
 
+        private Control? FindParentListControl(Control? control)
+        {
+            while (control != null)
+            {
+                if (control is ItemsControl ic && ic is not ListBox) return ic;
+                if (control is DataGrid dg) return dg;
+                control = control.Parent as Control;
+            }
+            return null;
+        }
+
+        private CardItemViewModel? HitTestCardItem(Control listControl, Point position)
+        {
+            var control = listControl.InputHitTest(position) as Control;
+            while (control != null)
+            {
+                if (control.DataContext is CardItemViewModel item)
+                {
+                    return item;
+                }
+                if (control == listControl) return null;
+                control = control.Parent as Control;
+            }
+            return null;
+        }
+
+        private IEnumerable<CardItemViewModel>? GetItemsSource(Control? listControl)
+        {
+            if (listControl is ItemsControl ic) return ic.ItemsSource as IEnumerable<CardItemViewModel>;
+            if (listControl is DataGrid dg) return dg.ItemsSource as IEnumerable<CardItemViewModel>;
+            return null;
+        }
+
+        private void StartPointerSelection(Control listControl, CardItemViewModel item, PointerPressedEventArgs e)
+        {
+            var itemsSource = GetItemsSource(listControl)?.ToList();
+            if (itemsSource == null) return;
+
+            _activeListControl = listControl;
+            _isPointerSelecting = true;
+            _anchorIndex = itemsSource.IndexOf(item);
+            
+            if (_anchorIndex < 0)
+            {
+                _isPointerSelecting = false;
+                return;
+            }
+
+            _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
+            _selectionTargetState = !_originalSelection[_anchorIndex];
+            
+            ApplyRangeSelection(itemsSource, _anchorIndex);
+
+            _activeListControl.Focus();
+            e.Pointer.Capture(_activeListControl);
+            e.Handled = true;
+        }
+
+        private void DataGrid_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (sender is DataGrid dg)
+            {
+                var point = e.GetCurrentPoint(this);
+                if (point.Properties.IsLeftButtonPressed)
+                {
+                    // Find the row that was clicked
+                    var visual = dg.InputHitTest(e.GetPosition(dg)) as Visual;
+                    var row = visual?.FindAncestorOfType<DataGridRow>();
+                    var item = row?.DataContext as CardItemViewModel;
+                    
+                    if (item != null)
+                    {
+                        // Start drag selection logic
+                        StartPointerSelection(dg, item, e);
+                    }
+                }
+            }
+        }
+
         private void CardTile_OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Control control && control.DataContext is CardItemViewModel item)
@@ -385,31 +464,11 @@ namespace CapyCard.Views
                 var point = e.GetCurrentPoint(this);
                 if (point.Properties.IsLeftButtonPressed)
                 {
-                    var itemsControl = FindParentItemsControl(control);
-                    if (itemsControl == null) return;
-
-                    _activeItemsControl = itemsControl;
-
-                    var itemsSource = _activeItemsControl.ItemsSource as IList<CardItemViewModel>;
-                    if (itemsSource == null) return;
-
-                    _isPointerSelecting = true;
-                    _anchorIndex = itemsSource.IndexOf(item);
-                    
-                    if (_anchorIndex < 0)
+                    var listControl = FindParentListControl(control);
+                    if (listControl != null)
                     {
-                        _isPointerSelecting = false;
-                        return;
+                        StartPointerSelection(listControl, item, e);
                     }
-
-                    _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
-                    _selectionTargetState = !_originalSelection[_anchorIndex];
-                    
-                    ApplyRangeSelection(itemsSource, _anchorIndex);
-
-                    _activeItemsControl.Focus();
-                    e.Pointer.Capture(_activeItemsControl);
-                    e.Handled = true;
                 }
             }
         }
@@ -418,11 +477,11 @@ namespace CapyCard.Views
         {
             if (_isPointerSelecting)
             {
-                if (_activeItemsControl != null)
+                if (_activeListControl != null)
                 {
-                    var position = e.GetPosition(_activeItemsControl);
-                    var item = HitTestCardItem(_activeItemsControl, position);
-                    var itemsSource = _activeItemsControl.ItemsSource as IList<CardItemViewModel>;
+                    var position = e.GetPosition(_activeListControl);
+                    var item = HitTestCardItem(_activeListControl, position);
+                    var itemsSource = GetItemsSource(_activeListControl)?.ToList();
 
                     if (item != null && itemsSource != null)
                     {
@@ -435,29 +494,29 @@ namespace CapyCard.Views
                 }
 
                 _isPointerSelecting = false;
-                if (e.Pointer.Captured == _activeItemsControl)
+                if (e.Pointer.Captured == _activeListControl)
                 {
                     e.Pointer.Capture(null);
                 }
 
                 _originalSelection = null;
                 _anchorIndex = -1;
-                _activeItemsControl = null;
+                _activeListControl = null;
             }
         }
 
         private void Cards_OnPointerMoved(object? sender, PointerEventArgs e)
         {
-            if (!_isPointerSelecting || _activeItemsControl == null)
+            if (!_isPointerSelecting || _activeListControl == null)
             {
                 return;
             }
 
-            if (sender != _activeItemsControl) return;
+            if (sender != _activeListControl) return;
 
-            var position = e.GetPosition(_activeItemsControl);
-            var item = HitTestCardItem(_activeItemsControl, position);
-            var itemsSource = _activeItemsControl.ItemsSource as IList<CardItemViewModel>;
+            var position = e.GetPosition(_activeListControl);
+            var item = HitTestCardItem(_activeListControl, position);
+            var itemsSource = GetItemsSource(_activeListControl)?.ToList();
 
             if (item != null && itemsSource != null)
             {
@@ -474,37 +533,7 @@ namespace CapyCard.Views
             _isPointerSelecting = false;
             _originalSelection = null;
             _anchorIndex = -1;
-            _activeItemsControl = null;
-        }
-
-        private ItemsControl? FindParentItemsControl(Control? control)
-        {
-            while (control != null)
-            {
-                if (control is ItemsControl ic && ic is not ListBox) return ic;
-                // Note: We check 'is not ListBox' because ListBox inherits from ItemsControl
-                // and we want specifically our outer ItemsControl if we were using nested ones,
-                // but here we just want the one that is NOT a ListBox (since we removed ListBox).
-                // Actually, just 'is ItemsControl' is fine now.
-                if (control is ItemsControl ic2) return ic2;
-                control = control.Parent as Control;
-            }
-            return null;
-        }
-
-        private CardItemViewModel? HitTestCardItem(ItemsControl itemsControl, Point position)
-        {
-            var control = itemsControl.InputHitTest(position) as Control;
-            while (control != null)
-            {
-                if (control.DataContext is CardItemViewModel item)
-                {
-                    return item;
-                }
-                if (control == itemsControl) return null;
-                control = control.Parent as Control;
-            }
-            return null;
+            _activeListControl = null;
         }
 
         private void ApplyRangeSelection(IList<CardItemViewModel> cards, int currentIndex)

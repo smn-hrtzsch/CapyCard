@@ -83,7 +83,18 @@ namespace CapyCard.ViewModels
         private bool _isGridView = true;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PreviewTopic))]
         private Card? _previewCard;
+
+        public string PreviewTopic
+        {
+            get
+            {
+                if (PreviewCard == null) return string.Empty;
+                var group = CardGroups.FirstOrDefault(g => g.Cards.Any(c => c.Card.Id == PreviewCard.Id));
+                return group?.Title ?? string.Empty;
+            }
+        }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
@@ -231,7 +242,6 @@ namespace CapyCard.ViewModels
         private void ResetZoom() => ImageZoomLevel = DefaultZoomLevel;
 
         public event Action? OnNavigateBack;
-        public event Action<Deck, Card>? OnEditCardRequest;
         public event Action<Card>? OnShowPreviewRequest;
 
         // NEU: Event für den "Speichern unter"-Dialog.
@@ -460,9 +470,11 @@ namespace CapyCard.ViewModels
         [RelayCommand]
         private void EditCard(CardItemViewModel? itemVM)
         {
-            if (itemVM != null && _currentDeck != null)
+            if (itemVM != null)
             {
-                OnEditCardRequest?.Invoke(_currentDeck, itemVM.Card);
+                PreviewCard = itemVM.Card;
+                IsPreviewOpen = true;
+                StartEdit();
             }
         }
 

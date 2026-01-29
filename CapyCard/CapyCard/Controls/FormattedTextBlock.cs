@@ -108,6 +108,13 @@ namespace CapyCard.Controls
             for (int i = 0; i < maxTextLines; i++)
             {
                 ProcessLine(sourceLines[i]);
+                
+                // Add ellipsis to the last line if we are truncating and there's no hint following
+                if (isTruncated && !willShowHint && i == maxTextLines - 1)
+                {
+                    Inlines?.Add(new Run("..."));
+                }
+
                 if (i < maxTextLines - 1 || willShowHint)
                 {
                     Inlines?.Add(new LineBreak());
@@ -132,21 +139,12 @@ namespace CapyCard.Controls
                 
                 Inlines?.Add(container);
 
-                var run = new Run("Zum Darstellen in Vorschau öffnen")
+                var run = new Run("Zum Darstellen in Vorschau öffnen" + (isTruncated ? "..." : ""))
                 {
                     FontStyle = FontStyle.Italic,
                     FontSize = 14
                 };
                 Inlines?.Add(run);
-            }
-
-            if (isTruncated)
-            {
-                // If we are NOT in hint mode (e.g. Preview Dialog), we don't want manual "..." 
-                // because we want everything to show. But if MaxLines is set there too, 
-                // then we should show it.
-                // IMPORTANT: In the Preview Dialog, MaxLines should be 0.
-                Inlines?.Add(new Run("..."));
             }
         }
 
