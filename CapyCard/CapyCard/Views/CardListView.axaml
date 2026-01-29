@@ -23,7 +23,6 @@
     </UserControl.Resources>
 
     <UserControl.Styles>
-        <!-- Style for the Column Selector Container -->
         <Style Selector="Border.input-container">
             <Setter Property="CornerRadius" Value="12"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -33,7 +32,6 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <!-- MenuFlyout Styling -->
         <Style Selector="MenuFlyoutPresenter">
             <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
@@ -46,7 +44,6 @@
             <Setter Property="Padding" Value="8,6"/>
         </Style>
 
-        <!-- Style for the Group Header ToggleButton -->
         <Style Selector="ToggleButton.group-header">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -118,7 +115,6 @@
                 <!-- TOP HEADER AREA -->
                 <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="8">
                     <Grid ColumnDefinitions="Auto,*,Auto">
-                        <!-- Back Button -->
                         <Button Command="{Binding GoBackCommand}"
                                 Classes="primary"
                                 Grid.Column="0"
@@ -131,7 +127,6 @@
                             </StackPanel>
                         </Button>
                         
-                        <!-- Spacer -->
                         <Panel Grid.Column="1" />
                         
                         <StackPanel Grid.Column="2"
@@ -140,7 +135,6 @@
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Right">
                             
-                            <!-- Columns Selection (PDF) -->
                             <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
                                 <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
                                     <materialIcons:MaterialIcon Kind="ViewDashboard" 
@@ -158,7 +152,6 @@
                                 </StackPanel>
                             </Border>
                             
-                            <!-- PDF Button -->
                             <Button Command="{Binding GeneratePdfCommand}"
                                     Classes="secondary"
                                     IsVisible="{Binding ShowPdfButton}"
@@ -170,7 +163,6 @@
                                 </StackPanel>
                             </Button>
                             
-                            <!-- View Toggle Button -->
                             <Button Command="{Binding ToggleViewCommand}"
                                     Classes="secondary"
                                     ToolTip.Tip="Ansicht wechseln"
@@ -183,7 +175,6 @@
                                 </StackPanel>
                             </Button>
                             
-                            <!-- Select All Button -->
                             <Button Command="{Binding ToggleSelectAllCommand}"
                                     Classes="secondary"
                                     ToolTip.Tip="{Binding SelectAllButtonText}"
@@ -199,7 +190,6 @@
                     
                     <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
                     
-                    <!-- Title -->
                     <Border Background="{DynamicResource SurfaceBorderBrush}" 
                             CornerRadius="20" 
                             Padding="16,4" 
@@ -222,7 +212,6 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:CardGroupViewModel">
                             <StackPanel Margin="0,0,0,24">
-                                <!-- Group Header -->
                                 <ToggleButton IsChecked="{Binding IsExpanded}"
                                               Classes="group-header">
                                     <StackPanel Orientation="Horizontal" Spacing="12">
@@ -247,9 +236,7 @@
                                     </StackPanel>
                                 </ToggleButton>
 
-                                <!-- Group Content -->
                                 <Panel IsVisible="{Binding IsExpanded}">
-                                    <!-- GRID VIEW -->
                                     <ItemsControl ItemsSource="{Binding Cards}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.IsGridView}"
                                                  Background="Transparent"
@@ -285,7 +272,6 @@
                                                         Margin="0,0,12,12"
                                                         PointerPressed="CardTile_OnPointerPressed">
                                                     <Grid RowDefinitions="Auto,*">
-                                                        <!-- Toolbar -->
                                                         <Grid ColumnDefinitions="Auto,*,Auto,Auto" Grid.Row="0" Margin="12,8,12,4">
                                                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                                       VerticalAlignment="Center"
@@ -308,25 +294,19 @@
                                                                         <MenuItem Header="Vorschau" 
                                                                                   Command="{Binding $parent[UserControl].DataContext.ShowPreviewCommand}"
                                                                                   CommandParameter="{Binding}">
-                                                                            <MenuItem.Icon>
-                                                                                <materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18"/>
-                                                                            </MenuItem.Icon>
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18"/></MenuItem.Icon>
                                                                         </MenuItem>
                                                                         <MenuItem Header="Bearbeiten" 
                                                                                   Command="{Binding $parent[UserControl].DataContext.EditCardCommand}"
                                                                                   CommandParameter="{Binding}">
-                                                                            <MenuItem.Icon>
-                                                                                <materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/>
-                                                                            </MenuItem.Icon>
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/></MenuItem.Icon>
                                                                         </MenuItem>
                                                                         <Separator/>
                                                                         <MenuItem Header="Löschen" 
                                                                                   Command="{Binding $parent[UserControl].DataContext.DeleteCardCommand}"
                                                                                   CommandParameter="{Binding}"
                                                                                   Foreground="Red">
-                                                                            <MenuItem.Icon>
-                                                                                <materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/>
-                                                                            </MenuItem.Icon>
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/></MenuItem.Icon>
                                                                         </MenuItem>
                                                                     </MenuFlyout>
                                                                 </Button.Flyout>
@@ -334,7 +314,6 @@
                                                             </Button>
                                                         </Grid>
                                                         
-                                                        <!-- Content Area -->
                                                         <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
                                                             <local:FormattedTextBlock Grid.Row="0"
                                                                                      FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
@@ -447,36 +426,62 @@
 
         <!-- Preview Overlay -->
         <Border Background="#CC000000" IsVisible="{Binding IsPreviewOpen}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" MaxHeight="850" Margin="32" Padding="32" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" Width="1000" MaxHeight="850" Margin="32" Padding="32" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                             <materialIcons:MaterialIcon Kind="Eye" Width="24" Height="24" Foreground="{DynamicResource PrimaryBrush}"/>
-                             <TextBlock Text="Karten-Vorschau" FontSize="22" FontWeight="Bold"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
-                            <Button Command="{Binding StartEditCommand}" IsVisible="{Binding ShowEditButton}" Classes="icon"><materialIcons:MaterialIcon Kind="Pencil" Width="22" Height="22"/></Button>
-                            <Button Command="{Binding DeleteCardCommand}" CommandParameter="{Binding PreviewCard}" IsVisible="{Binding ShowEditButton}" Classes="icon" Foreground="Red"><materialIcons:MaterialIcon Kind="Delete" Width="22" Height="22" Foreground="Red"/></Button>
-                            <Button Command="{Binding ClosePreviewCommand}" Classes="icon" Margin="8,0,0,0"><materialIcons:MaterialIcon Kind="Close" Width="24" Height="24"/></Button>
+                        <TextBlock Text="Karten-Vorschau" FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+                        
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                            <Button Command="{Binding StartLearnCommand}"
+                                    Classes="secondary"
+                                    ToolTip.Tip="Zum Lern-Modus"
+                                    Padding="16,8"
+                                    CornerRadius="20"
+                                    IsVisible="{Binding !IsEditing}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="School" Width="20" Height="20"/>
+                                    <TextBlock Text="Lernen" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Command="{Binding StartEditCommand}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Bearbeiten">
+                                <materialIcons:MaterialIcon Kind="Pencil" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
+                            
+                            <Button Command="{Binding DeleteCardCommand}" CommandParameter="{Binding PreviewCard}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Löschen">
+                                <materialIcons:MaterialIcon Kind="Delete" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
+                            
+                            <Button Command="{Binding ClosePreviewCommand}" Classes="icon" ToolTip.Tip="Schließen" Margin="8,0,0,0">
+                                <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
                         </StackPanel>
                     </Grid>
 
+                    <!-- Content -->
                     <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,24">
-                        <Button Grid.Column="0" Command="{Binding NavigatePreviousPreviewCommand}" IsEnabled="{Binding CanNavigatePrevious}" Classes="icon" VerticalAlignment="Center" Margin="0,0,24,0" Width="48" Height="48"><materialIcons:MaterialIcon Kind="ChevronLeft" Width="36" Height="36"/></Button>
-                        <ScrollViewer Grid.Column="1">
+                        <Button Grid.Column="0" Command="{Binding NavigatePreviousPreviewCommand}" IsEnabled="{Binding CanNavigatePrevious}" Classes="icon" VerticalAlignment="Center" Margin="0,0,24,0" Width="48" Height="48">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" Width="36" Height="36"/>
+                        </Button>
+                        
+                        <ScrollViewer Grid.Column="1" Padding="0,0,24,0">
                             <StackPanel Spacing="24">
+                                <!-- FRONT -->
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="Vorderseite" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" Padding="20" CornerRadius="20">
+                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="20" CornerRadius="20">
                                         <Panel>
                                             <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Front}" IsVisible="{Binding !IsEditing}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
                                             <local:WysiwygEditor Text="{Binding EditFrontText, Mode=TwoWay}" IsVisible="{Binding IsEditing}" Watermark="Vorderseite..." MinHeight="200"/>
                                         </Panel>
                                     </Border>
                                 </StackPanel>
+                                
+                                <!-- BACK -->
                                 <StackPanel Spacing="8">
                                     <TextBlock Text="Rückseite" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1" Padding="20" CornerRadius="20">
+                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="20" CornerRadius="20">
                                         <Panel>
                                             <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Back}" IsVisible="{Binding !IsEditing}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
                                             <local:WysiwygEditor Text="{Binding EditBackText, Mode=TwoWay}" IsVisible="{Binding IsEditing}" Watermark="Rückseite..." MinHeight="200"/>
@@ -485,9 +490,13 @@
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
-                        <Button Grid.Column="2" Command="{Binding NavigateNextPreviewCommand}" IsEnabled="{Binding CanNavigateNext}" Classes="icon" VerticalAlignment="Center" Margin="24,0,0,0" Width="48" Height="48"><materialIcons:MaterialIcon Kind="ChevronRight" Width="36" Height="36"/></Button>
+                        
+                        <Button Grid.Column="2" Command="{Binding NavigateNextPreviewCommand}" IsEnabled="{Binding CanNavigateNext}" Classes="icon" VerticalAlignment="Center" Margin="24,0,0,0" Width="48" Height="48">
+                            <materialIcons:MaterialIcon Kind="ChevronRight" Width="36" Height="36"/>
+                        </Button>
                     </Grid>
 
+                    <!-- Actions -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                         <Button Content="Abbrechen" IsVisible="{Binding IsEditing}" Command="{Binding CancelEditCommand}" Padding="24,12" Classes="secondary" CornerRadius="25"/>
                         <Button Content="Speichern" IsVisible="{Binding IsEditing}" Command="{Binding SaveEditCommand}" Padding="24,12" Classes="primary" CornerRadius="25"/>

@@ -337,6 +337,17 @@ namespace CapyCard.ViewModels
             UpdateSelectedCount();
         }
 
+        public event Action<Deck>? OnStartLearnRequest;
+
+        [RelayCommand]
+        private void StartLearn()
+        {
+            if (_currentDeck != null)
+            {
+                OnStartLearnRequest?.Invoke(_currentDeck);
+            }
+        }
+
         [RelayCommand]
         private async Task DeleteCard(CardItemViewModel? itemVM)
         {

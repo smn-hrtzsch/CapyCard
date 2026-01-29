@@ -224,6 +224,35 @@ namespace CapyCard.Views
                 }
             }
 
+            // ZOOM SHORTCUTS: Only if image preview is open
+            if (vm.IsImagePreviewOpen)
+            {
+                var modifiers = e.KeyModifiers;
+                bool isCtrlOrMeta = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
+
+                if (isCtrlOrMeta)
+                {
+                    // Reset: Ctrl+0
+                    if (e.Key == Key.D0 || e.Key == Key.NumPad0)
+                    {
+                        CalculateInitialZoom(vm);
+                        e.Handled = true;
+                    }
+                    // Zoom In: Ctrl + Plus
+                    else if (e.Key == Key.OemPlus || e.Key == Key.Add)
+                    {
+                        vm.ZoomInCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                    // Zoom Out: Ctrl + Minus
+                    else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
+                    {
+                        vm.ZoomOutCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                }
+            }
+
             // Arrow Navigation: Only if preview is open AND not editing AND image preview is closed
             if (vm.IsPreviewOpen && !vm.IsEditing && !vm.IsImagePreviewOpen)
             {
