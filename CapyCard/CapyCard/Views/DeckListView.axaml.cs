@@ -31,7 +31,7 @@ namespace CapyCard.Views
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
-            IsCompactMode = e.NewSize.Width < 600;
+            IsCompactMode = e.NewSize.Width < AppConstants.DefaultThreshold;
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

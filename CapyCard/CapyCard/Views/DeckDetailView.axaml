@@ -22,47 +22,62 @@
     <Grid ClipToBounds="False">
         <Grid RowDefinitions="Auto,*,Auto" ClipToBounds="False">
             <!-- 1. HEADER (Top) -->
-            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="16">
-                 <Button Command="{Binding GoBackCommand}" 
-                         Classes="primary"
-                         Grid.Column="0"
-                         HorizontalAlignment="Left"
-                         Margin="0,0,12,0"
-                         ToolTip.Tip="{Binding BackButtonText}"
-                         Padding="12,8">
-                       <StackPanel Orientation="Horizontal" Spacing="8">
-                           <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" VerticalAlignment="Center"/>
-                           <TextBlock Text="{Binding BackButtonText}" 
-                                      VerticalAlignment="Center"
-                                      IsVisible="{Binding !#Root.IsCompactMode}"/>
-                       </StackPanel>
-                 </Button>
+            <StackPanel Grid.Row="0" Margin="16" Spacing="8">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                     <!-- Back Button -->
+                     <Button Command="{Binding GoBackCommand}" 
+                             Classes="primary"
+                             Grid.Column="0"
+                             VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding BackButtonText}"
+                             Padding="12,8">
+                           <StackPanel Orientation="Horizontal" Spacing="8">
+                               <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20" VerticalAlignment="Center"/>
+                               <TextBlock Text="{Binding BackButtonText}" 
+                                          VerticalAlignment="Center"
+                                          IsVisible="{Binding !#Root.IsCompactMode}"/>
+                           </StackPanel>
+                     </Button>
+                    
+                    <!-- Spacer -->
+                    <Panel Grid.Column="1" />
+                    
+                    <!-- Export Button -->
+                    <Button Command="{Binding ExportCommand}"
+                            Classes="primary"
+                            Grid.Column="2"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"
+                            ToolTip.Tip="Kartenstapel exportieren"
+                            IsVisible="{Binding IsRootDeck}"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="20" Height="20"/>
+                            <TextBlock Text="Export" 
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding !#Root.IsCompactMode}"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
                 
-                <TextBlock Text="{Binding DeckName}" 
-                           Grid.Column="1"
-                           FontSize="22" FontWeight="Bold" 
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Left"
-                           Margin="0,0,0,0"
-                           Foreground="{DynamicResource TextControlForeground}"
-                           TextWrapping="Wrap"/>
+                <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
                 
-                <!-- Export Button -->
-                <Button Command="{Binding ExportCommand}"
-                        Classes="primary"
-                        Grid.Column="2"
+                <!-- Title (Always separate centered) -->
+                <Border Background="{DynamicResource SurfaceBorderBrush}" 
+                        CornerRadius="20" 
+                        Padding="16,4" 
                         VerticalAlignment="Center"
-                        ToolTip.Tip="Kartenstapel exportieren"
-                        IsVisible="{Binding IsRootDeck}"
-                        Padding="12,8">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <materialIcons:MaterialIcon Kind="TrayArrowUp" Width="20" Height="20"/>
-                        <TextBlock Text="Export" 
-                                   VerticalAlignment="Center"
-                                   IsVisible="{Binding !#Root.IsCompactMode}"/>
-                    </StackPanel>
-                </Button>
-            </Grid>
+                        HorizontalAlignment="Center"
+                        Margin="12,0"
+                        Opacity="0.8">
+                    <TextBlock Text="{Binding DeckName}" 
+                               FontSize="18" FontWeight="Bold" 
+                               VerticalAlignment="Center"
+                               TextAlignment="Center"
+                               Foreground="{DynamicResource TextControlForeground}"
+                               TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
             
             <!-- 2. DECK EDITOR (Content) -->
             <views:DeckEditorControl Grid.Row="1" 

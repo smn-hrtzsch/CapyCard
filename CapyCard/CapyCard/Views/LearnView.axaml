@@ -19,64 +19,72 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <DockPanel Margin="16">
                 <!-- TOP HEADER -->
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" DockPanel.Dock="Top" Margin="0,0,0,16">
-                    <!-- Back Button -->
-                    <Button Command="{Binding GoBackCommand}" 
-                            Grid.Column="0"
-                            Classes="primary"
-                            VerticalAlignment="Center"
-                            ToolTip.Tip="{Binding BackButtonText}"
-                            Padding="12,8"
-                            Margin="0,0,12,0">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
-                            <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,16" Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                        <!-- Back Button -->
+                        <Button Command="{Binding GoBackCommand}" 
+                                Grid.Column="0"
+                                Classes="primary"
+                                VerticalAlignment="Center"
+                                ToolTip.Tip="{Binding BackButtonText}"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
+                                <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Spacer -->
+                        <Panel Grid.Column="1" />
+
+                        <!-- Cycle Mode Button -->
+                        <Button Grid.Column="2"
+                                Command="{Binding CycleLearningModeCommand}"
+                                Classes="primary"
+                                Padding="12,8"
+                                VerticalAlignment="Center"
+                                ToolTip.Tip="Lern-Modus wechseln"
+                                Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Panel>
+                                    <materialIcons:MaterialIcon Kind="FormatListBulleted" Width="24" Height="24" IsVisible="{Binding IsSequentialMode}"/>
+                                    <materialIcons:MaterialIcon Kind="Shuffle" Width="24" Height="24" IsVisible="{Binding IsRandomMode}"/>
+                                    <materialIcons:MaterialIcon Kind="Brain" Width="24" Height="24" IsVisible="{Binding IsSmartMode}"/>
+                                </Panel>
+                                <TextBlock Text="Modus" VerticalAlignment="Center" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Restart Button -->
+                        <Button Command="{Binding ResetDeckProgressCommand}" 
+                                Grid.Column="3"
+                                Classes="primary"
+                                Padding="12,8"
+                                VerticalAlignment="Center"
+                                ToolTip.Tip="Von vorn beginnen">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="Restart" Width="24" Height="24" />
+                                <TextBlock Text="Reset" VerticalAlignment="Center" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
                     
-                    <TextBlock Text="{Binding DeckName, StringFormat='Lern-Modus: {0}'}" 
-                               Grid.Column="1"
-                               FontSize="22" FontWeight="Bold" 
-                               VerticalAlignment="Center"
-                               TextWrapping="Wrap"
-                               Foreground="{DynamicResource TextControlForeground}"
-                               Margin="0,0,10,0"/>
-
-                    <!-- Cycle Mode Button -->
-                    <Button Grid.Column="2"
-                            Command="{Binding CycleLearningModeCommand}"
-                            Classes.primary="{Binding #Root.IsCompactMode}"
-                            Classes.secondary="{Binding !#Root.IsCompactMode}"
-                            Padding="12,8"
-                            VerticalAlignment="Center"
-                            ToolTip.Tip="Lern-Modus wechseln">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Panel>
-                                <materialIcons:MaterialIcon Kind="FormatListBulleted" Width="24" Height="24" IsVisible="{Binding IsSequentialMode}"/>
-                                <materialIcons:MaterialIcon Kind="Shuffle" Width="24" Height="24" IsVisible="{Binding IsRandomMode}"/>
-                                <materialIcons:MaterialIcon Kind="Brain" Width="24" Height="24" IsVisible="{Binding IsSmartMode}"/>
-                            </Panel>
-                            <TextBlock Text="Lernmodus wechseln" VerticalAlignment="Center" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Restart Button -->
-                    <Button Command="{Binding ResetDeckProgressCommand}" 
-                            Grid.Column="3"
-                            Margin="5,0,5,0"
-                            Classes.primary="{Binding #Root.IsCompactMode}"
-                            Classes.secondary="{Binding !#Root.IsCompactMode}"
-                            Padding="12,8"
-                            VerticalAlignment="Center"
-                            ToolTip.Tip="Von vorn beginnen">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <materialIcons:MaterialIcon Kind="Restart" Width="24" Height="24" />
-                            <TextBlock Text="Fortschritt zurücksetzen" VerticalAlignment="Center" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
-
-
-                </Grid>
+                    <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
+                    
+                    <!-- Title (Always centered on own line) -->
+                    <Border Background="{DynamicResource SurfaceBorderBrush}" 
+                            CornerRadius="20" 
+                            Padding="16,4" 
+                            HorizontalAlignment="Center"
+                            Margin="12,0"
+                            Opacity="0.8">
+                        <TextBlock Text="{Binding DeckName, StringFormat='Lern-Modus: {0}'}" 
+                                   FontSize="18" FontWeight="Bold" 
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </Border>
+                </StackPanel>
                 
                 <!-- MAIN CONTENT AREA -->
                 <StackPanel Spacing="16" VerticalAlignment="Top" Margin="0,10,0,0">
@@ -218,29 +226,51 @@
                     </Grid>
 
                     <!-- PROGRESS BAR -->
-                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,8,0,0" IsVisible="{Binding !IsEditing}">
-                        <TextBlock Grid.Column="0" 
-                                   Text="{Binding ProgressModeLabel}" 
-                                   VerticalAlignment="Center" 
-                                   Margin="0,0,12,0"
-                                   FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextMutedBrush}"/>
-                        
-                        <ProgressBar Grid.Column="1" 
-                                     Minimum="0" 
-                                     Maximum="{Binding TotalCount}" 
-                                     Value="{Binding LearnedCount}" 
-                                     VerticalAlignment="Center" 
-                                     Height="8"
-                                     CornerRadius="4"
-                                     Foreground="{DynamicResource SecondaryBrush}"
-                                     Background="{DynamicResource SurfaceBorderBrush}"/>
-                        
-                        <TextBlock Grid.Column="2" 
-                                   Text="{Binding ProgressText}" 
-                                   VerticalAlignment="Center" 
-                                   Margin="12,0,0,0"
-                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                    <Grid IsVisible="{Binding !IsEditing}" Margin="0,8,0,0">
+                        <!-- Desktop Layout -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" IsVisible="{Binding !#Root.IsCompactMode}">
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding ProgressModeLabel}" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,0,12,0"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                            
+                            <ProgressBar Grid.Column="1" 
+                                         Minimum="0" 
+                                         Maximum="{Binding TotalCount}" 
+                                         Value="{Binding LearnedCount}" 
+                                         VerticalAlignment="Center" 
+                                         Height="8"
+                                         CornerRadius="4"
+                                         Foreground="{DynamicResource SecondaryBrush}"
+                                         Background="{DynamicResource SurfaceBorderBrush}"/>
+                            
+                            <TextBlock Grid.Column="2" 
+                                       Text="{Binding ProgressText}" 
+                                       VerticalAlignment="Center" 
+                                       Margin="12,0,0,0"
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                        </Grid>
+
+                        <!-- Mobile/Compact Layout -->
+                        <StackPanel Spacing="4" IsVisible="{Binding #Root.IsCompactMode}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{Binding ProgressModeLabel}" 
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                                <TextBlock Grid.Column="1" 
+                                           Text="{Binding ProgressText}" 
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                            </Grid>
+                            <ProgressBar Minimum="0" 
+                                         Maximum="{Binding TotalCount}" 
+                                         Value="{Binding LearnedCount}" 
+                                         Height="8"
+                                         CornerRadius="4"
+                                         Foreground="{DynamicResource SecondaryBrush}"
+                                         Background="{DynamicResource SurfaceBorderBrush}"/>
+                        </StackPanel>
                     </Grid>
                     
                 </StackPanel>
