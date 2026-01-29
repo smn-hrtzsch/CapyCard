@@ -6,7 +6,8 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="600"
              x:Class="CapyCard.Views.LlmImportDialog"
-             x:DataType="vm:ImportViewModel">
+             x:DataType="vm:ImportViewModel"
+             Focusable="True">
 
     <Border Background="{DynamicResource SurfaceBrush}"
             CornerRadius="28"

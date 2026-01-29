@@ -7,10 +7,16 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
              x:Class="CapyCard.Views.ImportDialog"
-             x:DataType="vm:ImportViewModel">
+             x:DataType="vm:ImportViewModel"
+             Focusable="True">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding HandleEscapeCommand}" Gesture="Escape"/>
+        <KeyBinding Command="{Binding HandleEnterCommand}" Gesture="Enter"/>
+    </UserControl.KeyBindings>
 
     <!-- Import Dialog Overlay -->
-    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000">
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" Focusable="True">
         <!-- Step 1: File Selection (Visible when NO preview is shown) -->
         <views:FileSelectionDialog IsVisible="{Binding !ShowPreview}"/>
 

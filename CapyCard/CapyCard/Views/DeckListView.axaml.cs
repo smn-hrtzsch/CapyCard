@@ -27,6 +27,79 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             SizeChanged += OnSizeChanged;
+
+            // Handle KeyDown at Tunneling stage to catch Escape before anyone else
+            this.AddHandler(KeyDownEvent, (sender, e) =>
+            {
+                if (e.Key == Key.Escape)
+                {
+                    var topLevel = TopLevel.GetTopLevel(this);
+                    var focused = topLevel?.FocusManager?.GetFocusedElement();
+                    
+                    if (focused is TextBox)
+                    {
+                        this.Focus();
+                        e.Handled = true;
+                    }
+                }
+            }, RoutingStrategies.Tunnel);
+
+            // Handle KeyDown at Bubble stage for logic
+            this.AddHandler(KeyDownEvent, (sender, e) =>
+            {
+                if (e.Handled) return;
+
+                if (e.Key == Key.Escape)
+                {
+                    if (DataContext is DeckListViewModel vm)
+                    {
+                        if (vm.IsConfirmingDelete)
+                        {
+                            vm.CancelDeleteCommand.Execute(null);
+                            e.Handled = true;
+                        }
+                    }
+                }
+            }, RoutingStrategies.Bubble);
+
+            // Focus management
+            this.DataContextChanged += (s, e) =>
+            {
+                if (DataContext is DeckListViewModel vm)
+                {
+                    vm.PropertyChanged += (sender, args) =>
+                    {
+                        Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    };
+
+                    vm.FormatInfoViewModel.PropertyChanged += (sender, args) =>
+                    {
+                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    };
+                    vm.ImportHelpViewModel.PropertyChanged += (sender, args) =>
+                    {
+                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    };
+                    vm.ImportViewModel.PropertyChanged += (sender, args) =>
+                    {
+                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    };
+                }
+            };
+        }
+
+        private void HandleFocus(DeckListViewModel vm)
+        {
+            if (vm.ImportHelpViewModel.IsVisible)
+                ImportHelpDialog.Focus();
+            else if (vm.FormatInfoViewModel.IsVisible)
+                FormatInfoDialog.Focus();
+            else if (vm.ImportViewModel.IsVisible)
+                ImportDialog.Focus();
+            else if (vm.IsConfirmingDelete)
+                DeleteConfirmationOverlay.Focus();
+            else
+                this.Focus();
         }
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)

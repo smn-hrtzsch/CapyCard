@@ -24,6 +24,18 @@ namespace CapyCard.ViewModels
             IsFormatDetailsExpanded = !IsFormatDetailsExpanded;
         }
         [RelayCommand]
+        private void HandleEscape()
+        {
+            Close();
+        }
+
+        [RelayCommand]
+        private void HandleEnter()
+        {
+            Close();
+        }
+
+        [RelayCommand]
         private void Close()
         {
             IsVisible = false;

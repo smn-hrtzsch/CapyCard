@@ -1,6 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CapyCard.ViewModels;
 using System;
 using System.IO;
@@ -24,6 +27,46 @@ namespace CapyCard.Views
             InitializeComponent();
             SizeChanged += OnSizeChanged;
             DataContextChanged += OnDataContextChanged;
+
+            // Handle KeyDown at Tunneling stage to catch Escape before anyone else
+            this.AddHandler(KeyDownEvent, (sender, e) =>
+            {
+                if (e.Key == Key.Escape)
+                {
+                    var topLevel = TopLevel.GetTopLevel(this);
+                    var focused = topLevel?.FocusManager?.GetFocusedElement();
+                    
+                    if (focused is TextBox)
+                    {
+                        this.Focus();
+                        e.Handled = true;
+                    }
+                }
+            }, RoutingStrategies.Tunnel);
+
+            // Handle KeyDown at Bubble stage
+            this.AddHandler(KeyDownEvent, (sender, e) =>
+            {
+                if (e.Handled) return;
+
+                if (e.Key == Key.Escape)
+                {
+                    if (DataContext is DeckDetailViewModel vm)
+                    {
+                        // HandleEscapeCommand already handles dialogs/dropdowns
+                        bool wasAnythingOpen = vm.IsSubDeckSelectionVisible || vm.IsConfirmingDeleteSubDeck || vm.IsSubDeckListOpen;
+                        
+                        vm.HandleEscapeCommand.Execute(null);
+                        
+                        // If everything was already closed OR became closed, and user pressed Esc again, go back
+                        if (!wasAnythingOpen)
+                        {
+                            vm.GoBackCommand.Execute(null);
+                        }
+                        e.Handled = true;
+                    }
+                }
+            }, RoutingStrategies.Bubble);
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
@@ -31,7 +74,28 @@ namespace CapyCard.Views
             if (DataContext is DeckDetailViewModel vm)
             {
                 vm.OnRequestFileSave += SaveFilePickerAsync;
+
+                // Focus management
+                vm.PropertyChanged += (s, args) =>
+                {
+                    Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                };
+
+                vm.ExportViewModel.PropertyChanged += (sender, args) =>
+                {
+                    Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                };
             }
+        }
+
+        private void HandleFocus(DeckDetailViewModel vm)
+        {
+            if (vm.ExportViewModel.IsVisible)
+                ExportDialog.Focus();
+            else if (vm.IsConfirmingDeleteSubDeck)
+                DeleteConfirmationOverlay.Focus();
+            else
+                this.Focus();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
