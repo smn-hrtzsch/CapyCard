@@ -15,7 +15,6 @@
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Ctrl+Enter"/>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Meta+Enter"/>
-        <KeyBinding Command="{Binding HandleEscapeCommand}" Gesture="Escape"/>
         <KeyBinding Command="{Binding StartLearningCustomCommand}" Gesture="Enter"/>
     </UserControl.KeyBindings>
     

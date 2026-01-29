@@ -7,20 +7,6 @@ namespace CapyCard.Views
         public ImportDialog()
         {
             InitializeComponent();
-            this.DataContextChanged += (s, e) =>
-            {
-                if (DataContext is ViewModels.ImportViewModel vm)
-                {
-                    vm.PropertyChanged += (sender, args) =>
-                    {
-                        // Always try to keep focus on this or sub-elements when visible
-                        if (vm.IsVisible)
-                        {
-                            Avalonia.Threading.Dispatcher.UIThread.Post(() => this.Focus());
-                        }
-                    };
-                }
-            };
         }
     }
 }

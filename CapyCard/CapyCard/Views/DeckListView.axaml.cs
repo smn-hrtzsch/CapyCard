@@ -28,40 +28,6 @@ namespace CapyCard.Views
             InitializeComponent();
             SizeChanged += OnSizeChanged;
 
-            // Handle KeyDown at Tunneling stage to catch Escape before anyone else
-            this.AddHandler(KeyDownEvent, (sender, e) =>
-            {
-                if (e.Key == Key.Escape)
-                {
-                    var topLevel = TopLevel.GetTopLevel(this);
-                    var focused = topLevel?.FocusManager?.GetFocusedElement();
-                    
-                    if (focused is TextBox)
-                    {
-                        this.Focus();
-                        e.Handled = true;
-                    }
-                }
-            }, RoutingStrategies.Tunnel);
-
-            // Handle KeyDown at Bubble stage for logic
-            this.AddHandler(KeyDownEvent, (sender, e) =>
-            {
-                if (e.Handled) return;
-
-                if (e.Key == Key.Escape)
-                {
-                    if (DataContext is DeckListViewModel vm)
-                    {
-                        if (vm.IsConfirmingDelete)
-                        {
-                            vm.CancelDeleteCommand.Execute(null);
-                            e.Handled = true;
-                        }
-                    }
-                }
-            }, RoutingStrategies.Bubble);
-
             // Focus management
             this.DataContextChanged += (s, e) =>
             {
@@ -69,23 +35,131 @@ namespace CapyCard.Views
                 {
                     vm.PropertyChanged += (sender, args) =>
                     {
-                        Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        if (args.PropertyName == nameof(DeckListViewModel.IsConfirmingDelete))
+                        {
+                            Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        }
                     };
 
                     vm.FormatInfoViewModel.PropertyChanged += (sender, args) =>
                     {
-                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        if (args.PropertyName == nameof(FormatInfoViewModel.IsVisible))
+                        {
+                            Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        }
                     };
                     vm.ImportHelpViewModel.PropertyChanged += (sender, args) =>
                     {
-                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        if (args.PropertyName == nameof(ImportHelpViewModel.IsVisible))
+                        {
+                            Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        }
                     };
                     vm.ImportViewModel.PropertyChanged += (sender, args) =>
                     {
-                         Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        if (args.PropertyName == nameof(ImportViewModel.IsVisible))
+                        {
+                            Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                        }
                     };
                 }
             };
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < AppConstants.DefaultThreshold;
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            NewDeckTextBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
+            
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel != null)
+            {
+                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
+            }
+
+            // Wire up file picker for import
+            if (DataContext is DeckListViewModel vm)
+            {
+                vm.OnRequestFileOpen += OpenFilePickerAsync;
+            }
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            NewDeckTextBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
+            
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel != null)
+            {
+                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+            }
+
+            // Unwire file picker
+            if (DataContext is DeckListViewModel vm)
+            {
+                vm.OnRequestFileOpen -= OpenFilePickerAsync;
+            }
+        }
+
+        private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
+        {
+            if (!IsEffectivelyVisible) return;
+
+            if (e.Key == Key.Escape)
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                
+                bool isInsideTextBox = focused is TextBox;
+                if (!isInsideTextBox && focused is Visual v)
+                {
+                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                }
+
+                if (isInsideTextBox)
+                {
+                    topLevel?.FocusManager?.ClearFocus();
+                    this.Focus();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || !IsEffectivelyVisible || DataContext is not DeckListViewModel vm) return;
+
+            if (e.Key == Key.Escape)
+            {
+                if (vm.ImportHelpViewModel.IsVisible)
+                {
+                    vm.ImportHelpViewModel.HandleEscapeCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (vm.FormatInfoViewModel.IsVisible)
+                {
+                    vm.FormatInfoViewModel.HandleEscapeCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (vm.ImportViewModel.IsVisible)
+                {
+                    vm.ImportViewModel.HandleEscapeCommand.Execute(null);
+                    e.Handled = true;
+                }
+                else if (vm.IsConfirmingDelete)
+                {
+                    vm.CancelDeleteCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
         }
 
         private void HandleFocus(DeckListViewModel vm)
@@ -99,35 +173,11 @@ namespace CapyCard.Views
             else if (vm.IsConfirmingDelete)
                 DeleteConfirmationOverlay.Focus();
             else
+            {
+                // Only clear focus and take focus if we are returning to the main view
+                var topLevel = TopLevel.GetTopLevel(this);
+                topLevel?.FocusManager?.ClearFocus();
                 this.Focus();
-        }
-
-        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
-        {
-            IsCompactMode = e.NewSize.Width < AppConstants.DefaultThreshold;
-        }
-
-        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            base.OnAttachedToVisualTree(e);
-            NewDeckTextBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
-            
-            // Wire up file picker for import
-            if (DataContext is DeckListViewModel vm)
-            {
-                vm.OnRequestFileOpen += OpenFilePickerAsync;
-            }
-        }
-
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            base.OnDetachedFromVisualTree(e);
-            NewDeckTextBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
-            
-            // Unwire file picker
-            if (DataContext is DeckListViewModel vm)
-            {
-                vm.OnRequestFileOpen -= OpenFilePickerAsync;
             }
         }
 

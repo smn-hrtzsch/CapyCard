@@ -1,7 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CapyCard.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -14,6 +17,7 @@ namespace CapyCard.Views
     public partial class CardListView : UserControl
     {
         private CardListViewModel? _boundViewModel;
+        private TopLevel? _topLevel;
         
         // Selection state
         private bool _isPointerSelecting;
@@ -44,10 +48,66 @@ namespace CapyCard.Views
             IsCompactMode = e.NewSize.Width < AppConstants.HeaderThreshold;
         }
 
-        /// <summary>
-        /// Wird aufgerufen, wenn das ViewModel (DataContext) gesetzt wird.
-        /// Wir "abonnieren" hier das Dialog-Event des ViewModels.
-        /// </summary>
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
+            {
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
+            }
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            if (_topLevel != null)
+            {
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+                _topLevel = null;
+            }
+        }
+
+        private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
+        {
+            if (!IsEffectivelyVisible) return;
+
+            if (e.Key == Key.Escape)
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                
+                bool isInsideTextBox = focused is TextBox;
+                if (!isInsideTextBox && focused is Visual v)
+                {
+                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                }
+
+                if (isInsideTextBox)
+                {
+                    topLevel?.FocusManager?.ClearFocus();
+                    this.Focus();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || !IsEffectivelyVisible || DataContext is not CardListViewModel vm) return;
+
+            if (e.Key == Key.Escape)
+            {
+                if (vm.GoBackCommand.CanExecute(null))
+                {
+                    vm.GoBackCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
+        }
+
         private void OnDataContextChanged(object? sender, EventArgs e)
         {
             if (_boundViewModel != null)
@@ -66,10 +126,6 @@ namespace CapyCard.Views
             }
         }
 
-        /// <summary>
-        /// Diese Methode wird vom ViewModel aufgerufen. Sie öffnet den nativen "Speichern unter"-Dialog.
-        /// Gibt einen Schreib-Stream zurück, in den QuestPDF schreiben kann.
-        /// </summary>
         private async Task<Stream?> HandleShowSaveDialogAsync(string suggestedName)
         {
             var topLevel = TopLevel.GetTopLevel(this);
@@ -95,14 +151,12 @@ namespace CapyCard.Views
 
             if (file != null)
             {
-                // WICHTIG: Wir öffnen hier den Stream. Der Aufrufer (ViewModel/Service) muss ihn schließen!
                 return await file.OpenWriteAsync();
             }
             
             return null;
         }
 
-        // Attached to the Border (Card Tile) inside the ListBox
         private void CardTile_OnPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (sender is Control control && control.DataContext is CardItemViewModel item)
@@ -110,22 +164,11 @@ namespace CapyCard.Views
                 var point = e.GetCurrentPoint(this);
                 if (point.Properties.IsLeftButtonPressed)
                 {
-                    // Find the parent ListBox
                     var listBox = FindParentListBox(control);
                     if (listBox == null) return;
 
                     _activeListBox = listBox;
 
-                    // Double click logic
-                    // if (e.ClickCount >= 2)
-                    // {
-                    //    item.IsSelected = !item.IsSelected;
-                    //    _activeListBox.Focus();
-                    //    e.Handled = true;
-                    //    return;
-                    // }
-
-                    // Start drag selection
                     var itemsSource = _activeListBox.ItemsSource as IList<CardItemViewModel>;
                     if (itemsSource == null) return;
 
@@ -139,9 +182,6 @@ namespace CapyCard.Views
                     }
 
                     _originalSelection = itemsSource.Select(c => c.IsSelected).ToList();
-                    
-                    // Toggle the clicked item immediately (Click to toggle behavior)
-                    // If it was selected, target state is unselected. If unselected, target is selected.
                     _selectionTargetState = !_originalSelection[_anchorIndex];
                     
                     ApplyRangeSelection(itemsSource, _anchorIndex);
@@ -153,7 +193,6 @@ namespace CapyCard.Views
             }
         }
 
-        // Attached to the ListBox itself
         private void CardsListBox_OnPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
             if (_isPointerSelecting)
@@ -186,7 +225,6 @@ namespace CapyCard.Views
             }
         }
 
-        // Attached to the ListBox itself
         private void CardsListBox_OnPointerMoved(object? sender, PointerEventArgs e)
         {
             if (!_isPointerSelecting || _activeListBox == null)
@@ -194,7 +232,6 @@ namespace CapyCard.Views
                 return;
             }
 
-            // Ensure we are moving over the active listbox
             if (sender != _activeListBox) return;
 
             var position = e.GetPosition(_activeListBox);
@@ -211,7 +248,6 @@ namespace CapyCard.Views
             }
         }
 
-        // Attached to the ListBox itself
         private void CardsListBox_OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
         {
             _isPointerSelecting = false;
@@ -239,7 +275,7 @@ namespace CapyCard.Views
                 {
                     return item;
                 }
-                if (control == listBox) return null; // Don't go up past the listbox
+                if (control == listBox) return null;
                 control = control.Parent as Control;
             }
             return null;

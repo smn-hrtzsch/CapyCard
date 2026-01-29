@@ -270,20 +270,6 @@ namespace CapyCard.Controls
             bool isCtrlOrCmd = e.KeyModifiers.HasFlag(KeyModifiers.Control) || 
                                e.KeyModifiers.HasFlag(KeyModifiers.Meta);
             
-            // Escape: Fokus entfernen
-            if (e.Key == Key.Escape)
-            {
-                // Fokus auf das Parent-Element setzen um aus dem Editor zu gehen
-                var topLevel = TopLevel.GetTopLevel(this);
-                if (topLevel != null)
-                {
-                    // Setze Fokus auf das TopLevel, was effektiv den Fokus vom Editor entfernt
-                    topLevel.FocusManager?.ClearFocus();
-                }
-                e.Handled = true;
-                return;
-            }
-            
             // Ctrl/Cmd+V: Clipboard-Bild einfügen (muss im Tunnel sein, um vor TextBox zu kommen)
             if (isCtrlOrCmd && e.Key == Key.V)
             {

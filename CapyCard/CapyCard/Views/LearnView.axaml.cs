@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CapyCard.ViewModels;
 
 namespace CapyCard.Views
@@ -51,30 +52,29 @@ namespace CapyCard.Views
             _topLevel = TopLevel.GetTopLevel(this);
             if (_topLevel != null)
             {
-                _topLevel.KeyDown += TopLevelOnKeyDown;
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
             }
-            // Ensure Handler is attached (remove first to avoid duplicates)
+            
+            // Ensure Handler is attached
             var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
             if (overlay != null)
             {
-                // Desktop: Wheel zoom with Ctrl/Cmd
                 overlay.RemoveHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged);
                 overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
 
-                // Add pointer handlers for custom pinch detection on mobile
                 overlay.AddHandler(PointerPressedEvent, OnOverlayPointerPressed, RoutingStrategies.Tunnel);
                 overlay.AddHandler(PointerMovedEvent, OnOverlayPointerMoved, RoutingStrategies.Tunnel);
                 overlay.AddHandler(PointerReleasedEvent, OnOverlayPointerReleased, RoutingStrategies.Tunnel);
                 overlay.AddHandler(InputElement.PointerCaptureLostEvent, OnOverlayPointerReleased, RoutingStrategies.Bubble);
 
-                // Gesture recognizer as fallback
-                overlay.GestureRecognizers.Add(new PinchGestureRecognizer());
                 overlay.AddHandler(Gestures.PinchEvent, OnGesturePinch);
             }
             
             var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
             if (scrollViewer != null)
             {
+                scrollViewer.RemoveHandler(Gestures.PinchEvent, OnGesturePinch);
                 scrollViewer.AddHandler(Gestures.PinchEvent, OnGesturePinch);
             }
 
@@ -92,7 +92,6 @@ namespace CapyCard.Views
 
         private void FocusMainActionButton()
         {
-            // Delay focus change slightly to allow UI to update (e.g. button visibility)
             Dispatcher.UIThread.Post(() =>
             {
                 var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
@@ -115,7 +114,8 @@ namespace CapyCard.Views
 
             if (_topLevel != null)
             {
-                _topLevel.KeyDown -= TopLevelOnKeyDown;
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
                 _topLevel = null;
             }
 
@@ -130,7 +130,6 @@ namespace CapyCard.Views
         {
             base.OnDataContextChanged(e);
             
-            // Handle dynamic DataContext changes while attached
             if (_subscribedViewModel != null)
             {
                 _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -153,7 +152,6 @@ namespace CapyCard.Views
                     if (vm.IsImagePreviewOpen)
                     {
                         CalculateInitialZoom(vm);
-                        // Focus the overlay to enable KeyBindings
                          Dispatcher.UIThread.Post(() =>
                          {
                              var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
@@ -162,14 +160,18 @@ namespace CapyCard.Views
                     }
                     else
                     {
-                        // CRITICAL: Clear pointer state when overlay closes to prevent stale IDs
                         _activePointers.Clear();
                         _initialPinchDistance = -1;
                         _initialZoomLevel = -1;
-                        
-                        // Restore Focus when preview closes
                         FocusMainActionButton();
                     }
+                }
+            }
+            else if (e.PropertyName == nameof(LearnViewModel.IsEditing))
+            {
+                if (DataContext is LearnViewModel vm && !vm.IsEditing)
+                {
+                    FocusMainActionButton();
                 }
             }
         }
@@ -198,9 +200,33 @@ namespace CapyCard.Views
             }
         }
 
-        private void TopLevelOnKeyDown(object? sender, KeyEventArgs e)
+        private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
         {
-            if (!IsEffectivelyVisible || DataContext is not LearnViewModel vm) return;
+            if (!IsEffectivelyVisible) return;
+
+            if (e.Key == Key.Escape)
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                
+                bool isInsideTextBox = focused is TextBox;
+                if (!isInsideTextBox && focused is Visual v)
+                {
+                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                }
+
+                if (isInsideTextBox)
+                {
+                    topLevel?.FocusManager?.ClearFocus();
+                    this.Focus();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || !IsEffectivelyVisible || DataContext is not LearnViewModel vm) return;
             
             if (vm.IsImagePreviewOpen)
             {
@@ -211,7 +237,6 @@ namespace CapyCard.Views
                     return;
                 }
                 
-                // Handle Cmd/Strg + 0 for Reset Zoom
                 var modifiers = e.KeyModifiers;
                 bool isCtrl = (modifiers & KeyModifiers.Control) != 0;
                 bool isMeta = (modifiers & KeyModifiers.Meta) != 0;
@@ -222,13 +247,29 @@ namespace CapyCard.Views
                     e.Handled = true;
                     return;
                 }
-                
-                return; // Don't handle other keys like Enter
+                return;
             }
 
-            // Android Back can arrive as a key event on some devices/setups.
-            // In LearnView we treat it as navigation back (unless the preview is open, handled above).
-            if (OperatingSystem.IsAndroid() && e.Key is Key.BrowserBack or Key.Back or Key.Escape)
+            if (e.Key == Key.Escape)
+            {
+                if (vm.IsEditing)
+                {
+                    vm.CancelEditCommand.Execute(null);
+                    this.Focus();
+                    e.Handled = true;
+                }
+                else
+                {
+                    if (vm.GoBackCommand.CanExecute(null))
+                    {
+                        vm.GoBackCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                }
+                return;
+            }
+
+            if (OperatingSystem.IsAndroid() && e.Key is Key.BrowserBack or Key.Back)
             {
                 if (vm.GoBackCommand.CanExecute(null))
                 {
@@ -240,15 +281,25 @@ namespace CapyCard.Views
 
             if (e.Key is Key.Enter or Key.Return or Key.Space)
             {
-                if (vm.AdvanceCommand.CanExecute(null))
+                var topLevel = TopLevel.GetTopLevel(this);
+                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                
+                bool isInsideTextBox = focused is TextBox;
+                if (!isInsideTextBox && focused is Visual v)
                 {
-                    vm.AdvanceCommand.Execute(null);
-                    e.Handled = true;
+                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                }
+
+                if (!isInsideTextBox)
+                {
+                    if (vm.AdvanceCommand.CanExecute(null))
+                    {
+                        vm.AdvanceCommand.Execute(null);
+                        e.Handled = true;
+                    }
                 }
             }
         }
-
-
 
         private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
         {
@@ -258,8 +309,6 @@ namespace CapyCard.Views
             bool isCtrl = (modifiers & KeyModifiers.Control) != 0;
             bool isMeta = (modifiers & KeyModifiers.Meta) != 0;
             
-            // Desktop zoom: Only with Ctrl/Cmd + Scroll
-            // Note: macOS trackpad pinch is NOT supported by Avalonia on Desktop
             if (isCtrl || isMeta)
             {
                 double zoomFactor = 0.05;
@@ -268,8 +317,6 @@ namespace CapyCard.Views
                 e.Handled = true;
             }
         }
-
-        // --- Pinch to Zoom Implementation ---
 
         private readonly Dictionary<int, Point> _activePointers = new();
         private readonly Dictionary<int, Point> _initialPointerPositions = new();
@@ -281,18 +328,13 @@ namespace CapyCard.Views
         {
             if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
 
-            // Focus overlay to receive keys
             if (sender is Control control)
             {
                 control.Focus();
             }
 
-            // --- DOUBLE TAP ZOOM ---
-            // "Einmal Doppelklicken sollte 50% ran zoomen und nochmal Doppelklicken sollte wieder zurück zoomen"
             if (e.ClickCount == 2)
             {
-                // Only trigger if we clicked strictly on the Image itself.
-                // This prevents zooming when double-clicking the background overlay.
                 if (e.Source is Image)
                 {
                      ToggleZoom(vm);
@@ -307,7 +349,6 @@ namespace CapyCard.Views
 
             if (_activePointers.Count == 2)
             {
-                // Start Pinch - record initial distance AND midpoint
                 var points = _activePointers.Values.ToList();
                 _initialPinchDistance = Distance(points[0], points[1]);
                 _initialMidpoint = new Point((points[0].X + points[1].X) / 2, (points[0].Y + points[1].Y) / 2);
@@ -318,27 +359,17 @@ namespace CapyCard.Views
 
         private void ToggleZoom(LearnViewModel vm)
         {
-             // If currently zoomed in (significantly larger than default), reset to default
-             // Otherwise, zoom in by 50% relative to current (or base)
-             
-             // Define a threshold to decide if we are "zoomed in"
-             // Since "reset" sets it to DefaultZoomLevel, we check if we are notably above that.
-             // DefaultZoomLevel is calculated in CalculateInitialZoom
-             
-             double current = vm.ImageZoomLevel;
-             double defaultZoom = vm.DefaultZoomLevel;
-             
-             // Epsilon for float comparison
-             if (current > defaultZoom * 1.1) 
-             {
-                 // Zoom out (Reset)
-                 CalculateInitialZoom(vm);
-             }
-             else
-             {
-                 // Zoom in 75% (was 50%)
-                 vm.ImageZoomLevel = current * 1.75;
-             }
+              double current = vm.ImageZoomLevel;
+              double defaultZoom = vm.DefaultZoomLevel;
+              
+              if (current > defaultZoom * 1.1) 
+              {
+                  CalculateInitialZoom(vm);
+              }
+              else
+              {
+                  vm.ImageZoomLevel = current * 1.75;
+              }
         }
 
         private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
@@ -362,7 +393,6 @@ namespace CapyCard.Views
                          var midpointMovement = Distance(_initialMidpoint, currentMidpoint);
                          var distanceChange = Math.Abs(currentDistance - _initialPinchDistance);
                          
-                         // Pinch detection: distance change > midpoint movement AND > 30px
                          bool isPinch = distanceChange > midpointMovement && distanceChange > 30;
                          
                          if (isPinch)
@@ -371,8 +401,6 @@ namespace CapyCard.Views
                              var dampedZoomFactor = 1.0 + (rawZoomFactor - 1.0) * 0.05;
                              var newZoom = _initialZoomLevel * dampedZoomFactor;
                              vm.ImageZoomLevel = newZoom;
-                             
-                             // Center after zoom
                              CenterScrollViewer();
                          }
                      }
@@ -389,14 +417,12 @@ namespace CapyCard.Views
                  _activePointers.Remove(e.Pointer.Id);
              }
 
-             // Reset pinch state if we drop below 2 fingers
              if (_activePointers.Count < 2)
              {
                  _initialPinchDistance = -1;
                  _initialZoomLevel = -1;
              }
              
-             // FAILSAFE: If no pointers left, clear everything to prevent stuck state
              if (_activePointers.Count == 0)
              {
                  _activePointers.Clear();
@@ -405,15 +431,10 @@ namespace CapyCard.Views
                  _initialZoomLevel = -1;
              }
 
-             // Custom click handling for closing:
-             // If this was a release of a single pointer (click) and we weren't pinching, then close.
-             // We check sender to ensure we clicked the Grid background and not a child control handled elsewhere (though Tunneling might complicate this, here we use Bubble event on Grid)
              if (_activePointers.Count == 0 && e.InitialPressMouseButton == MouseButton.Left)
              {
-                 // Check if the source is the Grid itself (background) to avoid closing when clicking controls
                  if (sender is Grid grid && e.Source == grid)
                  {
-                     // Ensure we didn't just finish a pinch
                      if (_initialPinchDistance < 0) 
                      {
                         vm.CloseImagePreviewCommand.Execute(null);
@@ -452,34 +473,6 @@ namespace CapyCard.Views
             }
         }
 
-        private void ZoomTowardsPoint(Point focalPoint, double zoomFactor)
-        {
-            var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
-            if (scrollViewer == null) return;
-            
-            // Get current scroll position
-            var currentOffset = scrollViewer.Offset;
-            
-            // Calculate the position of the focal point relative to the viewport
-            var viewportX = focalPoint.X - currentOffset.X;
-            var viewportY = focalPoint.Y - currentOffset.Y;
-            
-            // After zoom, we want the same point to remain under the focal position
-            // New offset = old offset + (focal point position relative to viewport) * (zoom change)
-            var zoomChange = (zoomFactor - 1.0) * 0.05; // Apply same dampening as zoom
-            var newOffsetX = currentOffset.X + viewportX * zoomChange;
-            var newOffsetY = currentOffset.Y + viewportY * zoomChange;
-            
-            // Clamp to valid scroll range
-            var maxX = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
-            var maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-            
-            newOffsetX = Math.Clamp(newOffsetX, 0, maxX);
-            newOffsetY = Math.Clamp(newOffsetY, 0, maxY);
-            
-            scrollViewer.Offset = new Vector(newOffsetX, newOffsetY);
-        }
-
         private void CenterScrollViewer()
         {
             var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
@@ -494,6 +487,5 @@ namespace CapyCard.Views
                     scrollViewer.Offset = new Vector(scrollViewer.Offset.X, verticalOffset);
             }
         }
-
     }
 }

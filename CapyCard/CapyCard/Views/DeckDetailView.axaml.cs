@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CapyCard.ViewModels;
 using System;
 using System.IO;
@@ -27,46 +28,78 @@ namespace CapyCard.Views
             InitializeComponent();
             SizeChanged += OnSizeChanged;
             DataContextChanged += OnDataContextChanged;
+        }
 
-            // Handle KeyDown at Tunneling stage to catch Escape before anyone else
-            this.AddHandler(KeyDownEvent, (sender, e) =>
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel != null)
             {
-                if (e.Key == Key.Escape)
+                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
+            }
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel != null)
+            {
+                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+            }
+            
+            if (DataContext is DeckDetailViewModel vm)
+            {
+                vm.OnRequestFileSave -= SaveFilePickerAsync;
+            }
+        }
+
+        private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
+        {
+            if (!IsEffectivelyVisible) return;
+
+            if (e.Key == Key.Escape)
+            {
+                var topLevel = TopLevel.GetTopLevel(this);
+                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                
+                bool isInsideTextBox = focused is TextBox;
+                if (!isInsideTextBox && focused is Visual v)
                 {
-                    var topLevel = TopLevel.GetTopLevel(this);
-                    var focused = topLevel?.FocusManager?.GetFocusedElement();
-                    
-                    if (focused is TextBox)
+                    isInsideTextBox = v.FindAncestorOfType<TextBox>() != null;
+                }
+
+                if (isInsideTextBox)
+                {
+                    topLevel?.FocusManager?.ClearFocus();
+                    this.Focus();
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || !IsEffectivelyVisible || DataContext is not DeckDetailViewModel vm) return;
+
+            if (e.Key == Key.Escape)
+            {
+                bool wasAnythingOpen = vm.IsSubDeckSelectionVisible || vm.IsConfirmingDeleteSubDeck || vm.IsSubDeckListOpen || vm.ExportViewModel.IsVisible;
+                
+                vm.HandleEscapeCommand.Execute(null);
+                
+                if (!wasAnythingOpen)
+                {
+                    if (vm.GoBackCommand.CanExecute(null))
                     {
-                        this.Focus();
-                        e.Handled = true;
+                        vm.GoBackCommand.Execute(null);
                     }
                 }
-            }, RoutingStrategies.Tunnel);
-
-            // Handle KeyDown at Bubble stage
-            this.AddHandler(KeyDownEvent, (sender, e) =>
-            {
-                if (e.Handled) return;
-
-                if (e.Key == Key.Escape)
-                {
-                    if (DataContext is DeckDetailViewModel vm)
-                    {
-                        // HandleEscapeCommand already handles dialogs/dropdowns
-                        bool wasAnythingOpen = vm.IsSubDeckSelectionVisible || vm.IsConfirmingDeleteSubDeck || vm.IsSubDeckListOpen;
-                        
-                        vm.HandleEscapeCommand.Execute(null);
-                        
-                        // If everything was already closed OR became closed, and user pressed Esc again, go back
-                        if (!wasAnythingOpen)
-                        {
-                            vm.GoBackCommand.Execute(null);
-                        }
-                        e.Handled = true;
-                    }
-                }
-            }, RoutingStrategies.Bubble);
+                e.Handled = true;
+            }
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
@@ -78,7 +111,14 @@ namespace CapyCard.Views
                 // Focus management
                 vm.PropertyChanged += (s, args) =>
                 {
-                    Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    // Filter: Only trigger focus logic when relevant visibility flags change
+                    // NOT on every property change (like text input)
+                    if (args.PropertyName == nameof(DeckDetailViewModel.IsConfirmingDeleteSubDeck) ||
+                        args.PropertyName == nameof(DeckDetailViewModel.IsSubDeckSelectionVisible) ||
+                        args.PropertyName == nameof(DeckDetailViewModel.IsSubDeckListOpen))
+                    {
+                        Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    }
                 };
 
                 vm.ExportViewModel.PropertyChanged += (sender, args) =>
@@ -95,16 +135,11 @@ namespace CapyCard.Views
             else if (vm.IsConfirmingDeleteSubDeck)
                 DeleteConfirmationOverlay.Focus();
             else
-                this.Focus();
-        }
-
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            base.OnDetachedFromVisualTree(e);
-            
-            if (DataContext is DeckDetailViewModel vm)
             {
-                vm.OnRequestFileSave -= SaveFilePickerAsync;
+                // Only clear focus and take focus if we are returning to the main view
+                var topLevel = TopLevel.GetTopLevel(this);
+                topLevel?.FocusManager?.ClearFocus();
+                this.Focus();
             }
         }
 
