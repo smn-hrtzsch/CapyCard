@@ -73,76 +73,93 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <DockPanel Margin="16">
             <!-- TOP HEADER AREA -->
-            <Grid ColumnDefinitions="Auto,*,Auto" DockPanel.Dock="Top" Margin="0,0,0,16">
-                <!-- Back Button -->
-                <Button Command="{Binding GoBackCommand}"
-                        Classes="primary"
-                        Grid.Column="0"
-                        ToolTip.Tip="{Binding BackButtonText}"
-                        Padding="12,8"
-                        Margin="0,0,12,0">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
-                        <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="8">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Back Button -->
+                    <Button Command="{Binding GoBackCommand}"
+                            Classes="primary"
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            ToolTip.Tip="{Binding BackButtonText}"
+                            Padding="12,8">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
+                            <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                        </StackPanel>
+                    </Button>
+                    
+                    <!-- Spacer -->
+                    <Panel Grid.Column="1" />
+                    
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right">
+                        
+                        <!-- Columns Selection -->
+                        <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
+                            <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                                <materialIcons:MaterialIcon Kind="ViewDashboard" 
+                                                          Width="20" Height="20"
+                                                          Foreground="{DynamicResource TextMutedBrush}"
+                                                          ToolTip.Tip="Spaltenanzahl"
+                                                          Margin="4,0,4,0"/>
+                                <ComboBox ItemsSource="{Binding ColumnOptions}"
+                                          SelectedItem="{Binding SelectedColumnCount}"
+                                          Width="70"
+                                          Classes="floating"
+                                          BorderThickness="0"
+                                          Margin="0"
+                                          Padding="8,8"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- PDF Button -->
+                        <Button Command="{Binding GeneratePdfCommand}"
+                                Classes="secondary"
+                                IsVisible="{Binding ShowPdfButton}"
+                                ToolTip.Tip="Auswahl als PDF speichern"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="FilePdfBox" Width="20" Height="20"/>
+                                <TextBlock Text="PDF" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
+                        
+                        <!-- Select All Button -->
+                        <Button Command="{Binding ToggleSelectAllCommand}"
+                                Classes="secondary"
+                                ToolTip.Tip="{Binding SelectAllButtonText}"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <materialIcons:MaterialIcon Kind="{Binding SelectAllButtonText, Converter={StaticResource SelectAllTextToIconConverter}}" 
+                                                          Width="20" Height="20"/>
+                                <TextBlock Text="{Binding SelectAllButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
-                </Button>
+                </Grid>
                 
-                <TextBlock Text="{Binding DeckName}" 
-                           Grid.Column="1"
-                           FontSize="24" 
-                           FontWeight="Bold" 
-                           VerticalAlignment="Center"
-                           TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextControlForeground}"/>
+                <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
                 
-                <StackPanel Grid.Column="2"
-                            Orientation="Horizontal"
-                            Spacing="8"
-                            HorizontalAlignment="Right">
-                    
-                    <!-- Columns Selection -->
-                    <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
-                        <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
-                            <materialIcons:MaterialIcon Kind="ViewDashboard" 
-                                                      Width="20" Height="20"
-                                                      Foreground="{DynamicResource TextMutedBrush}"
-                                                      ToolTip.Tip="Spaltenanzahl"
-                                                      Margin="4,0,4,0"/>
-                            <ComboBox ItemsSource="{Binding ColumnOptions}"
-                                      SelectedItem="{Binding SelectedColumnCount}"
-                                      Width="70"
-                                      Classes="floating"
-                                      BorderThickness="0"
-                                      Margin="0"
-                                      Padding="8,8"/>
-                        </StackPanel>
-                    </Border>
-                    
-                    <!-- PDF Button -->
-                    <Button Command="{Binding GeneratePdfCommand}"
-                            Classes="secondary"
-                            IsVisible="{Binding ShowPdfButton}"
-                            ToolTip.Tip="Auswahl als PDF speichern"
-                            Padding="12,8">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <materialIcons:MaterialIcon Kind="FilePdfBox" Width="20" Height="20"/>
-                            <TextBlock Text="PDF" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
-                    
-                    <!-- Select All Button -->
-                    <Button Command="{Binding ToggleSelectAllCommand}"
-                            Classes="secondary"
-                            ToolTip.Tip="{Binding SelectAllButtonText}"
-                            Padding="12,8">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <materialIcons:MaterialIcon Kind="{Binding SelectAllButtonText, Converter={StaticResource SelectAllTextToIconConverter}}" 
-                                                      Width="20" Height="20"/>
-                            <TextBlock Text="{Binding SelectAllButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                <!-- Title (Always separate centered) -->
+                <Border Background="{DynamicResource SurfaceBorderBrush}" 
+                        CornerRadius="20" 
+                        Padding="16,4" 
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center"
+                        Margin="12,0"
+                        Opacity="0.8">
+                    <TextBlock Text="{Binding DeckName}" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               VerticalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextControlForeground}"/>
+                </Border>
+            </StackPanel>
             
             <!-- MAIN LIST AREA -->
             <ItemsControl ItemsSource="{Binding CardGroups}">

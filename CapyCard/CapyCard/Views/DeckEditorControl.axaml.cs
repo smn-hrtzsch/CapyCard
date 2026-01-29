@@ -32,6 +32,7 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            SizeChanged += OnSizeChanged;
             
             IsCompactModeProperty.Changed.AddClassHandler<DeckEditorControl>((x, e) => x.UpdateLayout((bool)e.NewValue!));
 
@@ -39,6 +40,11 @@ namespace CapyCard.Views
             {
                 IsCompactMode = true;
             }
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < AppConstants.StackingThreshold;
         }
 
         private void UpdateLayout(bool isCompact)

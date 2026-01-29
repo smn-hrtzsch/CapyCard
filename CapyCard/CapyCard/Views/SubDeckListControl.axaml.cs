@@ -37,9 +37,15 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
+            SizeChanged += OnSizeChanged;
             
             ToggleContainer.SizeChanged += OnFooterElementSizeChanged;
             InputContainer.SizeChanged += OnFooterElementSizeChanged;
+        }
+
+        private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            IsCompactMode = e.NewSize.Width < AppConstants.StackingThreshold;
         }
 
         private void OnFooterElementSizeChanged(object? sender, SizeChangedEventArgs e)
