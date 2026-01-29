@@ -137,9 +137,21 @@ namespace CapyCard.Views
             }
             else if (e.PropertyName == nameof(LearnViewModel.IsEditing))
             {
-                if (DataContext is LearnViewModel vm && !vm.IsEditing)
+                if (DataContext is LearnViewModel vm)
                 {
-                    Dispatcher.UIThread.Post(FocusMainActionButton);
+                    if (vm.IsEditing)
+                    {
+                        // Editing started -> Focus the editor (or view as fallback) to ensure Escape works
+                        // We try to find the editor control via name or type, but since it's inside templates,
+                        // focusing the View itself is safer for the Tunneling handler to catch Escape.
+                        // Ideally, we would focus the TextBox, but let's start with the View.
+                        Dispatcher.UIThread.Post(() => this.Focus());
+                    }
+                    else
+                    {
+                        // Editing finished -> Restore focus to main buttons
+                        Dispatcher.UIThread.Post(FocusMainActionButton);
+                    }
                 }
             }
             // Add focus restoration when card state changes
@@ -199,7 +211,16 @@ namespace CapyCard.Views
                 // 3. Editing
                 if (vm.IsEditing)
                 {
+                    // WICHTIG: Wenn der Fokus in keinem Textfeld ist (also z.B. auf dem "Speichern"-Button),
+                    // dann wird Escape hier gefangen. Wir müssen also prüfen, ob wir wirklich abbrechen wollen.
+                    // Ja, Escape soll immer abbrechen, wenn wir im Edit-Mode sind.
                     vm.CancelEditCommand.Execute(null);
+                    
+                    // Nach dem Abbrechen sicherstellen, dass wir den Fokus auf die View legen,
+                    // damit der nächste Escape-Druck (Navigation) funktioniert.
+                    // Da CancelEdit aber auch Buttons (wie "Next") wieder sichtbar macht, 
+                    // kümmert sich FocusMainActionButton (via PropertyChanged) darum.
+                    // Sicherheitshalber hier trotzdem:
                     this.Focus();
                     e.Handled = true;
                     return;
