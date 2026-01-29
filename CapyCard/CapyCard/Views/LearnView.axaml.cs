@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using CapyCard.ViewModels;
 
 namespace CapyCard.Views
@@ -31,13 +32,6 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             this.SizeChanged += OnSizeChanged;
-            
-            // Use Tunneling to catch the wheel event before the ScrollViewer inside consumes it
-            var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
-            if (overlay != null)
-            {
-                overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
-            }
         }
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -49,32 +43,32 @@ namespace CapyCard.Views
         {
             base.OnAttachedToVisualTree(e);
             _topLevel = TopLevel.GetTopLevel(this);
-            if (_topLevel != null)
-            {
-                _topLevel.KeyDown += TopLevelOnKeyDown;
-            }
-            // Ensure Handler is attached (remove first to avoid duplicates)
+            
+            // 1. ESCAPE & ZOOM (Tunneling): Catch before anything else
+            this.AddHandler(KeyDownEvent, OnKeyDownTunnel, RoutingStrategies.Tunnel);
+            
+            // 2. ENTER/SPACE (Bubble): Catch if not handled by controls (like Buttons)
+            this.AddHandler(KeyDownEvent, OnKeyDownBubble, RoutingStrategies.Bubble);
+            
+            // Ensure we have focus or a child has focus
+            Dispatcher.UIThread.Post(FocusMainActionButton, DispatcherPriority.Input);
+
+            // Image Preview Handlers
             var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
             if (overlay != null)
             {
-                // Desktop: Wheel zoom with Ctrl/Cmd
-                overlay.RemoveHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged);
                 overlay.AddHandler(PointerWheelChangedEvent, OnOverlayPointerWheelChanged, RoutingStrategies.Tunnel);
-
-                // Add pointer handlers for custom pinch detection on mobile
                 overlay.AddHandler(PointerPressedEvent, OnOverlayPointerPressed, RoutingStrategies.Tunnel);
                 overlay.AddHandler(PointerMovedEvent, OnOverlayPointerMoved, RoutingStrategies.Tunnel);
                 overlay.AddHandler(PointerReleasedEvent, OnOverlayPointerReleased, RoutingStrategies.Tunnel);
                 overlay.AddHandler(InputElement.PointerCaptureLostEvent, OnOverlayPointerReleased, RoutingStrategies.Bubble);
-
-                // Gesture recognizer as fallback
-                overlay.GestureRecognizers.Add(new PinchGestureRecognizer());
                 overlay.AddHandler(Gestures.PinchEvent, OnGesturePinch);
             }
             
             var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
             if (scrollViewer != null)
             {
+                scrollViewer.RemoveHandler(Gestures.PinchEvent, OnGesturePinch);
                 scrollViewer.AddHandler(Gestures.PinchEvent, OnGesturePinch);
             }
 
@@ -85,39 +79,13 @@ namespace CapyCard.Views
             }
         }
 
-        private void OnNavigationButtonClick(object? sender, RoutedEventArgs e)
-        {
-            FocusMainActionButton();
-        }
-
-        private void FocusMainActionButton()
-        {
-            // Delay focus change slightly to allow UI to update (e.g. button visibility)
-            Dispatcher.UIThread.Post(() =>
-            {
-                var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
-                var btnSmart = this.FindControl<Button>("ShowBackBtnSmart");
-
-                if (btnStandard != null && btnStandard.IsEffectivelyVisible)
-                {
-                    btnStandard.Focus();
-                }
-                else if (btnSmart != null && btnSmart.IsEffectivelyVisible)
-                {
-                    btnSmart.Focus();
-                }
-            }, DispatcherPriority.Input);
-        }
-
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
-
-            if (_topLevel != null)
-            {
-                _topLevel.KeyDown -= TopLevelOnKeyDown;
-                _topLevel = null;
-            }
+            _topLevel = null;
+            
+            this.RemoveHandler(KeyDownEvent, OnKeyDownTunnel);
+            this.RemoveHandler(KeyDownEvent, OnKeyDownBubble);
 
             if (_subscribedViewModel != null)
             {
@@ -130,7 +98,6 @@ namespace CapyCard.Views
         {
             base.OnDataContextChanged(e);
             
-            // Handle dynamic DataContext changes while attached
             if (_subscribedViewModel != null)
             {
                 _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
@@ -153,7 +120,6 @@ namespace CapyCard.Views
                     if (vm.IsImagePreviewOpen)
                     {
                         CalculateInitialZoom(vm);
-                        // Focus the overlay to enable KeyBindings
                          Dispatcher.UIThread.Post(() =>
                          {
                              var overlay = this.FindControl<Grid>("ImagePreviewOverlay");
@@ -162,17 +128,168 @@ namespace CapyCard.Views
                     }
                     else
                     {
-                        // CRITICAL: Clear pointer state when overlay closes to prevent stale IDs
                         _activePointers.Clear();
                         _initialPinchDistance = -1;
                         _initialZoomLevel = -1;
-                        
-                        // Restore Focus when preview closes
-                        FocusMainActionButton();
+                        Dispatcher.UIThread.Post(FocusMainActionButton);
+                    }
+                }
+            }
+            else if (e.PropertyName == nameof(LearnViewModel.IsEditing))
+            {
+                if (DataContext is LearnViewModel vm)
+                {
+                    if (vm.IsEditing)
+                    {
+                        // Editing started -> Focus the editor (or view as fallback) to ensure Escape works
+                        // We try to find the editor control via name or type, but since it's inside templates,
+                        // focusing the View itself is safer for the Tunneling handler to catch Escape.
+                        // Ideally, we would focus the TextBox, but let's start with the View.
+                        Dispatcher.UIThread.Post(() => this.Focus());
+                    }
+                    else
+                    {
+                        // Editing finished -> Restore focus to main buttons
+                        Dispatcher.UIThread.Post(FocusMainActionButton);
+                    }
+                }
+            }
+            // Add focus restoration when card state changes
+            else if (e.PropertyName == nameof(LearnViewModel.IsBackVisible) || 
+                     e.PropertyName == nameof(LearnViewModel.CurrentCard) ||
+                     e.PropertyName == nameof(LearnViewModel.Strategy))
+            {
+                 Dispatcher.UIThread.Post(FocusMainActionButton, DispatcherPriority.Input);
+            }
+        }
+
+        private void FocusMainActionButton()
+        {
+            if (!this.IsVisible) return;
+
+            var btnStandard = this.FindControl<Button>("ShowBackBtnStandard");
+            var btnSmart = this.FindControl<Button>("ShowBackBtnSmart");
+            var btnNext = this.FindControl<Button>("NextCardBtnStandard");
+            var btnRate3 = this.FindControl<Button>("Rate3Btn");
+
+            // Try to focus the most relevant button
+            if (btnStandard != null && btnStandard.IsEffectivelyVisible) btnStandard.Focus();
+            else if (btnSmart != null && btnSmart.IsEffectivelyVisible) btnSmart.Focus();
+            else if (btnNext != null && btnNext.IsEffectivelyVisible) btnNext.Focus();
+            else if (btnRate3 != null && btnRate3.IsEffectivelyVisible) btnRate3.Focus();
+            else this.Focus(); // Fallback to View
+        }
+
+        // TUNNEL: Priority Handling (Escape, Zoom Reset)
+        private void OnKeyDownTunnel(object? sender, KeyEventArgs e)
+        {
+            if (DataContext is not LearnViewModel vm) return;
+
+            // --- ESCAPE ---
+            if (e.Key == Key.Escape)
+            {
+                // 1. Check if input is focused
+                var focused = _topLevel?.FocusManager?.GetFocusedElement();
+                bool isInput = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
+
+                if (isInput)
+                {
+                    _topLevel?.FocusManager?.ClearFocus();
+                    this.Focus();
+                    e.Handled = true;
+                    return;
+                }
+
+                // 2. Image Preview
+                if (vm.IsImagePreviewOpen)
+                {
+                    vm.CloseImagePreviewCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+
+                // 3. Editing
+                if (vm.IsEditing)
+                {
+                    // WICHTIG: Wenn der Fokus in keinem Textfeld ist (also z.B. auf dem "Speichern"-Button),
+                    // dann wird Escape hier gefangen. Wir müssen also prüfen, ob wir wirklich abbrechen wollen.
+                    // Ja, Escape soll immer abbrechen, wenn wir im Edit-Mode sind.
+                    vm.CancelEditCommand.Execute(null);
+                    
+                    // Nach dem Abbrechen sicherstellen, dass wir den Fokus auf die View legen,
+                    // damit der nächste Escape-Druck (Navigation) funktioniert.
+                    // Da CancelEdit aber auch Buttons (wie "Next") wieder sichtbar macht, 
+                    // kümmert sich FocusMainActionButton (via PropertyChanged) darum.
+                    // Sicherheitshalber hier trotzdem:
+                    this.Focus();
+                    e.Handled = true;
+                    return;
+                }
+
+                // 4. Navigation Back
+                if (vm.GoBackCommand.CanExecute(null))
+                {
+                    vm.GoBackCommand.Execute(null);
+                    e.Handled = true;
+                    return;
+                }
+            }
+            
+            // --- ZOOM SHORTCUTS ---
+            if (vm.IsImagePreviewOpen)
+            {
+                var modifiers = e.KeyModifiers;
+                bool isCtrlOrMeta = (modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0;
+
+                if (isCtrlOrMeta)
+                {
+                    // Reset: Ctrl+0
+                    if (e.Key == Key.D0 || e.Key == Key.NumPad0)
+                    {
+                        CalculateInitialZoom(vm);
+                        e.Handled = true;
+                    }
+                    // Zoom In: Ctrl + Plus
+                    else if (e.Key == Key.OemPlus || e.Key == Key.Add)
+                    {
+                        vm.ZoomInCommand.Execute(null);
+                        e.Handled = true;
+                    }
+                    // Zoom Out: Ctrl + Minus
+                    else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
+                    {
+                        vm.ZoomOutCommand.Execute(null);
+                        e.Handled = true;
                     }
                 }
             }
         }
+
+        // BUBBLE: Fallback Handling (Enter/Space)
+        private void OnKeyDownBubble(object? sender, KeyEventArgs e)
+        {
+            if (e.Handled || DataContext is not LearnViewModel vm) return;
+
+            // Only handle if NO input is focused (inputs need Enter/Space)
+            var focused = _topLevel?.FocusManager?.GetFocusedElement();
+            bool isInput = focused is TextBox || (focused is Visual v && v.FindAncestorOfType<TextBox>() != null);
+
+            if (isInput) return;
+
+            if (e.Key == Key.Enter || e.Key == Key.Return || e.Key == Key.Space)
+            {
+                // NOTE: If a Button has focus, it handles KeyDown before it bubbles here.
+                // So this code only runs if focus is on the View itself or a non-handling control.
+                
+                if (vm.AdvanceCommand.CanExecute(null))
+                {
+                    vm.AdvanceCommand.Execute(null);
+                    e.Handled = true;
+                }
+            }
+        }
+
+        // --- Image Preview Logic ---
 
         private void CalculateInitialZoom(LearnViewModel vm)
         {
@@ -189,193 +306,60 @@ namespace CapyCard.Views
                 var imgHeight = bitmap.Size.Height;
                 if (imgWidth <= 0 || imgHeight <= 0) return;
 
-                var zoomX = targetWidth / imgWidth;
-                var zoomY = targetHeight / imgHeight;
-                var zoom = Math.Min(zoomX, zoomY);
-                
+                var zoom = Math.Min(targetWidth / imgWidth, targetHeight / imgHeight);
                 vm.ImageZoomLevel = zoom;
                 vm.DefaultZoomLevel = zoom;
             }
         }
 
-        private void TopLevelOnKeyDown(object? sender, KeyEventArgs e)
-        {
-            if (!IsEffectivelyVisible || DataContext is not LearnViewModel vm) return;
-            
-            if (vm.IsImagePreviewOpen)
-            {
-                if (e.Key == Key.Escape)
-                {
-                    vm.CloseImagePreviewCommand.Execute(null);
-                    e.Handled = true;
-                    return;
-                }
-                
-                // Handle Cmd/Strg + 0 for Reset Zoom
-                var modifiers = e.KeyModifiers;
-                bool isCtrl = (modifiers & KeyModifiers.Control) != 0;
-                bool isMeta = (modifiers & KeyModifiers.Meta) != 0;
-                
-                if ((isCtrl || isMeta) && e.Key == Key.D0)
-                {
-                    CalculateInitialZoom(vm);
-                    e.Handled = true;
-                    return;
-                }
-                
-                return; // Don't handle other keys like Enter
-            }
-
-            // Android Back can arrive as a key event on some devices/setups.
-            // In LearnView we treat it as navigation back (unless the preview is open, handled above).
-            if (OperatingSystem.IsAndroid() && e.Key is Key.BrowserBack or Key.Back or Key.Escape)
-            {
-                if (vm.GoBackCommand.CanExecute(null))
-                {
-                    vm.GoBackCommand.Execute(null);
-                    e.Handled = true;
-                    return;
-                }
-            }
-
-            if (e.Key is Key.Enter or Key.Return or Key.Space)
-            {
-                if (vm.AdvanceCommand.CanExecute(null))
-                {
-                    vm.AdvanceCommand.Execute(null);
-                    e.Handled = true;
-                }
-            }
-        }
-
-
-
         private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
         {
             if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
-
             var modifiers = e.KeyModifiers;
-            bool isCtrl = (modifiers & KeyModifiers.Control) != 0;
-            bool isMeta = (modifiers & KeyModifiers.Meta) != 0;
-            
-            // Desktop zoom: Only with Ctrl/Cmd + Scroll
-            // Note: macOS trackpad pinch is NOT supported by Avalonia on Desktop
-            if (isCtrl || isMeta)
+            if ((modifiers & KeyModifiers.Control) != 0 || (modifiers & KeyModifiers.Meta) != 0)
             {
-                double zoomFactor = 0.05;
-                double delta = e.Delta.Y;
-                vm.ImageZoomLevel += delta * zoomFactor;
+                vm.ImageZoomLevel += e.Delta.Y * 0.05;
                 e.Handled = true;
             }
         }
 
-        // --- Pinch to Zoom Implementation ---
-
         private readonly Dictionary<int, Point> _activePointers = new();
-        private readonly Dictionary<int, Point> _initialPointerPositions = new();
         private double _initialPinchDistance = -1;
         private double _initialZoomLevel = -1;
-        private Point _initialMidpoint;
 
         private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
         {
             if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
-
-            // Focus overlay to receive keys
-            if (sender is Control control)
+            if (sender is Control control) control.Focus();
+            if (e.ClickCount == 2 && e.Source is Image)
             {
-                control.Focus();
+                 if (vm.ImageZoomLevel > vm.DefaultZoomLevel * 1.1) CalculateInitialZoom(vm);
+                 else vm.ImageZoomLevel *= 1.75;
+                 e.Handled = true;
+                 return;
             }
-
-            // --- DOUBLE TAP ZOOM ---
-            // "Einmal Doppelklicken sollte 50% ran zoomen und nochmal Doppelklicken sollte wieder zurück zoomen"
-            if (e.ClickCount == 2)
-            {
-                // Only trigger if we clicked strictly on the Image itself.
-                // This prevents zooming when double-clicking the background overlay.
-                if (e.Source is Image)
-                {
-                     ToggleZoom(vm);
-                     e.Handled = true;
-                     return;
-                }
-            }
-            
-            var point = e.GetPosition(this);
-            _activePointers[e.Pointer.Id] = point;
-            _initialPointerPositions[e.Pointer.Id] = point;
-
+            _activePointers[e.Pointer.Id] = e.GetPosition(this);
             if (_activePointers.Count == 2)
             {
-                // Start Pinch - record initial distance AND midpoint
                 var points = _activePointers.Values.ToList();
                 _initialPinchDistance = Distance(points[0], points[1]);
-                _initialMidpoint = new Point((points[0].X + points[1].X) / 2, (points[0].Y + points[1].Y) / 2);
                 _initialZoomLevel = vm.ImageZoomLevel;
                 e.Handled = true; 
             }
         }
 
-        private void ToggleZoom(LearnViewModel vm)
-        {
-             // If currently zoomed in (significantly larger than default), reset to default
-             // Otherwise, zoom in by 50% relative to current (or base)
-             
-             // Define a threshold to decide if we are "zoomed in"
-             // Since "reset" sets it to DefaultZoomLevel, we check if we are notably above that.
-             // DefaultZoomLevel is calculated in CalculateInitialZoom
-             
-             double current = vm.ImageZoomLevel;
-             double defaultZoom = vm.DefaultZoomLevel;
-             
-             // Epsilon for float comparison
-             if (current > defaultZoom * 1.1) 
-             {
-                 // Zoom out (Reset)
-                 CalculateInitialZoom(vm);
-             }
-             else
-             {
-                 // Zoom in 75% (was 50%)
-                 vm.ImageZoomLevel = current * 1.75;
-             }
-        }
-
         private void OnOverlayPointerMoved(object? sender, PointerEventArgs e)
         {
              if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
-
              if (_activePointers.ContainsKey(e.Pointer.Id))
              {
                  _activePointers[e.Pointer.Id] = e.GetPosition(this);
-
-                 if (_activePointers.Count == 2)
+                 if (_activePointers.Count == 2 && _initialPinchDistance > 0)
                  {
+                     var points = _activePointers.Values.ToList();
+                     vm.ImageZoomLevel = _initialZoomLevel * (1.0 + (Distance(points[0], points[1]) / _initialPinchDistance - 1.0) * 0.05);
+                     CenterScrollViewer();
                      e.Handled = true;
-                     
-                     if (_initialPinchDistance > 0)
-                     {
-                         var points = _activePointers.Values.ToList();
-                         var currentDistance = Distance(points[0], points[1]);
-                         var currentMidpoint = new Point((points[0].X + points[1].X) / 2, (points[0].Y + points[1].Y) / 2);
-                         
-                         var midpointMovement = Distance(_initialMidpoint, currentMidpoint);
-                         var distanceChange = Math.Abs(currentDistance - _initialPinchDistance);
-                         
-                         // Pinch detection: distance change > midpoint movement AND > 30px
-                         bool isPinch = distanceChange > midpointMovement && distanceChange > 30;
-                         
-                         if (isPinch)
-                         {
-                             var rawZoomFactor = currentDistance / _initialPinchDistance;
-                             var dampedZoomFactor = 1.0 + (rawZoomFactor - 1.0) * 0.05;
-                             var newZoom = _initialZoomLevel * dampedZoomFactor;
-                             vm.ImageZoomLevel = newZoom;
-                             
-                             // Center after zoom
-                             CenterScrollViewer();
-                         }
-                     }
                  }
              }
         }
@@ -383,101 +367,29 @@ namespace CapyCard.Views
         private void OnOverlayPointerReleased(object? sender, PointerReleasedEventArgs e)
         {
              if (DataContext is not LearnViewModel vm || !vm.IsImagePreviewOpen) return;
-
-             if (_activePointers.ContainsKey(e.Pointer.Id))
+             _activePointers.Remove(e.Pointer.Id);
+             if (_activePointers.Count < 2) _initialPinchDistance = -1;
+             if (_activePointers.Count == 0 && e.InitialPressMouseButton == MouseButton.Left && sender is Grid grid && e.Source == grid && _initialPinchDistance < 0) 
              {
-                 _activePointers.Remove(e.Pointer.Id);
-             }
-
-             // Reset pinch state if we drop below 2 fingers
-             if (_activePointers.Count < 2)
-             {
-                 _initialPinchDistance = -1;
-                 _initialZoomLevel = -1;
-             }
-             
-             // FAILSAFE: If no pointers left, clear everything to prevent stuck state
-             if (_activePointers.Count == 0)
-             {
-                 _activePointers.Clear();
-                 _initialPointerPositions.Clear();
-                 _initialPinchDistance = -1;
-                 _initialZoomLevel = -1;
-             }
-
-             // Custom click handling for closing:
-             // If this was a release of a single pointer (click) and we weren't pinching, then close.
-             // We check sender to ensure we clicked the Grid background and not a child control handled elsewhere (though Tunneling might complicate this, here we use Bubble event on Grid)
-             if (_activePointers.Count == 0 && e.InitialPressMouseButton == MouseButton.Left)
-             {
-                 // Check if the source is the Grid itself (background) to avoid closing when clicking controls
-                 if (sender is Grid grid && e.Source == grid)
-                 {
-                     // Ensure we didn't just finish a pinch
-                     if (_initialPinchDistance < 0) 
-                     {
-                        vm.CloseImagePreviewCommand.Execute(null);
-                     }
-                 }
+                vm.CloseImagePreviewCommand.Execute(null);
              }
         }
         
         private void OnResetZoomClick(object? sender, RoutedEventArgs e)
         {
-            if (DataContext is LearnViewModel vm)
-            {
-                CalculateInitialZoom(vm);
-            }
+            if (DataContext is LearnViewModel vm) CalculateInitialZoom(vm);
         }
 
-        private double Distance(Point p1, Point p2)
-        {
-            double dx = p1.X - p2.X;
-            double dy = p1.Y - p2.Y;
-            return Math.Sqrt(dx * dx + dy * dy);
-        }
+        private double Distance(Point p1, Point p2) => Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
 
         private void OnGesturePinch(object? sender, PinchEventArgs e)
         {
             if (DataContext is LearnViewModel vm && vm.IsImagePreviewOpen)
             {
-                if (Math.Abs(e.Scale - 1.0) > 0.02)
-                {
-                    var dampedScale = 1.0 + (e.Scale - 1.0) * 0.05;
-                    var newZoom = vm.ImageZoomLevel * dampedScale;
-                    vm.ImageZoomLevel = newZoom;
-                    CenterScrollViewer();
-                }
+                vm.ImageZoomLevel *= 1.0 + (e.Scale - 1.0) * 0.05;
+                CenterScrollViewer();
                 e.Handled = true;
             }
-        }
-
-        private void ZoomTowardsPoint(Point focalPoint, double zoomFactor)
-        {
-            var scrollViewer = this.FindControl<ScrollViewer>("ImageScrollViewer");
-            if (scrollViewer == null) return;
-            
-            // Get current scroll position
-            var currentOffset = scrollViewer.Offset;
-            
-            // Calculate the position of the focal point relative to the viewport
-            var viewportX = focalPoint.X - currentOffset.X;
-            var viewportY = focalPoint.Y - currentOffset.Y;
-            
-            // After zoom, we want the same point to remain under the focal position
-            // New offset = old offset + (focal point position relative to viewport) * (zoom change)
-            var zoomChange = (zoomFactor - 1.0) * 0.05; // Apply same dampening as zoom
-            var newOffsetX = currentOffset.X + viewportX * zoomChange;
-            var newOffsetY = currentOffset.Y + viewportY * zoomChange;
-            
-            // Clamp to valid scroll range
-            var maxX = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
-            var maxY = Math.Max(0, scrollViewer.Extent.Height - scrollViewer.Viewport.Height);
-            
-            newOffsetX = Math.Clamp(newOffsetX, 0, maxX);
-            newOffsetY = Math.Clamp(newOffsetY, 0, maxY);
-            
-            scrollViewer.Offset = new Vector(newOffsetX, newOffsetY);
         }
 
         private void CenterScrollViewer()
@@ -487,13 +399,9 @@ namespace CapyCard.Views
             {
                 var horizontalOffset = (scrollViewer.Extent.Width - scrollViewer.Viewport.Width) / 2;
                 var verticalOffset = (scrollViewer.Extent.Height - scrollViewer.Viewport.Height) / 2;
-                
-                if (horizontalOffset > 0)
-                    scrollViewer.Offset = new Vector(horizontalOffset, scrollViewer.Offset.Y);
-                if (verticalOffset > 0)
-                    scrollViewer.Offset = new Vector(scrollViewer.Offset.X, verticalOffset);
+                if (horizontalOffset > 0) scrollViewer.Offset = new Vector(horizontalOffset, scrollViewer.Offset.Y);
+                if (verticalOffset > 0) scrollViewer.Offset = new Vector(scrollViewer.Offset.X, verticalOffset);
             }
         }
-
     }
 }

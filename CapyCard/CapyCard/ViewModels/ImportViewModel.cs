@@ -394,6 +394,40 @@ Wichtig: Antworte nur mit dem JSON-Objekt, idealerweise in einem Code-Block.";
         }
 
         [RelayCommand]
+        private void HandleEscape()
+        {
+            if (IsLlmImportVisible)
+            {
+                IsLlmImportVisible = false;
+            }
+            else if (ShowPreview)
+            {
+                ShowPreview = false;
+                _fileStream?.Dispose();
+                _fileStream = null;
+            }
+            else
+            {
+                Cancel();
+            }
+        }
+
+        [RelayCommand]
+        private void HandleEnter()
+        {
+            if (IsLlmImportVisible)
+            {
+                if (AnalyzeTextCommand.CanExecute(null))
+                    AnalyzeTextCommand.Execute(null);
+            }
+            else if (ShowPreview)
+            {
+                if (ImportCommand.CanExecute(null))
+                    ImportCommand.Execute(null);
+            }
+        }
+
+        [RelayCommand]
         private void Cancel()
         {
             _fileStream?.Dispose();

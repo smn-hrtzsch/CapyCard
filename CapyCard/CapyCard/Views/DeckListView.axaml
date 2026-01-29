@@ -7,9 +7,10 @@
              xmlns:behaviors="using:CapyCard.Behaviors"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-             x:Class="CapyCard.Views.DeckListView"
-             x:DataType="vm:DeckListViewModel"
-             x:Name="DeckListRoot">
+              x:Class="CapyCard.Views.DeckListView"
+              x:DataType="vm:DeckListViewModel"
+              x:Name="DeckListRoot"
+              Focusable="True">
 
     <!-- OUTER GRID FOR OVERLAYS -->
     <Grid>
@@ -306,7 +307,13 @@
         
         <!-- Confirmation Dialog Overlay -->
         <Grid IsVisible="{Binding IsConfirmingDelete}"
-              Background="#80000000">
+              Background="#80000000"
+              Focusable="True"
+              x:Name="DeleteConfirmationOverlay">
+            <Grid.KeyBindings>
+                <KeyBinding Command="{Binding CancelDeleteCommand}" Gesture="Escape"/>
+                <KeyBinding Command="{Binding ConfirmDeleteCommand}" Gesture="Enter"/>
+            </Grid.KeyBindings>
             <Border Background="{DynamicResource SurfaceBrush}" 
                     Padding="24"
                     Margin="24"
@@ -350,12 +357,12 @@
         </Grid>
         
         <!-- Import Dialog Overlay -->
-        <views:ImportDialog DataContext="{Binding ImportViewModel}"/>
+        <views:ImportDialog x:Name="ImportDialog" DataContext="{Binding ImportViewModel}"/>
         
         <!-- Format Info Dialog Overlay -->
-        <views:FormatInfoDialog DataContext="{Binding FormatInfoViewModel}"/>
+        <views:FormatInfoDialog x:Name="FormatInfoDialog" DataContext="{Binding FormatInfoViewModel}"/>
         
         <!-- Import Help Dialog Overlay -->
-        <views:ImportHelpDialog DataContext="{Binding ImportHelpViewModel}"/>
+        <views:ImportHelpDialog x:Name="ImportHelpDialog" DataContext="{Binding ImportHelpViewModel}"/>
     </Grid>
 </UserControl>

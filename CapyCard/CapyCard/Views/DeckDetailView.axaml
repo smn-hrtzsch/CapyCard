@@ -7,14 +7,14 @@
              xmlns:converters="using:CapyCard.Converters"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-             x:Class="CapyCard.Views.DeckDetailView"
-             x:DataType="vm:DeckDetailViewModel"
-             x:Name="Root">
+              x:Class="CapyCard.Views.DeckDetailView"
+              x:DataType="vm:DeckDetailViewModel"
+              x:Name="Root"
+              Focusable="True">
 
     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Ctrl+Enter"/>
         <KeyBinding Command="{Binding SaveCardCommand}" Gesture="Meta+Enter"/>
-        <KeyBinding Command="{Binding HandleEscapeCommand}" Gesture="Escape"/>
         <KeyBinding Command="{Binding StartLearningCustomCommand}" Gesture="Enter"/>
     </UserControl.KeyBindings>
     
@@ -143,7 +143,16 @@
         </Grid>
 
         <!-- DELETE CONFIRMATION OVERLAY -->
-        <Grid IsVisible="{Binding IsConfirmingDeleteSubDeck}" Background="#80000000" ZIndex="200">
+        <!-- Confirmation Dialog Overlay -->
+        <Grid IsVisible="{Binding IsConfirmingDeleteSubDeck}" 
+              Background="#80000000" 
+              ZIndex="200"
+              Focusable="True"
+              x:Name="DeleteConfirmationOverlay">
+            <Grid.KeyBindings>
+                <KeyBinding Command="{Binding CancelDeleteSubDeckCommand}" Gesture="Escape"/>
+                <KeyBinding Command="{Binding ConfirmDeleteSubDeckCommand}" Gesture="Enter"/>
+            </Grid.KeyBindings>
             <Border Background="{DynamicResource SurfaceBrush}" 
                     Padding="24"
                     Margin="24"
@@ -187,6 +196,6 @@
         </Grid>
         
         <!-- Export Dialog Overlay -->
-        <views:ExportDialog DataContext="{Binding ExportViewModel}"/>
+        <views:ExportDialog x:Name="ExportDialog" DataContext="{Binding ExportViewModel}"/>
     </Grid>
 </UserControl>

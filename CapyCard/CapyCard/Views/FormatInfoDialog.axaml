@@ -6,9 +6,16 @@
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="500"
              x:Class="CapyCard.Views.FormatInfoDialog"
-             x:DataType="vm:FormatInfoViewModel">
+             x:DataType="vm:FormatInfoViewModel"
+             Focusable="True">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Command="{Binding HandleEscapeCommand}" Gesture="Escape"/>
+        <KeyBinding Command="{Binding HandleEnterCommand}" Gesture="Enter"/>
+    </UserControl.KeyBindings>
+
     <!-- Format Info Dialog Overlay -->
-    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="1000">
+    <Grid IsVisible="{Binding IsVisible}" IsHitTestVisible="{Binding IsVisible}" Background="#80000000" ZIndex="1000" Focusable="True">
         <Border Background="{DynamicResource SurfaceBrush}"
                 CornerRadius="28"
                 Padding="0"

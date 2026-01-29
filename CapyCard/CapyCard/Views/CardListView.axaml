@@ -8,9 +8,10 @@
              xmlns:conv="clr-namespace:CapyCard.Converters"
              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-             x:Class="CapyCard.Views.CardListView"
-             x:DataType="vm:CardListViewModel"
-             x:Name="Root">
+              x:Class="CapyCard.Views.CardListView"
+              x:DataType="vm:CardListViewModel"
+              x:Name="Root"
+              Focusable="True">
 
     <UserControl.Resources>
         <conv:SelectAllTextToIconConverter x:Key="SelectAllTextToIconConverter"/>

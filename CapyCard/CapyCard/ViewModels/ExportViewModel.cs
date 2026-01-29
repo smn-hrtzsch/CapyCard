@@ -230,6 +230,19 @@ namespace CapyCard.ViewModels
         }
 
         [RelayCommand]
+        private void HandleEscape()
+        {
+            Cancel();
+        }
+
+        [RelayCommand]
+        private void HandleEnter()
+        {
+            if (ExportCommand.CanExecute(null))
+                ExportCommand.Execute(null);
+        }
+
+        [RelayCommand]
         private void Cancel()
         {
             IsVisible = false;
