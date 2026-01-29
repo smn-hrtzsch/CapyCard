@@ -14,6 +14,8 @@ namespace CapyCard.Views
 {
     public partial class DeckDetailView : UserControl
     {
+        private TopLevel? _topLevel;
+
         public static readonly StyledProperty<bool> IsCompactModeProperty =
             AvaloniaProperty.Register<DeckDetailView, bool>(nameof(IsCompactMode));
 
@@ -33,22 +35,24 @@ namespace CapyCard.Views
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel != null)
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
             {
-                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
-                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
             }
+            
+            this.Focus();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnDetachedFromVisualTree(e);
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel != null)
+            if (_topLevel != null)
             {
-                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
-                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+                _topLevel = null;
             }
             
             if (DataContext is DeckDetailViewModel vm)
@@ -59,12 +63,11 @@ namespace CapyCard.Views
 
         private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
         {
-            if (!IsEffectivelyVisible) return;
+            if (!this.IsVisible) return;
 
             if (e.Key == Key.Escape)
             {
-                var topLevel = TopLevel.GetTopLevel(this);
-                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                var focused = _topLevel?.FocusManager?.GetFocusedElement();
                 
                 bool isInsideTextBox = focused is TextBox;
                 if (!isInsideTextBox && focused is Visual v)
@@ -74,7 +77,7 @@ namespace CapyCard.Views
 
                 if (isInsideTextBox)
                 {
-                    topLevel?.FocusManager?.ClearFocus();
+                    _topLevel?.FocusManager?.ClearFocus();
                     this.Focus();
                     e.Handled = true;
                 }
@@ -83,7 +86,7 @@ namespace CapyCard.Views
 
         private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
         {
-            if (e.Handled || !IsEffectivelyVisible || DataContext is not DeckDetailViewModel vm) return;
+            if (e.Handled || !this.IsVisible || DataContext is not DeckDetailViewModel vm) return;
 
             if (e.Key == Key.Escape)
             {
@@ -111,8 +114,6 @@ namespace CapyCard.Views
                 // Focus management
                 vm.PropertyChanged += (s, args) =>
                 {
-                    // Filter: Only trigger focus logic when relevant visibility flags change
-                    // NOT on every property change (like text input)
                     if (args.PropertyName == nameof(DeckDetailViewModel.IsConfirmingDeleteSubDeck) ||
                         args.PropertyName == nameof(DeckDetailViewModel.IsSubDeckSelectionVisible) ||
                         args.PropertyName == nameof(DeckDetailViewModel.IsSubDeckListOpen))
@@ -123,7 +124,10 @@ namespace CapyCard.Views
 
                 vm.ExportViewModel.PropertyChanged += (sender, args) =>
                 {
-                    Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    if (args.PropertyName == nameof(ExportViewModel.IsVisible))
+                    {
+                        Dispatcher.UIThread.Post(() => HandleFocus(vm));
+                    }
                 };
             }
         }
@@ -136,19 +140,15 @@ namespace CapyCard.Views
                 DeleteConfirmationOverlay.Focus();
             else
             {
-                // Only clear focus and take focus if we are returning to the main view
-                var topLevel = TopLevel.GetTopLevel(this);
-                topLevel?.FocusManager?.ClearFocus();
+                _topLevel?.FocusManager?.ClearFocus();
                 this.Focus();
             }
         }
 
         private async Task<IStorageFile?> SaveFilePickerAsync(string suggestedName, string extension)
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return null;
+            if (_topLevel == null) return null;
 
-            // Remove extension from suggested name to avoid double extension
             var nameWithoutExtension = Path.GetFileNameWithoutExtension(suggestedName);
 
             var fileType = extension switch
@@ -159,7 +159,7 @@ namespace CapyCard.Views
                 _ => new FilePickerFileType("CapyCard") { Patterns = new[] { "*.capycard" } }
             };
 
-            return await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            return await _topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
                 Title = "Kartenstapel exportieren",
                 SuggestedFileName = nameWithoutExtension,

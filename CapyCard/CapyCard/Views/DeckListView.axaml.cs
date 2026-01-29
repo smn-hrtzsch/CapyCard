@@ -14,6 +14,8 @@ namespace CapyCard.Views
 {
     public partial class DeckListView : UserControl
     {
+        private TopLevel? _topLevel;
+
         public static readonly StyledProperty<bool> IsCompactModeProperty =
             AvaloniaProperty.Register<DeckListView, bool>(nameof(IsCompactMode));
 
@@ -76,11 +78,11 @@ namespace CapyCard.Views
             base.OnAttachedToVisualTree(e);
             NewDeckTextBox.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
             
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel != null)
+            _topLevel = TopLevel.GetTopLevel(this);
+            if (_topLevel != null)
             {
-                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
-                topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownTunnel, RoutingStrategies.Tunnel);
+                _topLevel.AddHandler(KeyDownEvent, TopLevelOnKeyDownBubble, RoutingStrategies.Bubble);
             }
 
             // Wire up file picker for import
@@ -88,6 +90,8 @@ namespace CapyCard.Views
             {
                 vm.OnRequestFileOpen += OpenFilePickerAsync;
             }
+            
+            this.Focus();
         }
 
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
@@ -95,11 +99,11 @@ namespace CapyCard.Views
             base.OnDetachedFromVisualTree(e);
             NewDeckTextBox.RemoveHandler(KeyDownEvent, OnInputKeyDown);
             
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel != null)
+            if (_topLevel != null)
             {
-                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
-                topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownTunnel);
+                _topLevel.RemoveHandler(KeyDownEvent, TopLevelOnKeyDownBubble);
+                _topLevel = null;
             }
 
             // Unwire file picker
@@ -111,12 +115,11 @@ namespace CapyCard.Views
 
         private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)
         {
-            if (!IsEffectivelyVisible) return;
+            if (!this.IsVisible) return;
 
             if (e.Key == Key.Escape)
             {
-                var topLevel = TopLevel.GetTopLevel(this);
-                var focused = topLevel?.FocusManager?.GetFocusedElement();
+                var focused = _topLevel?.FocusManager?.GetFocusedElement();
                 
                 bool isInsideTextBox = focused is TextBox;
                 if (!isInsideTextBox && focused is Visual v)
@@ -126,7 +129,7 @@ namespace CapyCard.Views
 
                 if (isInsideTextBox)
                 {
-                    topLevel?.FocusManager?.ClearFocus();
+                    _topLevel?.FocusManager?.ClearFocus();
                     this.Focus();
                     e.Handled = true;
                 }
@@ -135,7 +138,7 @@ namespace CapyCard.Views
 
         private void TopLevelOnKeyDownBubble(object? sender, KeyEventArgs e)
         {
-            if (e.Handled || !IsEffectivelyVisible || DataContext is not DeckListViewModel vm) return;
+            if (e.Handled || !this.IsVisible || DataContext is not DeckListViewModel vm) return;
 
             if (e.Key == Key.Escape)
             {
@@ -174,19 +177,16 @@ namespace CapyCard.Views
                 DeleteConfirmationOverlay.Focus();
             else
             {
-                // Only clear focus and take focus if we are returning to the main view
-                var topLevel = TopLevel.GetTopLevel(this);
-                topLevel?.FocusManager?.ClearFocus();
+                _topLevel?.FocusManager?.ClearFocus();
                 this.Focus();
             }
         }
 
         private async Task<IStorageFile?> OpenFilePickerAsync()
         {
-            var topLevel = TopLevel.GetTopLevel(this);
-            if (topLevel == null) return null;
+            if (_topLevel == null) return null;
 
-            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            var files = await _topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 Title = "Kartenstapel importieren",
                 AllowMultiple = false,

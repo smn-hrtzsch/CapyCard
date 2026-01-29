@@ -151,14 +151,16 @@
                         <!-- Standard Navigation -->
                         <Grid IsVisible="{Binding !IsEditing}">
                             <StackPanel IsVisible="{Binding !IsCurrentCardSmart}">
-                                <Button Content="Rückseite anzeigen"
+                                <Button x:Name="ShowBackBtnStandard"
+                                        Content="Rückseite anzeigen"
                                         Command="{Binding ShowBackCommand}"
                                         Classes="primary"
                                         HorizontalAlignment="Stretch"
                                         HorizontalContentAlignment="Center"
                                         IsVisible="{Binding ShowShowBackButton}"/>
                                 
-                                <Button Content="Nächste Karte"
+                                <Button x:Name="NextCardBtnStandard"
+                                        Content="Nächste Karte"
                                         Command="{Binding NextCardCommand}"
                                         Classes="primary"
                                         HorizontalAlignment="Stretch"
@@ -175,7 +177,8 @@
 
                             <!-- Smart Mode Navigation (Rating Buttons) -->
                             <StackPanel IsVisible="{Binding IsCurrentCardSmart}">
-                                 <Button Content="Rückseite anzeigen"
+                                 <Button x:Name="ShowBackBtnSmart"
+                                        Content="Rückseite anzeigen"
                                         Command="{Binding ShowBackCommand}"
                                         Classes="primary"
                                         HorizontalAlignment="Stretch"
@@ -183,16 +186,16 @@
                                         IsVisible="{Binding ShowShowBackButton}"/>
 
                                  <Grid ColumnDefinitions="*,*,*,*" IsVisible="{Binding ShowNextCardButton}" Margin="0,8,0,0">
-                                    <Button Grid.Column="0" Content="Nochmal" Command="{Binding RateCardCommand}" CommandParameter="1" HotKey="D1" 
+                                    <Button x:Name="Rate1Btn" Grid.Column="0" Content="Nochmal" Command="{Binding RateCardCommand}" CommandParameter="1" HotKey="D1" 
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
                                             Background="#FFEF9A9A" Foreground="#B71C1C" CornerRadius="25" Margin="0,0,4,0"/>
-                                    <Button Grid.Column="1" Content="Schwer" Command="{Binding RateCardCommand}" CommandParameter="2" HotKey="D2" 
+                                    <Button x:Name="Rate2Btn" Grid.Column="1" Content="Schwer" Command="{Binding RateCardCommand}" CommandParameter="2" HotKey="D2" 
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
                                             Background="#FFFFCC80" Foreground="#E65100" CornerRadius="25" Margin="4,0,4,0"/>
-                                    <Button Grid.Column="2" Content="Gut" Command="{Binding RateCardCommand}" CommandParameter="3" HotKey="D3" 
+                                    <Button x:Name="Rate3Btn" Grid.Column="2" Content="Gut" Command="{Binding RateCardCommand}" CommandParameter="3" HotKey="D3" 
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
                                             Background="#FFA5D6A7" Foreground="#1B5E20" CornerRadius="25" Margin="4,0,4,0"/>
-                                    <Button Grid.Column="3" Content="Einfach" Command="{Binding RateCardCommand}" CommandParameter="4" HotKey="D4" 
+                                    <Button x:Name="Rate4Btn" Grid.Column="3" Content="Einfach" Command="{Binding RateCardCommand}" CommandParameter="4" HotKey="D4" 
                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
                                             Background="#FF90CAF9" Foreground="#0D47A1" CornerRadius="25" Margin="4,0,0,0"/>
                                  </Grid>
@@ -341,7 +344,7 @@
                         BoxShadow="0 4 16 0 #80000000">
                     <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
                         
-                        <Button Click="OnResetZoomClick" 
+                        <Button Command="{Binding ResetZoomCommand}" 
                                 Width="40" Height="40"
                                 CornerRadius="20"
                                 Background="#33FFFFFF" 
