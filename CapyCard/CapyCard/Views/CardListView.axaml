@@ -195,52 +195,34 @@
                             </ToggleButton>
 
                             <!-- Group Content -->
-                            <ListBox ItemsSource="{Binding Cards}"
+                            <ItemsControl ItemsSource="{Binding Cards}"
                                      IsVisible="{Binding IsExpanded}"
                                      Background="Transparent"
-                                     BorderThickness="0"
-                                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                                     SelectionMode="Multiple"
-                                     PointerReleased="CardsListBox_OnPointerReleased"
-                                     PointerMoved="CardsListBox_OnPointerMoved"
-                                     PointerCaptureLost="CardsListBox_OnPointerCaptureLost">
-                                <ListBox.ItemsPanel>
+                                     PointerReleased="Cards_OnPointerReleased"
+                                     PointerMoved="Cards_OnPointerMoved"
+                                     PointerCaptureLost="Cards_OnPointerCaptureLost">
+                                <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <controls:WrapPanel HorizontalAlignment="Stretch"
                                                              VerticalAlignment="Top"
                                                              ItemWidth="300"/>
                                     </ItemsPanelTemplate>
-                                </ListBox.ItemsPanel>
-                                <ListBox.Styles>
-                                    <Style Selector="ListBoxItem">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                        <Setter Property="Padding" Value="0"/>
-                                        <Setter Property="Margin" Value="0"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Focusable" Value="True"/>
-                                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay, DataType=vm:CardItemViewModel}"/>
-                                    </Style>
-                                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </Style>
-                                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </Style>
-                                    
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.Styles>
                                     <!-- Card Tile Styles (Selection State) -->
                                     <Style Selector="Border.card-tile">
                                         <Setter Property="BorderBrush" Value="Transparent"/>
                                         <Setter Property="BorderThickness" Value="2"/>
                                     </Style>
-                                    <Style Selector="ListBoxItem:selected Border.card-tile">
+                                    <Style Selector="Border.card-tile.selected">
                                         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
                                         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
                                     </Style>
-                                </ListBox.Styles>
-                                <ListBox.ItemTemplate>
+                                </ItemsControl.Styles>
+                                <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:CardItemViewModel">
                                         <Border Classes="card card-tile"
+                                                Classes.selected="{Binding IsSelected}"
                                                 Margin="0,0,16,16"
                                                 PointerPressed="CardTile_OnPointerPressed">
                                             <Grid RowDefinitions="Auto,Auto">
@@ -280,8 +262,8 @@
                                             </Grid>
                                         </Border>
                                     </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
