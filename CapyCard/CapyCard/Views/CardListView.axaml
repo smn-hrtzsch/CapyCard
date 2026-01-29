@@ -277,8 +277,9 @@
                                                 <Setter Property="BorderThickness" Value="1"/>
                                                 <Setter Property="Background" Value="Transparent"/>
                                                 <Setter Property="Width" Value="320"/>
-                                                <Setter Property="MinHeight" Value="140"/>
+                                                <Setter Property="Height" Value="190"/>
                                                 <Setter Property="CornerRadius" Value="20"/>
+                                                <Setter Property="ClipToBounds" Value="True"/>
                                             </Style>
                                             <Style Selector="Border.card-tile.selected">
                                                 <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
@@ -293,7 +294,7 @@
                                                         PointerPressed="CardTile_OnPointerPressed">
                                                     <Grid RowDefinitions="Auto,*">
                                                         <!-- Toolbar -->
-                                                        <Grid ColumnDefinitions="Auto,*,Auto" Grid.Row="0" Margin="12,12,12,8">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto" Grid.Row="0" Margin="12,8,12,4">
                                                             <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                                                       VerticalAlignment="Center"
                                                                       IsHitTestVisible="False"/>
@@ -332,49 +333,55 @@
                                                             </Button>
                                                         </Grid>
                                                         
-                                                        <!-- Content (No Images here) -->
-                                                        <StackPanel Grid.Row="1" Spacing="4" Margin="16,0,16,16">
+                                                        <!-- Content Area -->
+                                                        <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
                                                             <!-- FRONT SECTION -->
-                                                            <StackPanel Spacing="2">
-                                                                <TextBlock Text="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                         TextWrapping="Wrap" 
-                                                                         MaxLines="3"
-                                                                         FontSize="14"
-                                                                         FontWeight="SemiBold"
-                                                                         Foreground="{DynamicResource TextControlForeground}"/>
+                                                            <Grid Grid.Row="0" RowDefinitions="*,Auto" ClipToBounds="True">
+                                                                <local:FormattedTextBlock Grid.Row="0" 
+                                                                                         FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                         TextWrapping="Wrap" 
+                                                                                         MaxLines="3"
+                                                                                         TextTrimming="CharacterEllipsis"
+                                                                                         FontSize="14"
+                                                                                         Foreground="{DynamicResource TextControlForeground}"
+                                                                                         VerticalAlignment="Top"/>
                                                                 
                                                                 <!-- Image Hint (only visible if image exists) -->
-                                                                <StackPanel Orientation="Horizontal" Spacing="6"
+                                                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,2,0,0"
                                                                           IsVisible="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}">
                                                                     <materialIcons:MaterialIcon Kind="ImageOutline" Width="16" Height="16" Foreground="{DynamicResource TextControlForeground}"/>
-                                                                    <TextBlock Text="Bild in Vorschau" 
+                                                                    <TextBlock Text="Zum Darstellen Karte in Vorschau öffnen" 
                                                                              FontSize="14" 
-                                                                             FontWeight="SemiBold"
+                                                                             FontStyle="Italic"
                                                                              Foreground="{DynamicResource TextControlForeground}"
                                                                              VerticalAlignment="Center"/>
                                                                 </StackPanel>
-                                                            </StackPanel>
+                                                            </Grid>
                                                             
-                                                            <Separator Margin="0,8" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
+                                                            <Separator Grid.Row="1" Margin="0,6" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
                                                             
                                                             <!-- BACK SECTION -->
-                                                            <StackPanel Spacing="2">
-                                                                <TextBlock Text="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                         TextWrapping="Wrap" 
-                                                                         MaxLines="3"
-                                                                         FontSize="14"
-                                                                         Foreground="{DynamicResource TextMutedBrush}"/>
+                                                            <Grid Grid.Row="2" RowDefinitions="*,Auto" ClipToBounds="True">
+                                                                <local:FormattedTextBlock Grid.Row="0"
+                                                                                         FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                         TextWrapping="Wrap" 
+                                                                                         MaxLines="3"
+                                                                                         TextTrimming="CharacterEllipsis"
+                                                                                         FontSize="14"
+                                                                                         Foreground="{DynamicResource TextMutedBrush}"
+                                                                                         VerticalAlignment="Top"/>
                                                                 
-                                                                <StackPanel Orientation="Horizontal" Spacing="6"
+                                                                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="0,2,0,0"
                                                                           IsVisible="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}">
                                                                     <materialIcons:MaterialIcon Kind="ImageOutline" Width="16" Height="16" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                                    <TextBlock Text="Bild in Vorschau" 
+                                                                    <TextBlock Text="Zum Darstellen Karte in Vorschau öffnen" 
                                                                              FontSize="14" 
+                                                                             FontStyle="Italic"
                                                                              Foreground="{DynamicResource TextMutedBrush}"
                                                                              VerticalAlignment="Center"/>
                                                                 </StackPanel>
-                                                            </StackPanel>
-                                                        </StackPanel>
+                                                            </Grid>
+                                                        </Grid>
                                                     </Grid>
                                                 </Border>
                                             </DataTemplate>

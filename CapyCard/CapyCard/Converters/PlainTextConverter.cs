@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Avalonia.Data.Converters;
 using CapyCard.Controls;
 
@@ -14,7 +15,8 @@ namespace CapyCard.Converters
         {
             if (value is string text && !string.IsNullOrEmpty(text))
             {
-                return WysiwygEditor.StripMarkdown(text);
+                // Remove ONLY images for the grid view, keeping other markdown
+                return Regex.Replace(text, @"!\[.*?\]\(.*?\)", "").Trim();
             }
             return value;
         }

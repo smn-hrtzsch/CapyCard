@@ -39,11 +39,11 @@
 - [ ] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
 - [ ] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
-- [ ] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen/gescrollt. Es sollte aber an der aktuellen Position bleiben.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 
 ## Fixed Bugs
 
+- [x] Beim Klicken auf "alle auswählen" im CardListView wird automatisch ans Ende der Section gesprungen/gescrollt. Es sollte aber an der aktuellen Position bleiben.
 - [x] Dialoge sollten immer mit der Escape Taste geschlossen werden können. Wenn es eine Abfrage gibt, ob abbrechen oder bestätigen, dann sollte Escape abbrechen und Enter bestätigen.
 - [x] Bei sehr schmalem Display ist die Fortschrittsanzeige im Lern Modus nicht schön, der Text zum Lernmodus und die Anzeige oder Prozentanzeige werden von der Progressbar überschattet und verdeckt. Das Layout sollte sich anpassen, sodass der Text und die Anzeige immer sichtbar sind.
 - [x] Wenn die Fenstergröße zu schmal wird, sollte im DeckDetailView die Eingabe für die Karten untereinander sein, wie auf Mobile Geräten, um den Platz besser zu nutzen. Momentan wird die Eingabe für die Karten immer kleiner, wenn das Fenster schmaler wird, was nicht schön aussieht.
