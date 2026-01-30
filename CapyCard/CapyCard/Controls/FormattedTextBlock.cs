@@ -8,6 +8,8 @@ using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Material.Icons;
+using Material.Icons.Avalonia;
 
 namespace CapyCard.Controls
 {
@@ -26,6 +28,9 @@ namespace CapyCard.Controls
         public static readonly StyledProperty<ICommand?> ImageClickCommandProperty =
             AvaloniaProperty.Register<FormattedTextBlock, ICommand?>(nameof(ImageClickCommand));
 
+        public static readonly StyledProperty<bool> ShowImageHintProperty =
+            AvaloniaProperty.Register<FormattedTextBlock, bool>(nameof(ShowImageHint), false);
+
         /// <summary>
         /// Der Markdown-formatierte Text.
         /// </summary>
@@ -33,6 +38,15 @@ namespace CapyCard.Controls
         {
             get => GetValue(FormattedTextProperty);
             set => SetValue(FormattedTextProperty, value);
+        }
+
+        /// <summary>
+        /// Zeigt einen Hinweis an, dass Bilder in der Vorschau verfügbar sind.
+        /// </summary>
+        public bool ShowImageHint
+        {
+            get => GetValue(ShowImageHintProperty);
+            set => SetValue(ShowImageHintProperty, value);
         }
 
         /// <summary>
@@ -48,13 +62,14 @@ namespace CapyCard.Controls
         public FormattedTextBlock()
         {
             TextWrapping = TextWrapping.Wrap;
+            TextTrimming = TextTrimming.CharacterEllipsis;
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == FormattedTextProperty)
+            if (change.Property == FormattedTextProperty || change.Property == ShowImageHintProperty)
             {
                 UpdateInlines();
             }
@@ -65,24 +80,71 @@ namespace CapyCard.Controls
             Inlines?.Clear();
             
             var text = FormattedText;
-            if (string.IsNullOrEmpty(text))
+            bool hasText = !string.IsNullOrEmpty(text);
+            var sourceLines = hasText ? text.Split('\n') : Array.Empty<string>();
+            
+            bool willShowHint = ShowImageHint;
+            bool isTruncated = false;
+            int maxTextLines = sourceLines.Length;
+
+            // Manual truncation logic for explicit line breaks
+            if (MaxLines > 0 && sourceLines.Length > 0)
             {
-                return;
+                int totalNeededLines = sourceLines.Length + (willShowHint ? 1 : 0);
+                
+                if (totalNeededLines > MaxLines)
+                {
+                    isTruncated = true;
+                    // If we show a hint, we have 1 less line for text
+                    maxTextLines = (int)MaxLines - (willShowHint ? 1 : 0);
+                    if (maxTextLines < 0)
+                    {
+                        maxTextLines = 0;
+                        willShowHint = false;
+                    }
+                }
             }
 
-            // Zeilenweise parsen für Listen-Unterstützung
-            var lines = text.Split('\n');
-            
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < maxTextLines; i++)
             {
-                var line = lines[i];
-                ProcessLine(line);
+                ProcessLine(sourceLines[i]);
                 
-                // Zeilenumbruch hinzufügen (außer bei letzter Zeile)
-                if (i < lines.Length - 1)
+                // Add ellipsis to the last line if we are truncating and there's no hint following
+                if (isTruncated && !willShowHint && i == maxTextLines - 1)
+                {
+                    Inlines?.Add(new Run("..."));
+                }
+
+                if (i < maxTextLines - 1 || willShowHint)
                 {
                     Inlines?.Add(new LineBreak());
                 }
+            }
+
+            if (willShowHint)
+            {
+                // Icon einbetten
+                var icon = new MaterialIcon
+                {
+                    Kind = MaterialIconKind.ImageOutline,
+                    Width = 16,
+                    Height = 16,
+                    Margin = new Thickness(0, 2, 3, 0)
+                };
+                
+                var container = new InlineUIContainer(icon)
+                {
+                    BaselineAlignment = BaselineAlignment.Center
+                };
+                
+                Inlines?.Add(container);
+
+                var run = new Run("Zum Darstellen in Vorschau öffnen" + (isTruncated ? "..." : ""))
+                {
+                    FontStyle = FontStyle.Italic,
+                    FontSize = 14
+                };
+                Inlines?.Add(run);
             }
         }
 

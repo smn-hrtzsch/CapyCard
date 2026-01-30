@@ -76,11 +76,173 @@ namespace CapyCard.ViewModels
         [ObservableProperty] 
         private List<int> _columnOptions = new() { 1, 2, 3, 4, 5 };
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private int _selectedColumnCount = 3;
 
+        [ObservableProperty]
+        private bool _isGridView = true;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(PreviewTopic))]
+        private Card? _previewCard;
+
+        public string PreviewTopic
+        {
+            get
+            {
+                if (PreviewCard == null) return string.Empty;
+                var group = CardGroups.FirstOrDefault(g => g.Cards.Any(c => c.Card.Id == PreviewCard.Id));
+                return group?.Title ?? string.Empty;
+            }
+        }
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        [NotifyPropertyChangedFor(nameof(CanNavigateNext))]
+        [NotifyPropertyChangedFor(nameof(CanNavigatePrevious))]
+        private bool _isPreviewOpen;
+
+        [ObservableProperty]
+        private bool _isConfirmingDelete;
+
+        private Card? _cardToConfirmDelete;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ShowEditButton))]
+        private bool _isEditing = false;
+
+        public bool CanNavigateNext => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) < AllCards.Count() - 1;
+        public bool CanNavigatePrevious => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) > 0;
+
+        [RelayCommand]
+        private void NavigateNextPreview()
+        {
+            var cards = AllCards.ToList();
+            int index = cards.FindIndex(c => c.Card.Id == PreviewCard?.Id);
+            if (index >= 0 && index < cards.Count - 1)
+            {
+                PreviewCard = cards[index + 1].Card;
+                OnPropertyChanged(nameof(CanNavigateNext));
+                OnPropertyChanged(nameof(CanNavigatePrevious));
+            }
+        }
+
+        [RelayCommand]
+        private void NavigatePreviousPreview()
+        {
+            var cards = AllCards.ToList();
+            int index = cards.FindIndex(c => c.Card.Id == PreviewCard?.Id);
+            if (index > 0)
+            {
+                PreviewCard = cards[index - 1].Card;
+                OnPropertyChanged(nameof(CanNavigateNext));
+                OnPropertyChanged(nameof(CanNavigatePrevious));
+            }
+        }
+
+        [ObservableProperty] private string _editFrontText = string.Empty;
+        [ObservableProperty] private string _editBackText = string.Empty;
+
+        [ObservableProperty] private bool _isImagePreviewOpen = false;
+        [ObservableProperty] private object? _previewImageSource;
+        private double _imageZoomLevel = 1.0;
+
+        public double ImageZoomLevel
+        {
+            get => _imageZoomLevel;
+            set => SetProperty(ref _imageZoomLevel, Math.Clamp(value, 0.1, 5.0));
+        }
+
+        [ObservableProperty] private double _defaultZoomLevel = 1.0;
+
+        public bool ShowEditButton => IsPreviewOpen && !IsEditing;
+
+        [RelayCommand]
+        private void ToggleView() => IsGridView = !IsGridView;
+
+        [RelayCommand]
+        private void ClosePreview()
+        {
+            IsPreviewOpen = false;
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private void StartEdit()
+        {
+            if (PreviewCard == null) return;
+            IsEditing = true;
+            EditFrontText = PreviewCard.Front;
+            EditBackText = PreviewCard.Back;
+        }
+
+        [RelayCommand]
+        private void CancelEdit()
+        {
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private async Task SaveEdit()
+        {
+            if (PreviewCard == null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var card = await context.Cards.FindAsync(PreviewCard.Id);
+                if (card != null)
+                {
+                    card.Front = EditFrontText;
+                    card.Back = EditBackText;
+                    await context.SaveChangesAsync();
+
+                    // Update UI Models
+                    var currentCard = PreviewCard;
+                    currentCard.Front = EditFrontText;
+                    currentCard.Back = EditBackText;
+                    
+                    // Trigger UI update by reassigning the property.
+                    // Since Card is a POCO, we need a reference change or manual notification for child properties.
+                    // Assigning a new reference or re-assigning the same one after nulling is a safe way.
+                    PreviewCard = null;
+                    PreviewCard = currentCard;
+
+                    // Update the CardItemViewModel in the lists
+                    var item = AllCards.FirstOrDefault(c => c.Card.Id == PreviewCard.Id);
+                    if (item != null)
+                    {
+                        item.NotifyCardChanged();
+                    }
+                }
+            }
+            IsEditing = false;
+        }
+
+        [RelayCommand]
+        private void OpenImagePreview(object imageSource)
+        {
+            PreviewImageSource = imageSource;
+            IsImagePreviewOpen = true;
+        }
+
+        [RelayCommand]
+        private void CloseImagePreview()
+        {
+            IsImagePreviewOpen = false;
+            PreviewImageSource = null;
+        }
+
+        [RelayCommand]
+        private void ZoomIn() => ImageZoomLevel += 0.05;
+
+        [RelayCommand]
+        private void ZoomOut() => ImageZoomLevel -= 0.05;
+
+        [RelayCommand]
+        private void ResetZoom() => ImageZoomLevel = DefaultZoomLevel;
+
         public event Action? OnNavigateBack;
-        public event Action<Deck, Card>? OnEditCardRequest;
+        public event Action<Card>? OnShowPreviewRequest;
 
         // NEU: Event für den "Speichern unter"-Dialog.
         // Input: string (vorgeschlagener Name), Output: Task<Stream?> (Stream zum Schreiben)
@@ -197,6 +359,86 @@ namespace CapyCard.ViewModels
             UpdateSelectedCount();
         }
 
+        public event Action<Deck>? OnStartLearnRequest;
+
+        [RelayCommand]
+        private void StartLearn()
+        {
+            if (_currentDeck != null)
+            {
+                OnStartLearnRequest?.Invoke(_currentDeck);
+            }
+        }
+
+        [RelayCommand]
+        private void RequestDeleteCard(object? parameter)
+        {
+            if (parameter is CardItemViewModel itemVM)
+            {
+                _cardToConfirmDelete = itemVM.Card;
+                IsConfirmingDelete = true;
+            }
+            else if (parameter is Card card)
+            {
+                _cardToConfirmDelete = card;
+                IsConfirmingDelete = true;
+            }
+        }
+
+        [RelayCommand]
+        private void CancelDelete()
+        {
+            IsConfirmingDelete = false;
+            _cardToConfirmDelete = null;
+        }
+
+        [RelayCommand]
+        private async Task ConfirmDelete()
+        {
+            if (_cardToConfirmDelete == null) return;
+
+            using (var context = new FlashcardDbContext())
+            {
+                var cardToDelete = await context.Cards.FindAsync(_cardToConfirmDelete.Id);
+                if (cardToDelete != null)
+                {
+                    context.Cards.Remove(cardToDelete);
+                    await context.SaveChangesAsync();
+
+                    // Handle navigation if preview is open
+                    if (IsPreviewOpen && PreviewCard?.Id == _cardToConfirmDelete.Id)
+                    {
+                        var allCardsList = AllCards.ToList();
+                        int index = allCardsList.FindIndex(c => c.Card.Id == _cardToConfirmDelete.Id);
+                        
+                        if (allCardsList.Count > 1)
+                        {
+                            // Move to next card, or previous if deleting the last one
+                            int nextIndex = (index < allCardsList.Count - 1) ? index + 1 : index - 1;
+                            PreviewCard = allCardsList[nextIndex].Card;
+                        }
+                        else
+                        {
+                            ClosePreview();
+                        }
+                    }
+
+                    // UI updaten
+                    var itemVM = AllCards.FirstOrDefault(c => c.Card.Id == _cardToConfirmDelete.Id);
+                    if (itemVM != null)
+                    {
+                        var group = CardGroups.FirstOrDefault(g => g.Cards.Contains(itemVM));
+                        group?.Cards.Remove(itemVM);
+                    }
+                    
+                    UpdateSelectedCount();
+                }
+            }
+
+            IsConfirmingDelete = false;
+            _cardToConfirmDelete = null;
+        }
+
         [RelayCommand]
         private async Task DeleteCard(CardItemViewModel? itemVM)
         {
@@ -228,9 +470,22 @@ namespace CapyCard.ViewModels
         [RelayCommand]
         private void EditCard(CardItemViewModel? itemVM)
         {
-            if (itemVM != null && _currentDeck != null)
+            if (itemVM != null)
             {
-                OnEditCardRequest?.Invoke(_currentDeck, itemVM.Card);
+                PreviewCard = itemVM.Card;
+                IsPreviewOpen = true;
+                StartEdit();
+            }
+        }
+
+        [RelayCommand]
+        private void ShowPreview(CardItemViewModel? itemVM)
+        {
+            if (itemVM != null)
+            {
+                PreviewCard = itemVM.Card;
+                IsPreviewOpen = true;
+                OnShowPreviewRequest?.Invoke(itemVM.Card);
             }
         }
 

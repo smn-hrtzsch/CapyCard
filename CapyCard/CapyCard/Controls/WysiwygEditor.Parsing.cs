@@ -266,14 +266,19 @@ namespace CapyCard.Controls
 
             var result = markdown;
             
+            // Entferne Bilder: ![alt](url)
+            result = Regex.Replace(result, @"!\[.*?\]\(.*?\)", "");
+
             // Entferne Bold
             result = BoldRegex.Replace(result, "$1");
             // Entferne Underline (vor Italic, da __ vor * kommt)
             result = UnderlineRegex.Replace(result, "$1");
             // Entferne Italic
             result = ItalicRegex.Replace(result, "$1");
+            // Entferne Highlight
+            result = Regex.Replace(result, "==(.+?)==", "$1");
 
-            return result;
+            return result.Trim();
         }
 
         /// <summary>

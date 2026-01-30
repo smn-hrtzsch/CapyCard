@@ -22,5 +22,7 @@ namespace CapyCard.ViewModels
             Card = card;
             _isSelected = false; // Standardmäßig nicht ausgewählt
         }
+
+        public void NotifyCardChanged() => OnPropertyChanged(nameof(Card));
     }
 }

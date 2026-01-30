@@ -15,6 +15,11 @@
 
     <UserControl.Resources>
         <conv:SelectAllTextToIconConverter x:Key="SelectAllTextToIconConverter"/>
+        <conv:GridViewToIconConverter x:Key="GridViewToIconConverter"/>
+        <conv:GridViewToTextConverter x:Key="GridViewToTextConverter"/>
+        <conv:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
+        <conv:PlainTextConverter x:Key="PlainTextConverter"/>
+        <conv:CardHasImagesConverter x:Key="CardHasImagesConverter"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -28,18 +33,42 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
+        <!-- MenuFlyout Styling -->
+        <Style Selector="MenuFlyoutPresenter">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="CornerRadius" Value="12"/>
+        </Style>
+        <Style Selector="MenuItem">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+
+        <!-- Style for the Group Container (wrapper around header + content) -->
+        <Style Selector="Border.group-container">
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <!-- Hover on container changes border to teal -->
+        <Style Selector="Border.group-container:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
         <!-- Style for the Group Header ToggleButton -->
         <Style Selector="ToggleButton.group-header">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="CornerRadius" Value="16"/>
         </Style>
 
-        <!-- Default State for Content (Unchecked) -->
         <Style Selector="ToggleButton.group-header TextBlock">
              <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
         </Style>
@@ -47,227 +76,557 @@
              <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
         </Style>
 
-        <!-- Expanded State Coloring (Deep Purple) -->
-        <Style Selector="ToggleButton.group-header:checked /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
-        </Style>
-        
-        <!-- Ensure text/icons are white on the dark purple background -->
-        <Style Selector="ToggleButton.group-header:checked TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="ToggleButton.group-header:checked materialIcons|MaterialIcon">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        
-        <!-- Handle the badge border color in expanded state -->
         <Style Selector="ToggleButton.group-header:checked Border.badge">
-            <Setter Property="Background" Value="#30FFFFFF"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBorderBrush}"/>
         </Style>
 
-        <!-- Selection Indicator Style -->
-        <Style Selector="materialIcons|MaterialIcon.selection-indicator">
-             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+        <!-- Checked state: ToggleButton gets teal border (container keeps gray border) -->
+        <Style Selector="ToggleButton.group-header:checked">
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
+        <!-- Remove system accent from ToggleButton template -->
+        <Style Selector="ToggleButton.group-header /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Style for the expanded content container -->
+        <Style Selector="Panel.group-content">
+            <Setter Property="Margin" Value="12,12,12,12"/>
+        </Style>
+
+        <!-- DataGrid Overrides to kill orange selection and system accent -->
+        <Style Selector="DataGrid">
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="RowBackground" Value="Transparent"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+        </Style>
+        <Style Selector="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="DataGridRow:selected /template/ Rectangle#Background">
+            <Setter Property="Fill" Value="Transparent"/>
+        </Style>
+        <Style Selector="DataGridRow:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="DataGridRow:pointerover /template/ Rectangle#Background">
+            <Setter Property="Fill" Value="#08FFFFFF"/>
+        </Style>
+        <Style Selector="DataGridCell:selected /template/ Grid#FocusVisual">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="DataGridCell:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="DataGridCell">
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,12"/>
+            <Setter Property="SeparatorBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="DataGridRow:selected TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
+        </Style>
+        <Style Selector="DataGridRow:focus /template/ Rectangle#FocusVisual">
+            <Setter Property="IsVisible" Value="False"/>
         </Style>
     </UserControl.Styles>
     
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <DockPanel Margin="16">
-            <!-- TOP HEADER AREA -->
-            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="8">
-                <Grid ColumnDefinitions="Auto,*,Auto">
-                    <!-- Back Button -->
-                    <Button Command="{Binding GoBackCommand}"
-                            Classes="primary"
-                            Grid.Column="0"
-                            VerticalAlignment="Center"
-                            ToolTip.Tip="{Binding BackButtonText}"
-                            Padding="12,8">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
-                            <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                        </StackPanel>
-                    </Button>
-                    
-                    <!-- Spacer -->
-                    <Panel Grid.Column="1" />
-                    
-                    <StackPanel Grid.Column="2"
-                                Orientation="Horizontal"
-                                Spacing="8"
+    <Panel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <DockPanel Margin="12,16">
+                <!-- TOP HEADER AREA -->
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*,Auto">
+                        <Button Command="{Binding GoBackCommand}"
+                                Classes="primary"
+                                Grid.Column="0"
                                 VerticalAlignment="Center"
-                                HorizontalAlignment="Right">
-                        
-                        <!-- Columns Selection -->
-                        <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
-                            <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
-                                <materialIcons:MaterialIcon Kind="ViewDashboard" 
-                                                          Width="20" Height="20"
-                                                          Foreground="{DynamicResource TextMutedBrush}"
-                                                          ToolTip.Tip="Spaltenanzahl"
-                                                          Margin="4,0,4,0"/>
-                                <ComboBox ItemsSource="{Binding ColumnOptions}"
-                                          SelectedItem="{Binding SelectedColumnCount}"
-                                          Width="70"
-                                          Classes="floating"
-                                          BorderThickness="0"
-                                          Margin="0"
-                                          Padding="8,8"/>
-                            </StackPanel>
-                        </Border>
-                        
-                        <!-- PDF Button -->
-                        <Button Command="{Binding GeneratePdfCommand}"
-                                Classes="secondary"
-                                IsVisible="{Binding ShowPdfButton}"
-                                ToolTip.Tip="Auswahl als PDF speichern"
+                                ToolTip.Tip="{Binding BackButtonText}"
                                 Padding="12,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="FilePdfBox" Width="20" Height="20"/>
-                                <TextBlock Text="PDF" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                                <materialIcons:MaterialIcon Kind="ArrowLeft" Width="20" Height="20"/>
+                                <TextBlock Text="{Binding BackButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
                             </StackPanel>
                         </Button>
                         
-                        <!-- Select All Button -->
-                        <Button Command="{Binding ToggleSelectAllCommand}"
-                                Classes="secondary"
-                                ToolTip.Tip="{Binding SelectAllButtonText}"
-                                Padding="12,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <materialIcons:MaterialIcon Kind="{Binding SelectAllButtonText, Converter={StaticResource SelectAllTextToIconConverter}}" 
-                                                          Width="20" Height="20"/>
-                                <TextBlock Text="{Binding SelectAllButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
-                            </StackPanel>
+                        <Panel Grid.Column="1" />
+                        
+                        <StackPanel Grid.Column="2"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Right">
+                            
+                            <Border Classes="input-container" IsVisible="{Binding ShowPdfButton}">
+                                <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center">
+                                    <materialIcons:MaterialIcon Kind="ViewDashboard" 
+                                                              Width="20" Height="20"
+                                                              Foreground="{DynamicResource TextMutedBrush}"
+                                                              ToolTip.Tip="Spaltenanzahl"
+                                                              Margin="4,0,4,0"/>
+                                    <ComboBox ItemsSource="{Binding ColumnOptions}"
+                                              SelectedItem="{Binding SelectedColumnCount}"
+                                              Width="70"
+                                              Classes="floating"
+                                              BorderThickness="0"
+                                              Margin="0"
+                                              Padding="8,8"/>
+                                </StackPanel>
+                            </Border>
+                            
+                            <Button Command="{Binding GeneratePdfCommand}"
+                                    Classes="secondary"
+                                    IsVisible="{Binding ShowPdfButton}"
+                                    ToolTip.Tip="Auswahl als PDF speichern"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="FilePdfBox" Width="20" Height="20"/>
+                                    <TextBlock Text="PDF" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Command="{Binding ToggleViewCommand}"
+                                    Classes="secondary"
+                                    ToolTip.Tip="Ansicht wechseln"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="{Binding IsGridView, Converter={StaticResource GridViewToIconConverter}}" 
+                                                              Width="20" Height="20"/>
+                                    <TextBlock Text="{Binding IsGridView, Converter={StaticResource GridViewToTextConverter}}" 
+                                               IsVisible="{Binding !#Root.IsCompactMode}"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Command="{Binding ToggleSelectAllCommand}"
+                                    Classes="secondary"
+                                    ToolTip.Tip="{Binding SelectAllButtonText}"
+                                    Padding="12,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="{Binding SelectAllButtonText, Converter={StaticResource SelectAllTextToIconConverter}}" 
+                                                              Width="20" Height="20"/>
+                                    <TextBlock Text="{Binding SelectAllButtonText}" IsVisible="{Binding !#Root.IsCompactMode}"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
+                    
+                    <!-- Title -->
+                    <Border Background="{DynamicResource SurfaceBorderBrush}" 
+                            CornerRadius="20" 
+                            Padding="16,4" 
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Margin="12,0"
+                            Opacity="0.8">
+                        <TextBlock Text="{Binding DeckName}" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                    </Border>
+                </StackPanel>
+                
+                <!-- MAIN LIST AREA -->
+                <ItemsControl ItemsSource="{Binding CardGroups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CardGroupViewModel">
+                            <Border Classes="group-container"
+                                    Margin="0,0,0,24">
+                                <StackPanel>
+                                    <ToggleButton IsChecked="{Binding IsExpanded}"
+                                                  Classes="group-header">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
+                                                                      Width="24" Height="24"/>
+                                            <TextBlock Text="{Binding Title}" 
+                                                       FontSize="18" 
+                                                       FontWeight="Bold"/>
+                                             <Border Classes="badge"
+                                                     Background="{DynamicResource SurfaceBorderBrush}"
+                                                     Padding="10,2"
+                                                     CornerRadius="12"
+                                                     VerticalAlignment="Center">
+                                                 <TextBlock Text="{Binding Cards.Count}" 
+                                                            FontSize="12"
+                                                            FontWeight="Bold"
+                                                            VerticalAlignment="Center"/>
+                                             </Border>
+                                        <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
+                                                                  Width="20" Height="20"
+                                                                  Classes="selection-indicator"
+                                                                  IsVisible="{Binding ShowSelectionIndicator}"
+                                                                  ToolTip.Tip="Enthält ausgewählte Karten"/>
+                                    </StackPanel>
+                                </ToggleButton>
+
+                                <Panel IsVisible="{Binding IsExpanded}"
+                                       Classes="group-content">
+                                    <!-- GRID VIEW -->
+                                    <ItemsControl ItemsSource="{Binding Cards}"
+                                                 IsVisible="{Binding $parent[UserControl].DataContext.IsGridView}"
+                                                 Background="Transparent"
+                                                 Margin="0,0,-12,0"
+                                                 PointerReleased="Cards_OnPointerReleased"
+                                                 PointerMoved="Cards_OnPointerMoved"
+                                                 PointerCaptureLost="Cards_OnPointerCaptureLost">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <controls:WrapPanel HorizontalAlignment="Stretch"
+                                                                     VerticalAlignment="Top" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.Styles>
+                                            <Style Selector="Border.card-tile">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+                                                <Setter Property="BorderThickness" Value="1"/>
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="Width" Value="320"/>
+                                                <Setter Property="Height" Value="190"/>
+                                                <Setter Property="CornerRadius" Value="20"/>
+                                                <Setter Property="ClipToBounds" Value="True"/>
+                                            </Style>
+                                            <Style Selector="Border.card-tile.selected">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                                                <Setter Property="BorderThickness" Value="2"/>
+                                            </Style>
+                                        </ItemsControl.Styles>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CardItemViewModel">
+                                                <Border Classes="card-tile"
+                                                        Classes.selected="{Binding IsSelected}"
+                                                        Margin="0,0,12,12"
+                                                        PointerPressed="CardTile_OnPointerPressed">
+                                                    <Grid RowDefinitions="Auto,*">
+                                                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" Grid.Row="0" Margin="12,8,12,4">
+                                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                      VerticalAlignment="Center"/>
+
+                                                            <Button Grid.Column="2"
+                                                                    Command="{Binding $parent[UserControl].DataContext.ShowPreviewCommand}"
+                                                                    CommandParameter="{Binding}"
+                                                                    Classes="icon"
+                                                                    Margin="0,0,4,0"
+                                                                    ToolTip.Tip="Vorschau">
+                                                                <materialIcons:MaterialIcon Kind="Eye" Width="20" Height="20" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                            </Button>
+                                                            
+                                                            <Button Grid.Column="3"
+                                                                    Classes="icon"
+                                                                    ToolTip.Tip="Optionen">
+                                                                <Button.Flyout>
+                                                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                                        <MenuItem Header="Vorschau" 
+                                                                                  Command="{Binding $parent[UserControl].DataContext.ShowPreviewCommand}"
+                                                                                  CommandParameter="{Binding}">
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18"/></MenuItem.Icon>
+                                                                        </MenuItem>
+                                                                        <MenuItem Header="Bearbeiten" 
+                                                                                  Command="{Binding $parent[UserControl].DataContext.EditCardCommand}"
+                                                                                  CommandParameter="{Binding}">
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/></MenuItem.Icon>
+                                                                        </MenuItem>
+                                                                        <Separator/>
+                                                                        <MenuItem Header="Löschen" 
+                                                                                  Command="{Binding $parent[UserControl].DataContext.RequestDeleteCardCommand}"
+                                                                                  CommandParameter="{Binding}"
+                                                                                  Foreground="Red">
+                                                                            <MenuItem.Icon><materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/></MenuItem.Icon>
+                                                                        </MenuItem>
+                                                                    </MenuFlyout>
+                                                                </Button.Flyout>
+                                                                <materialIcons:MaterialIcon Kind="DotsVertical" Width="20" Height="20" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                            </Button>
+                                                        </Grid>
+                                                        
+                                                        <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
+                                                            <local:FormattedTextBlock Grid.Row="0"
+                                                                                     FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     TextWrapping="Wrap" MaxLines="3"
+                                                                                     FontSize="14" Foreground="{DynamicResource TextControlForeground}"
+                                                                                     VerticalAlignment="Top"/>
+                                                            
+                                                            <Separator Grid.Row="1" Margin="0,6" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
+                                                            
+                                                            <local:FormattedTextBlock Grid.Row="2"
+                                                                                     FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     TextWrapping="Wrap" MaxLines="3"
+                                                                                     FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
+                                                                                     VerticalAlignment="Top"/>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- TABLE VIEW -->
+                                    <Border IsVisible="{Binding !$parent[UserControl].DataContext.IsGridView}"
+                                            BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1"
+                                            CornerRadius="12" Background="Transparent" ClipToBounds="True">
+                                        <DataGrid ItemsSource="{Binding Cards}"
+                                                  PointerReleased="Cards_OnPointerReleased"
+                                                  PointerMoved="Cards_OnPointerMoved"
+                                                  PointerCaptureLost="Cards_OnPointerCaptureLost"
+                                                  SelectionChanged="DataGrid_OnSelectionChanged"
+                                                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                  Focusable="False">
+                                            <DataGrid.Columns>
+                                                <DataGridTemplateColumn Width="Auto">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="vm:CardItemViewModel">
+                                                            <Panel>
+                                                                <CheckBox x:Name="RowCheckBox"
+                                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                                                          HorizontalAlignment="Center" 
+                                                                          Margin="12,0"
+                                                                          IsHitTestVisible="True"/>
+                                                                <!-- Transparent overlay to catch row clicks -->
+                                                                <Border Background="Transparent"
+                                                                        PointerPressed="RowOverlay_OnPointerPressed"
+                                                                        IsHitTestVisible="True"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        VerticalAlignment="Stretch"/>
+                                                            </Panel>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+
+                                                <DataGridTemplateColumn Header="Vorderseite" Width="*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="vm:CardItemViewModel">
+                                                            <Panel>
+                                                                <local:FormattedTextBlock FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                         ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                         Margin="12,12"
+                                                                                         VerticalAlignment="Center" 
+                                                                                         MaxLines="3"
+                                                                                         TextTrimming="CharacterEllipsis"/>
+                                                                <!-- Transparent overlay to catch row clicks -->
+                                                                <Border Background="Transparent"
+                                                                        PointerPressed="RowOverlay_OnPointerPressed"
+                                                                        IsHitTestVisible="True"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        VerticalAlignment="Stretch"/>
+                                                            </Panel>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+
+                                                <DataGridTemplateColumn Header="Rückseite" Width="*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="vm:CardItemViewModel">
+                                                            <Panel>
+                                                                <local:FormattedTextBlock FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                         ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                         Margin="12,12"
+                                                                                         VerticalAlignment="Center" 
+                                                                                         MaxLines="3"
+                                                                                         TextTrimming="CharacterEllipsis"
+                                                                                         Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                <!-- Transparent overlay to catch row clicks -->
+                                                                <Border Background="Transparent"
+                                                                        PointerPressed="RowOverlay_OnPointerPressed"
+                                                                        IsHitTestVisible="True"
+                                                                        HorizontalAlignment="Stretch"
+                                                                        VerticalAlignment="Stretch"/>
+                                                            </Panel>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+
+                                                <DataGridTemplateColumn Width="Auto">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="vm:CardItemViewModel">
+                                                            <StackPanel Orientation="Horizontal" Spacing="4" Margin="8,0">
+                                                                <Button Command="{Binding $parent[UserControl].DataContext.ShowPreviewCommand}"
+                                                                        CommandParameter="{Binding}" Classes="icon">
+                                                                    <materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                </Button>
+                                                                <Button Classes="icon">
+                                                                    <Button.Flyout>
+                                                                        <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                                                            <MenuItem Header="Bearbeiten" 
+                                                                                      Command="{Binding $parent[UserControl].DataContext.EditCardCommand}"
+                                                                                      CommandParameter="{Binding}">
+                                                                                <MenuItem.Icon><materialIcons:MaterialIcon Kind="Pencil" Width="18" Height="18"/></MenuItem.Icon>
+                                                                            </MenuItem>
+                                                                            <MenuItem Header="Löschen" 
+                                                                                      Command="{Binding $parent[UserControl].DataContext.RequestDeleteCardCommand}"
+                                                                                      CommandParameter="{Binding}" Foreground="Red">
+                                                                                <MenuItem.Icon><materialIcons:MaterialIcon Kind="Delete" Width="18" Height="18" Foreground="Red"/></MenuItem.Icon>
+                                                                            </MenuItem>
+                                                                        </MenuFlyout>
+                                                                    </Button.Flyout>
+                                                                    <materialIcons:MaterialIcon Kind="DotsVertical" Width="18" Height="18" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                </Button>
+                                                            </StackPanel>
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </DataGrid.Columns>
+                                        </DataGrid>
+                                    </Border>
+                                </Panel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </ScrollViewer>
+
+        <!-- Preview Overlay -->
+        <Border Background="#CC000000" IsVisible="{Binding IsPreviewOpen}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="28" MaxWidth="1200" MaxHeight="850" Margin="12" Padding="24" BoxShadow="0 10 30 0 #80000000" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+                        <TextBlock Text="{Binding PreviewTopic, StringFormat='Vorschau: {0}'}" 
+                                 FontSize="22" FontWeight="Bold" 
+                                 TextWrapping="Wrap" 
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Left"
+                                 Margin="0,0,16,0"/>
+                        
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Button Command="{Binding StartLearnCommand}"
+                                    Classes="secondary"
+                                    ToolTip.Tip="Zum Lern-Modus"
+                                    Padding="16,8"
+                                    CornerRadius="20"
+                                    IsVisible="{Binding !IsEditing}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <materialIcons:MaterialIcon Kind="School" Width="20" Height="20"/>
+                                    <TextBlock Text="Lernen" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Button>
+                            
+                            <Button Command="{Binding StartEditCommand}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Bearbeiten">
+                                <materialIcons:MaterialIcon Kind="Pencil" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
+                            
+                            <Button Command="{Binding RequestDeleteCardCommand}" CommandParameter="{Binding PreviewCard}" IsVisible="{Binding ShowEditButton}" Classes="icon" ToolTip.Tip="Löschen">
+                                <materialIcons:MaterialIcon Kind="Delete" Width="22" Height="22" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
+                            
+                            <Button Command="{Binding ClosePreviewCommand}" Classes="icon" ToolTip.Tip="Schließen" Margin="8,0,0,0">
+                                <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Content -->
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,24">
+                        <Button Grid.Column="0" Command="{Binding NavigatePreviousPreviewCommand}" IsEnabled="{Binding CanNavigatePrevious}" Classes="icon" VerticalAlignment="Center" Margin="0,0,24,0" Width="48" Height="48">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" Width="36" Height="36"/>
                         </Button>
+                        
+                        <ScrollViewer Grid.Column="1" Padding="0,0,32,0" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="24">
+                                <!-- FRONT -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Vorderseite" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="20" CornerRadius="20" HorizontalAlignment="Stretch">
+                                        <Panel>
+                                            <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Front}" IsVisible="{Binding !IsEditing}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
+                                            <local:WysiwygEditor Text="{Binding EditFrontText, Mode=TwoWay}" IsVisible="{Binding IsEditing}" Watermark="Vorderseite..." MinHeight="200"/>
+                                        </Panel>
+                                    </Border>
+                                </StackPanel>
+                                
+                                <!-- BACK -->
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Rückseite" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
+                                    <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="20" CornerRadius="20" HorizontalAlignment="Stretch">
+                                        <Panel>
+                                            <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Back}" IsVisible="{Binding !IsEditing}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
+                                            <local:WysiwygEditor Text="{Binding EditBackText, Mode=TwoWay}" IsVisible="{Binding IsEditing}" Watermark="Rückseite..." MinHeight="200"/>
+                                        </Panel>
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                        
+                        <Button Grid.Column="2" Command="{Binding NavigateNextPreviewCommand}" IsEnabled="{Binding CanNavigateNext}" Classes="icon" VerticalAlignment="Center" Margin="24,0,0,0" Width="48" Height="48">
+                            <materialIcons:MaterialIcon Kind="ChevronRight" Width="36" Height="36"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Actions -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
+                        <Button Content="Abbrechen" IsVisible="{Binding IsEditing}" Command="{Binding CancelEditCommand}" Padding="24,12" Classes="secondary" CornerRadius="25"/>
+                        <Button Content="Speichern" IsVisible="{Binding IsEditing}" Command="{Binding SaveEditCommand}" Padding="24,12" Classes="primary" CornerRadius="25"/>
                     </StackPanel>
                 </Grid>
-                
-                <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
-                
-                <!-- Title (Always separate centered) -->
-                <Border Background="{DynamicResource SurfaceBorderBrush}" 
-                        CornerRadius="20" 
-                        Padding="16,4" 
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center"
-                        Margin="12,0"
-                        Opacity="0.8">
-                    <TextBlock Text="{Binding DeckName}" 
-                               FontSize="18" 
-                               FontWeight="Bold" 
-                               VerticalAlignment="Center"
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
-                               Foreground="{DynamicResource TextControlForeground}"/>
-                </Border>
-            </StackPanel>
-            
-            <!-- MAIN LIST AREA -->
-            <ItemsControl ItemsSource="{Binding CardGroups}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:CardGroupViewModel">
-                        <StackPanel Margin="0,0,0,24">
-                            <!-- Group Header -->
-                            <ToggleButton IsChecked="{Binding IsExpanded}"
-                                          Classes="group-header">
-                                <StackPanel Orientation="Horizontal" Spacing="12">
-                                    <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
-                                                              Width="24" Height="24"/>
-                                    <TextBlock Text="{Binding Title}" 
-                                               FontSize="18" 
-                                               FontWeight="Bold"/>
-                                    <Border Classes="badge"
-                                            Background="{DynamicResource SurfaceBorderBrush}"
-                                            Padding="10,2"
-                                            CornerRadius="12">
-                                        <TextBlock Text="{Binding Cards.Count}" 
-                                                   FontSize="12"
-                                                   FontWeight="Bold"/>
-                                    </Border>
-                                    
-                                    <!-- Selection Indicator (Visible if cards are selected in this group AND group is collapsed) -->
-                                    <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
-                                                              Width="20" Height="20"
-                                                              Classes="selection-indicator"
-                                                              IsVisible="{Binding ShowSelectionIndicator}"
-                                                              ToolTip.Tip="Enthält ausgewählte Karten"/>
-                                </StackPanel>
-                            </ToggleButton>
+            </Border>
+        </Border>
 
-                            <!-- Group Content -->
-                            <ItemsControl ItemsSource="{Binding Cards}"
-                                     IsVisible="{Binding IsExpanded}"
-                                     Background="Transparent"
-                                     PointerReleased="Cards_OnPointerReleased"
-                                     PointerMoved="Cards_OnPointerMoved"
-                                     PointerCaptureLost="Cards_OnPointerCaptureLost">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <controls:WrapPanel HorizontalAlignment="Stretch"
-                                                             VerticalAlignment="Top"
-                                                             ItemWidth="300"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.Styles>
-                                    <!-- Card Tile Styles (Selection State) -->
-                                    <Style Selector="Border.card-tile">
-                                        <Setter Property="BorderBrush" Value="Transparent"/>
-                                        <Setter Property="BorderThickness" Value="2"/>
-                                    </Style>
-                                    <Style Selector="Border.card-tile.selected">
-                                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                                        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
-                                    </Style>
-                                </ItemsControl.Styles>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:CardItemViewModel">
-                                        <Border Classes="card card-tile"
-                                                Classes.selected="{Binding IsSelected}"
-                                                Margin="0,0,16,16"
-                                                PointerPressed="CardTile_OnPointerPressed">
-                                            <Grid RowDefinitions="Auto,Auto">
-                                                <!-- Toolbar -->
-                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Grid.Row="0" Margin="0,0,0,12">
-                                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                                              VerticalAlignment="Center"
-                                                              IsHitTestVisible="False"/>
-                                                    
-                                                    <Button Command="{Binding $parent[UserControl].DataContext.EditCardCommand}"
-                                                            CommandParameter="{Binding}"
-                                                            Grid.Column="2"
-                                                            Classes="icon"
-                                                            ToolTip.Tip="Bearbeiten">
-                                                        <materialIcons:MaterialIcon Kind="Pencil" Width="20" Height="20" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                    </Button>
-                                                    
-                                                    <Button Command="{Binding $parent[UserControl].DataContext.DeleteCardCommand}"
-                                                            CommandParameter="{Binding}"
-                                                            Grid.Column="3"
-                                                            Classes="icon"
-                                                            ToolTip.Tip="Löschen">
-                                                        <materialIcons:MaterialIcon Kind="Delete" Width="20" Height="20" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                    </Button>
-                                                </Grid>
-                                                
-                                                <!-- Content -->
-                                                <StackPanel Grid.Row="1" Spacing="8">
-                                                    <TextBlock Text="Vorderseite" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Front}" TextWrapping="Wrap" Foreground="{DynamicResource TextControlForeground}"/>
-                                                    
-                                                    <Separator Margin="0,4" Background="{DynamicResource SurfaceBorderBrush}" Height="1"/>
-                                                    
-                                                    <TextBlock Text="Rückseite" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextMutedBrush}"/>
-                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Back}" TextWrapping="Wrap" Foreground="{DynamicResource TextControlForeground}"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+        <!-- Delete Confirmation Dialog Overlay -->
+        <Grid IsVisible="{Binding IsConfirmingDelete}" Background="#80000000" ZIndex="3000">
+            <Border Background="{DynamicResource SurfaceBrush}" Padding="24" Margin="24" HorizontalAlignment="Stretch" VerticalAlignment="Center" MaxWidth="400" CornerRadius="28" BoxShadow="0 4 10 0 #40000000">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Karte löschen?" FontSize="20" FontWeight="Bold" TextWrapping="Wrap" Foreground="{DynamicResource TextControlForeground}"/>
+                    <TextBlock Text="Möchtest du diese Karte wirklich löschen? Das kann nicht rückgängig gemacht werden." TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Content="Abbrechen" Command="{Binding CancelDeleteCommand}" Classes="secondary" Grid.Column="0" Margin="0,0,4,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                            <TextBlock Text="Abbrechen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                        <Button Content="Löschen" Command="{Binding ConfirmDeleteCommand}" Classes="destructive" Grid.Column="1" Margin="4,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                            <TextBlock Text="Löschen" TextWrapping="Wrap" HorizontalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- IMAGE PREVIEW OVERLAY -->
+        <Grid IsVisible="{Binding IsImagePreviewOpen}" Background="#E6000000" ZIndex="2000" Name="ImagePreviewOverlay">
+            <Grid>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="0,0,0,100" Name="ImageScrollViewer">
+                    <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <LayoutTransformControl.LayoutTransform><ScaleTransform ScaleX="{Binding ImageZoomLevel}" ScaleY="{Binding ImageZoomLevel}"/></LayoutTransformControl.LayoutTransform>
+                        <Image Source="{Binding PreviewImageSource}" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" Name="PreviewImageControl"/>
+                    </LayoutTransformControl>
+                </ScrollViewer>
+                <Button Command="{Binding CloseImagePreviewCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24" Width="48" Height="48" CornerRadius="24" Background="#66000000" Padding="0"><materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="White"/></Button>
+                <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,48" CornerRadius="28" Background="#CC202020" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="24,12" BoxShadow="0 4 16 0 #80000000">
+                    <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                        <Button Command="{Binding ResetZoomCommand}" Width="40" Height="40" CornerRadius="20" Background="#33FFFFFF" Padding="8"><materialIcons:MaterialIcon Kind="MagnifyScan" Width="20" Height="20" Foreground="White"/></Button>
+                        <Button Command="{Binding ZoomOutCommand}" Width="40" Height="40" CornerRadius="20" Background="#33FFFFFF" Padding="8"><materialIcons:MaterialIcon Kind="Minus" Width="20" Height="20" Foreground="White"/></Button>
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" Width="160" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" Foreground="White" Width="50" VerticalAlignment="Center" TextAlignment="Center" FontSize="16"/>
                         </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </DockPanel>
-    </ScrollViewer>
+                        <Button Command="{Binding ZoomInCommand}" Width="40" Height="40" CornerRadius="20" Background="#33FFFFFF" Padding="8"><materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="White"/></Button>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Panel>
 </UserControl>
