@@ -46,15 +46,27 @@
             <Setter Property="Padding" Value="8,6"/>
         </Style>
 
+        <!-- Style for the Group Container (wrapper around header + content) -->
+        <Style Selector="Border.group-container">
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <!-- Hover on container changes border to teal -->
+        <Style Selector="Border.group-container:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
         <!-- Style for the Group Header ToggleButton -->
         <Style Selector="ToggleButton.group-header">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-            <Setter Property="Padding" Value="12"/>
-            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="CornerRadius" Value="16"/>
         </Style>
 
         <Style Selector="ToggleButton.group-header TextBlock">
@@ -64,19 +76,30 @@
              <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}"/>
         </Style>
 
-        <Style Selector="ToggleButton.group-header:checked /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
-        </Style>
-        
-        <Style Selector="ToggleButton.group-header:checked TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        <Style Selector="ToggleButton.group-header:checked materialIcons|MaterialIcon">
-            <Setter Property="Foreground" Value="White"/>
-        </Style>
-        
         <Style Selector="ToggleButton.group-header:checked Border.badge">
-            <Setter Property="Background" Value="#30FFFFFF"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBorderBrush}"/>
+        </Style>
+
+        <!-- Checked state: ToggleButton gets teal border (container keeps gray border) -->
+        <Style Selector="ToggleButton.group-header:checked">
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+        </Style>
+
+        <!-- Remove system accent from ToggleButton template -->
+        <Style Selector="ToggleButton.group-header /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ToggleButton.group-header:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Style for the expanded content container -->
+        <Style Selector="Panel.group-content">
+            <Setter Property="Margin" Value="12,12,12,12"/>
         </Style>
 
         <!-- DataGrid Overrides to kill orange selection and system accent -->
@@ -231,23 +254,27 @@
                 <ItemsControl ItemsSource="{Binding CardGroups}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:CardGroupViewModel">
-                            <StackPanel Margin="0,0,0,24">
-                                <ToggleButton IsChecked="{Binding IsExpanded}"
-                                              Classes="group-header">
-                                    <StackPanel Orientation="Horizontal" Spacing="12">
-                                        <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
-                                                                  Width="24" Height="24"/>
-                                        <TextBlock Text="{Binding Title}" 
-                                                   FontSize="18" 
-                                                   FontWeight="Bold"/>
-                                        <Border Classes="badge"
-                                                Background="{DynamicResource SurfaceBorderBrush}"
-                                                Padding="10,2"
-                                                CornerRadius="12">
-                                            <TextBlock Text="{Binding Cards.Count}" 
-                                                       FontSize="12"
+                            <Border Classes="group-container"
+                                    Margin="0,0,0,24">
+                                <StackPanel>
+                                    <ToggleButton IsChecked="{Binding IsExpanded}"
+                                                  Classes="group-header">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <materialIcons:MaterialIcon Kind="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}" 
+                                                                      Width="24" Height="24"/>
+                                            <TextBlock Text="{Binding Title}" 
+                                                       FontSize="18" 
                                                        FontWeight="Bold"/>
-                                        </Border>
+                                             <Border Classes="badge"
+                                                     Background="{DynamicResource SurfaceBorderBrush}"
+                                                     Padding="10,2"
+                                                     CornerRadius="12"
+                                                     VerticalAlignment="Center">
+                                                 <TextBlock Text="{Binding Cards.Count}" 
+                                                            FontSize="12"
+                                                            FontWeight="Bold"
+                                                            VerticalAlignment="Center"/>
+                                             </Border>
                                         <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
                                                                   Width="20" Height="20"
                                                                   Classes="selection-indicator"
@@ -256,7 +283,8 @@
                                     </StackPanel>
                                 </ToggleButton>
 
-                                <Panel IsVisible="{Binding IsExpanded}">
+                                <Panel IsVisible="{Binding IsExpanded}"
+                                       Classes="group-content">
                                     <!-- GRID VIEW -->
                                     <ItemsControl ItemsSource="{Binding Cards}"
                                                  IsVisible="{Binding $parent[UserControl].DataContext.IsGridView}"
@@ -465,7 +493,8 @@
                                         </DataGrid>
                                     </Border>
                                 </Panel>
-                            </StackPanel>
+                                </StackPanel>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
