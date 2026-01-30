@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Avalonia;
@@ -391,18 +392,35 @@ namespace CapyCard.Controls
         {
             try
             {
-                // Format: data:image/png;base64,iVBORw0KGgo...
-                var match = Regex.Match(dataUri, @"^data:image/[^;]+;base64,(.+)$");
+                // Robusteres Parsing: Erlaube Whitespace und sei weniger strikt am Ende
+                var match = Regex.Match(dataUri.Trim(), @"^data:image/[^;]+;base64,(.+)$");
                 if (!match.Success)
+                {
+                    // Fallback: Versuche nur den Base64 Teil nach dem Komma zu finden
+                    var commaIndex = dataUri.IndexOf(',');
+                    if (commaIndex >= 0)
+                    {
+                        var base64Part = dataUri.Substring(commaIndex + 1).Trim();
+                        // Entferne evtl. vorhandene schließende Klammer vom Markdown-Parsing
+                        if (base64Part.EndsWith(")")) base64Part = base64Part.Substring(0, base64Part.Length - 1);
+                        
+                        var bytes = Convert.FromBase64String(base64Part);
+                        using var ms = new System.IO.MemoryStream(bytes);
+                        return new Bitmap(ms);
+                    }
                     return null;
+                }
                     
-                var base64Data = match.Groups[1].Value;
+                var base64Data = match.Groups[1].Value.Trim();
+                if (base64Data.EndsWith(")")) base64Data = base64Data.Substring(0, base64Data.Length - 1);
+
                 var imageBytes = Convert.FromBase64String(base64Data);
                 using var stream = new System.IO.MemoryStream(imageBytes);
                 return new Bitmap(stream);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"[FormattedTextBlock] Fehler beim Laden des Base64-Bildes: {ex.Message}");
                 return null;
             }
         }
