@@ -1,3 +1,4 @@
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CapyCard.Data;
@@ -145,13 +146,25 @@ namespace CapyCard.ViewModels
 
         [ObservableProperty] private bool _isImagePreviewOpen = false;
         [ObservableProperty] private object? _previewImageSource;
+        private double _originalImageWidth;
+        private double _originalImageHeight;
         private double _imageZoomLevel = 1.0;
 
         public double ImageZoomLevel
         {
             get => _imageZoomLevel;
-            set => SetProperty(ref _imageZoomLevel, Math.Clamp(value, 0.1, 5.0));
+            set
+            {
+                if (SetProperty(ref _imageZoomLevel, Math.Clamp(value, 0.1, 5.0)))
+                {
+                    OnPropertyChanged(nameof(ScaledImageWidth));
+                    OnPropertyChanged(nameof(ScaledImageHeight));
+                }
+            }
         }
+
+        public double ScaledImageWidth => _originalImageWidth * _imageZoomLevel;
+        public double ScaledImageHeight => _originalImageHeight * _imageZoomLevel;
 
         [ObservableProperty] private double _defaultZoomLevel = 1.0;
 
@@ -221,6 +234,13 @@ namespace CapyCard.ViewModels
         [RelayCommand]
         private void OpenImagePreview(object imageSource)
         {
+            if (imageSource is Bitmap bitmap)
+            {
+                _originalImageWidth = bitmap.Size.Width;
+                _originalImageHeight = bitmap.Size.Height;
+                OnPropertyChanged(nameof(ScaledImageWidth));
+                OnPropertyChanged(nameof(ScaledImageHeight));
+            }
             PreviewImageSource = imageSource;
             IsImagePreviewOpen = true;
         }
@@ -230,6 +250,10 @@ namespace CapyCard.ViewModels
         {
             IsImagePreviewOpen = false;
             PreviewImageSource = null;
+            _originalImageWidth = 0;
+            _originalImageHeight = 0;
+            OnPropertyChanged(nameof(ScaledImageWidth));
+            OnPropertyChanged(nameof(ScaledImageHeight));
         }
 
         [RelayCommand]

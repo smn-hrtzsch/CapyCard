@@ -326,21 +326,20 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                               VerticalScrollBarVisibility="Auto"
                               AllowAutoHide="False"
-                              Padding="0,0,0,100"
+                              Padding="40"
                               x:Name="ImageScrollViewer">
                     <ScrollViewer.GestureRecognizers>
                         <PinchGestureRecognizer />
                     </ScrollViewer.GestureRecognizers>
-                    <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <LayoutTransformControl.LayoutTransform>
-                            <ScaleTransform ScaleX="{Binding ImageZoomLevel}" ScaleY="{Binding ImageZoomLevel}"/>
-                        </LayoutTransformControl.LayoutTransform>
+                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Width="{Binding ScaledImageWidth}" 
+                            Height="{Binding ScaledImageHeight}">
                         <Image Source="{Binding PreviewImageSource}" 
                                x:Name="PreviewImage"
-                               Stretch="None"
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center"/>
-                    </LayoutTransformControl>
+                               Stretch="Uniform"
+                               Width="{Binding ScaledImageWidth}"
+                               Height="{Binding ScaledImageHeight}"/>
+                    </Canvas>
                 </ScrollViewer>
 
                 <!-- Close Button -->
