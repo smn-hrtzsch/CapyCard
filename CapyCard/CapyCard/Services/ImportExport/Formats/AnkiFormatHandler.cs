@@ -29,7 +29,7 @@ namespace CapyCard.Services.ImportExport.Formats
             true;
 #endif
 
-        private static readonly Regex HtmlImageRegex = new(@"<img[^>]+src=(?:""([^""]*)""|'([^']*)'|([^""'>\s]+))[^>]*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex HtmlImageRegex = new(@"<img[^>]+src=(?:""([^""]*)""|'([^']*)'|([^"">\s]+))[^>]*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex MarkdownImageRegex = new(@"!\[([^\]]*)\]\(data:([^;]+);base64,([^)]+)\)", RegexOptions.Compiled);
         private static readonly Regex SoundRegex = new(@"\[sound:([^\]]+)\]", RegexOptions.Compiled);
 
@@ -114,7 +114,696 @@ namespace CapyCard.Services.ImportExport.Formats
 #endif
         }
 
-        public Task<ExportResult> ExportAsync(Stream stream, ExportOptions options) => Task.FromResult(ExportResult.Failed("N/A"));
+        public async Task<ExportResult> ExportAsync(Stream stream, ExportOptions options)
+        {
+#if BROWSER
+            return ExportResult.Failed("WASM not supported.");
+#else
+            try
+            {
+                using var tempDir = new TempDirectory();
+                var mediaFiles = new Dictionary<string, string>();
+                var ankiCards = new List<AnkiCardData>();
+                string deckName = "Export";
+                
+                // 1. Lade Karten aus CapyCard DB und konvertiere zu HTML
+                using (var context = new FlashcardDbContext())
+                {
+                    var deck = await context.Decks
+                        .Include(d => d.SubDecks)
+                            .ThenInclude(sd => sd.Cards)
+                        .Include(d => d.Cards)
+                        .FirstOrDefaultAsync(d => d.Id == options.DeckId);
+
+                    if (deck == null)
+                        return ExportResult.Failed("Fach nicht gefunden.");
+                    
+                    deckName = deck.Name;
+
+                    // Sammle alle Karten basierend auf Scope
+                    var allCards = new List<(Card Card, string SubDeckName)>();
+                    
+                    if (options.Scope == ExportScope.SelectedCards && options.SelectedCardIds?.Count > 0)
+                    {
+                        var selectedCards = deck.Cards.Where(c => options.SelectedCardIds.Contains(c.Id)).ToList();
+                        foreach (var card in selectedCards)
+                            allCards.Add((card, "Allgemein"));
+                        
+                        foreach (var subDeck in deck.SubDecks)
+                        {
+                            var subSelected = subDeck.Cards.Where(c => options.SelectedCardIds.Contains(c.Id)).ToList();
+                            foreach (var card in subSelected)
+                                allCards.Add((card, subDeck.Name));
+                        }
+                    }
+                    else if (options.Scope == ExportScope.SelectedSubDecks && options.SelectedSubDeckIds?.Count > 0)
+                    {
+                        foreach (var subDeck in deck.SubDecks.Where(sd => options.SelectedSubDeckIds.Contains(sd.Id)))
+                        {
+                            foreach (var card in subDeck.Cards)
+                                allCards.Add((card, subDeck.Name));
+                        }
+                    }
+                    else
+                    {
+                        foreach (var card in deck.Cards)
+                            allCards.Add((card, "Allgemein"));
+                        
+                        foreach (var subDeck in deck.SubDecks)
+                        {
+                            foreach (var card in subDeck.Cards)
+                                allCards.Add((card, subDeck.Name));
+                        }
+                    }
+
+                    if (allCards.Count == 0)
+                        return ExportResult.Failed("Keine Karten zum Exportieren gefunden.");
+
+                    // Konvertiere Karten und sammle Bilder
+                    foreach (var (card, subDeckName) in allCards)
+                    {
+                        var front = ConvertMarkdownToAnki(card.Front, tempDir.Path, mediaFiles);
+                        var back = ConvertMarkdownToAnki(card.Back, tempDir.Path, mediaFiles);
+                        
+                        ankiCards.Add(new AnkiCardData
+                        {
+                            Front = front,
+                            Back = back,
+                            SubDeckName = subDeckName
+                        });
+                    }
+                }
+
+                // 2. Bereite Anki-Daten vor (IDs generieren, JSONs bauen)
+                // WICHTIG: Wir nutzen dieselben Daten für beide DBs, um Konsistenz zu gewährleisten.
+                var ankiExportData = GenerateAnkiData(deckName, ankiCards);
+
+                // 3. Erstelle collection.anki21 (Haupt-DB)
+                var dbPath = Path.Combine(tempDir.Path, "collection.anki21");
+                using (var connection = new SqliteConnection($"Data Source={dbPath}"))
+                {
+                    await connection.OpenAsync();
+                    await CreateAnkiSchemaAsync(connection);
+                    await WriteAnkiDataAsync(connection, ankiExportData);
+                }
+
+                // 4. Erstelle collection.anki2 (Legacy-DB) - Identischer Inhalt!
+                // Anki benötigt auch in der Legacy-DB gültige JSON-Konfigurationen.
+                var anki2Path = Path.Combine(tempDir.Path, "collection.anki2");
+                using (var anki2Connection = new SqliteConnection($"Data Source={anki2Path}"))
+                {
+                    await anki2Connection.OpenAsync();
+                    await CreateAnkiSchemaAsync(anki2Connection);
+                    await WriteAnkiDataAsync(anki2Connection, ankiExportData);
+                }
+
+                // 5. Erstelle meta Datei (Protobuf - Format Version 1 für Legacy 2)
+                var metaPath = Path.Combine(tempDir.Path, "meta");
+                await File.WriteAllBytesAsync(metaPath, new byte[] { 0x08, 0x01 });
+
+                // 6. Erstelle media-Datei (JSON-Mapping)
+                var mediaMap = mediaFiles.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                var mediaJson = System.Text.Json.JsonSerializer.Serialize(mediaMap);
+                var mediaPath = Path.Combine(tempDir.Path, "media");
+                await File.WriteAllTextAsync(mediaPath, mediaJson);
+
+                // 7. Erstelle ZIP-Archiv (.apkg)
+                using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+                {
+                    archive.CreateEntryFromFile(dbPath, "collection.anki21", CompressionLevel.Optimal);
+                    archive.CreateEntryFromFile(anki2Path, "collection.anki2", CompressionLevel.Optimal);
+                    archive.CreateEntryFromFile(metaPath, "meta", CompressionLevel.Optimal);
+                    archive.CreateEntryFromFile(mediaPath, "media", CompressionLevel.Optimal);
+                    
+                    foreach (var kvp in mediaFiles)
+                    {
+                        var filePath = Path.Combine(tempDir.Path, kvp.Key);
+                        if (File.Exists(filePath))
+                        {
+                            archive.CreateEntryFromFile(filePath, kvp.Key, CompressionLevel.Optimal);
+                        }
+                    }
+                }
+
+                return ExportResult.SuccessfulWithData(Array.Empty<byte>(), ankiCards.Count, 0);
+            }
+            catch (Exception ex)
+            {
+                return ExportResult.Failed($"Fehler beim Export: {ex.Message}");
+            }
+#endif
+        }
+
+        private async Task CreateAnkiSchemaAsync(SqliteConnection connection)
+        {
+            // Schema angelehnt an Anki Standard (mit NOT NULL und korrekten Typen)
+            // Indizes angepasst an 'Good' Export (kein idx_notes_mid!)
+            using var cmd = new SqliteCommand(@"
+                CREATE TABLE IF NOT EXISTS col (
+                    id INTEGER PRIMARY KEY,
+                    crt INTEGER NOT NULL,
+                    mod INTEGER NOT NULL,
+                    scm INTEGER NOT NULL,
+                    ver INTEGER NOT NULL DEFAULT 11,
+                    dty INTEGER NOT NULL DEFAULT 0,
+                    usn INTEGER NOT NULL DEFAULT 0,
+                    ls INTEGER NOT NULL DEFAULT 0,
+                    conf TEXT NOT NULL,
+                    models TEXT NOT NULL,
+                    decks TEXT NOT NULL,
+                    dconf TEXT NOT NULL,
+                    tags TEXT NOT NULL DEFAULT '{}'
+                );
+
+                CREATE TABLE IF NOT EXISTS notes (
+                    id INTEGER PRIMARY KEY,
+                    guid TEXT NOT NULL,
+                    mid INTEGER NOT NULL,
+                    mod INTEGER NOT NULL,
+                    usn INTEGER NOT NULL DEFAULT -1,
+                    tags TEXT NOT NULL,
+                    flds TEXT NOT NULL,
+                    sfld INTEGER NOT NULL,
+                    csum INTEGER NOT NULL,
+                    flags INTEGER NOT NULL DEFAULT 0,
+                    data TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE IF NOT EXISTS cards (
+                    id INTEGER PRIMARY KEY,
+                    nid INTEGER NOT NULL,
+                    did INTEGER NOT NULL,
+                    ord INTEGER NOT NULL DEFAULT 0,
+                    mod INTEGER NOT NULL,
+                    usn INTEGER NOT NULL DEFAULT -1,
+                    type INTEGER NOT NULL DEFAULT 0,
+                    queue INTEGER NOT NULL DEFAULT 0,
+                    due INTEGER NOT NULL DEFAULT 0,
+                    ivl INTEGER NOT NULL DEFAULT 0,
+                    factor INTEGER NOT NULL DEFAULT 0,
+                    reps INTEGER NOT NULL DEFAULT 0,
+                    lapses INTEGER NOT NULL DEFAULT 0,
+                    left INTEGER NOT NULL DEFAULT 0,
+                    odue INTEGER NOT NULL DEFAULT 0,
+                    odid INTEGER NOT NULL DEFAULT 0,
+                    flags INTEGER NOT NULL DEFAULT 0,
+                    data TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE IF NOT EXISTS revlog (
+                    id INTEGER PRIMARY KEY,
+                    cid INTEGER NOT NULL,
+                    usn INTEGER NOT NULL DEFAULT -1,
+                    ease INTEGER NOT NULL,
+                    ivl INTEGER NOT NULL,
+                    lastIvl INTEGER NOT NULL,
+                    factor INTEGER NOT NULL,
+                    time INTEGER NOT NULL,
+                    type INTEGER NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS graves (
+                    usn INTEGER NOT NULL,
+                    oid INTEGER NOT NULL,
+                    type INTEGER NOT NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS ix_notes_usn ON notes (usn);
+                CREATE INDEX IF NOT EXISTS ix_cards_usn ON cards (usn);
+                CREATE INDEX IF NOT EXISTS ix_revlog_usn ON revlog (usn);
+                CREATE INDEX IF NOT EXISTS ix_cards_nid ON cards (nid);
+                CREATE INDEX IF NOT EXISTS ix_cards_sched ON cards (did, queue, due);
+                CREATE INDEX IF NOT EXISTS ix_revlog_cid ON revlog (cid);
+                CREATE INDEX IF NOT EXISTS ix_notes_csum ON notes (csum);
+            ", connection);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        private AnkiExportContext GenerateAnkiData(string deckName, List<AnkiCardData> cards)
+        {
+            var ctx = new AnkiExportContext();
+            var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var nowSeconds = now / 1000;
+
+            ctx.Crt = nowSeconds;
+            ctx.Mod = now;
+            
+            // IDs generieren (Zeitstempel)
+            long deckId = now;
+            long modelId = now + 1;
+            
+            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = null };
+
+            // Conf
+            var confDict = new Dictionary<string, object>
+            {
+                ["creationOffset"] = -60,
+                ["sched2021"] = true,
+                ["dayLearnFirst"] = false,
+                ["nextPos"] = 1,
+                ["dueCounts"] = true,
+                ["schedVer"] = 2,
+                ["sortBackwards"] = false,
+                ["sortType"] = "noteFld",
+                ["estTimes"] = true,
+                ["timeLim"] = 0,
+                ["collapseTime"] = 1200,
+                ["curDeck"] = 1,
+                ["newSpread"] = 0,
+                ["activeDecks"] = new[] { 1 },
+                ["curModel"] = modelId,
+                ["addToCur"] = true
+            };
+            ctx.ConfJson = JsonSerializer.Serialize(confDict, jsonOptions);
+
+            // Models
+            var model = new Dictionary<string, object?>
+            {
+                ["id"] = modelId,
+                ["name"] = "Basis",
+                ["type"] = 0,
+                ["mod"] = 0,
+                ["usn"] = 0,
+                ["sortf"] = 0,
+                ["did"] = null,
+                ["tmpls"] = new[]
+                {
+                    new Dictionary<string, object?> {
+                        ["name"] = "Karte 1",
+                        ["ord"] = 0,
+                        ["qfmt"] = "{{Vorderseite}}",
+                        ["afmt"] = "{{Vorderseite}}<hr id=answer>{{Rückseite}}",
+                        ["bqfmt"] = "",
+                        ["bafmt"] = "",
+                        ["did"] = null,
+                        ["bfont"] = "",
+                        ["bsize"] = 0,
+                        ["id"] = Random.Shared.NextInt64()
+                    }
+                },
+                ["flds"] = new[]
+                {
+                    new Dictionary<string, object?> { 
+                        ["name"] = "Vorderseite", ["ord"] = 0, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0] 
+                    },
+                    new Dictionary<string, object?> { 
+                        ["name"] = "Rückseite", ["ord"] = 1, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0]
+                    }
+                },
+                ["css"] = ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+                ["latexPre"] = "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+                ["latexPost"] = "\\end{document}",
+                ["latexsvg"] = false,
+                ["req"] = new object[] { new object[] { 0, "any", new[] { 0 } } },
+                ["originalStockKind"] = 1
+            };
+            var modelDict = new Dictionary<string, object> { [modelId.ToString()] = model };
+            ctx.ModelsJson = JsonSerializer.Serialize(modelDict, jsonOptions);
+
+            // Decks
+            var deckConf = new Dictionary<string, object?>
+            {
+                ["id"] = 1,
+                ["mod"] = 0,
+                ["name"] = "Default",
+                ["usn"] = 0,
+                ["lrnToday"] = new[] { 0, 0 },
+                ["revToday"] = new[] { 0, 0 },
+                ["newToday"] = new[] { 0, 0 },
+                ["timeToday"] = new[] { 0, 0 },
+                ["collapsed"] = false,
+                ["browserCollapsed"] = false,
+                ["desc"] = "",
+                ["dyn"] = 0,
+                ["conf"] = 1,
+                ["extendNew"] = 0,
+                ["extendRev"] = 0,
+                ["reviewLimit"] = null,
+                ["newLimit"] = null,
+                ["reviewLimitToday"] = null,
+                ["newLimitToday"] = null,
+                ["desiredRetention"] = null
+            };
+            
+            var customDeck = new Dictionary<string, object?>
+            {
+                ["id"] = deckId,
+                ["mod"] = 0,
+                ["name"] = deckName,
+                ["usn"] = 0,
+                ["lrnToday"] = new[] { 0, 0 },
+                ["revToday"] = new[] { 0, 0 },
+                ["newToday"] = new[] { 0, 0 },
+                ["timeToday"] = new[] { 0, 0 },
+                ["collapsed"] = false,
+                ["browserCollapsed"] = false,
+                ["desc"] = "",
+                ["dyn"] = 0,
+                ["conf"] = 1,
+                ["extendNew"] = 0,
+                ["extendRev"] = 0,
+                ["reviewLimit"] = null,
+                ["newLimit"] = null,
+                ["reviewLimitToday"] = null,
+                ["newLimitToday"] = null,
+                ["desiredRetention"] = null
+            };
+
+            var deckDict = new Dictionary<string, object>
+            {
+                ["1"] = deckConf,
+                [deckId.ToString()] = customDeck
+            };
+            ctx.DecksJson = JsonSerializer.Serialize(deckDict, jsonOptions);
+
+            // Dconf
+            ctx.DconfJson = "{\"1\":{\"id\":1,\"mod\":0,\"name\":\"Default\",\"usn\":0,\"maxTaken\":60,\"autoplay\":true,\"timer\":0,\"replayq\":true,\"new\":{\"bury\":false,\"delays\":[1.0,10.0],\"initialFactor\":2500,\"ints\":[1,4,0],\"order\":1,\"perDay\":20},\"rev\":{\"bury\":false,\"ease4\":1.3,\"ivlFct\":1.0,\"maxIvl\":36500,\"perDay\":200,\"hardFactor\":1.2},\"lapse\":{\"delays\":[10.0],\"leechAction\":1,\"leechFails\":8,\"minInt\":1,\"mult\":0.0},\"dyn\":false,\"newMix\":0,\"newPerDayMinimum\":0,\"interdayLearningMix\":0,\"reviewOrder\":0,\"newSortOrder\":0,\"newGatherPriority\":0,\"buryInterdayLearning\":false,\"fsrsWeights\":[],\"fsrsParams5\":[],\"fsrsParams6\":[],\"desiredRetention\":0.9,\"ignoreRevlogsBeforeDate\":\"\",\"easyDaysPercentages\":[1.0,1.0,1.0,1.0,1.0,1.0,1.0],\"stopTimerOnAnswer\":false,\"secondsToShowQuestion\":0.0,\"secondsToShowAnswer\":0.0,\"questionAction\":0,\"answerAction\":0,\"waitForAudio\":true,\"sm2Retention\":0.9,\"weightSearch\":\"\"}}";
+
+            // Cards
+            long nextId = now + 1000;
+
+            foreach (var card in cards)
+            {
+                long noteId = nextId++;
+                long cardId = nextId++;
+                
+                var sfld = Regex.Replace(card.Front, "<.*?>", "");
+                
+                ctx.Notes.Add(new AnkiNote
+                {
+                    NoteId = noteId,
+                    CardId = cardId,
+                    Guid = Guid.NewGuid().ToString("N").Substring(0, 10),
+                    ModelId = modelId,
+                    DeckId = deckId,
+                    Flds = card.Front + "\x1f" + card.Back,
+                    Sfld = sfld,
+                    Csum = GetCrc32(sfld)
+                });
+            }
+
+            return ctx;
+        }
+
+
+        private async Task WriteAnkiDataAsync(SqliteConnection connection, AnkiExportContext data)
+        {
+            using (var cmd = new SqliteCommand(@"
+                INSERT INTO col (id, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags)
+                VALUES (@id, @crt, @mod, @scm, 11, 0, 0, 0, @conf, @models, @decks, @dconf, '{}')
+            ", connection))
+            {
+                cmd.Parameters.AddWithValue("@id", 1);
+                cmd.Parameters.AddWithValue("@crt", data.Crt);
+                cmd.Parameters.AddWithValue("@mod", data.Mod);
+                cmd.Parameters.AddWithValue("@scm", data.Mod); // scm = mod
+                cmd.Parameters.AddWithValue("@conf", data.ConfJson);
+                cmd.Parameters.AddWithValue("@models", data.ModelsJson);
+                cmd.Parameters.AddWithValue("@decks", data.DecksJson);
+                cmd.Parameters.AddWithValue("@dconf", data.DconfJson);
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            int dueCounter = 1;
+            var nowSeconds = data.Crt;
+
+            using var transaction = connection.BeginTransaction();
+
+            foreach (var note in data.Notes)
+            {
+                using (var cmd = new SqliteCommand(@"
+                    INSERT INTO notes (id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data)
+                    VALUES (@id, @guid, @mid, @mod, -1, '', @flds, @sfld, @csum, 0, '')
+                ", connection, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@id", note.NoteId);
+                    cmd.Parameters.AddWithValue("@guid", note.Guid);
+                    cmd.Parameters.AddWithValue("@mid", note.ModelId);
+                    cmd.Parameters.AddWithValue("@mod", nowSeconds);
+                    cmd.Parameters.AddWithValue("@flds", note.Flds);
+                    cmd.Parameters.AddWithValue("@sfld", note.Sfld); // Wird als INTEGER gespeichert, aber String ist ok in SQLite
+                    cmd.Parameters.AddWithValue("@csum", note.Csum);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                using (var cmd = new SqliteCommand(@"
+                    INSERT INTO cards (id, nid, did, ord, mod, usn, type, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data)
+                    VALUES (@id, @nid, @did, 0, @mod, -1, 0, 0, @due, 0, 0, 0, 0, 0, 0, 0, 0, '')
+                ", connection, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@id", note.CardId);
+                    cmd.Parameters.AddWithValue("@nid", note.NoteId);
+                    cmd.Parameters.AddWithValue("@did", note.DeckId);
+                    cmd.Parameters.AddWithValue("@mod", nowSeconds);
+                    cmd.Parameters.AddWithValue("@due", dueCounter++);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+
+            await transaction.CommitAsync();
+        }
+
+        private class AnkiExportContext
+        {
+            public long Crt { get; set; }
+            public long Mod { get; set; }
+            public string ConfJson { get; set; } = "{}";
+            public string ModelsJson { get; set; } = "{}";
+            public string DecksJson { get; set; } = "{}";
+            public string DconfJson { get; set; } = "{}";
+            public List<AnkiNote> Notes { get; set; } = new();
+        }
+
+        private class AnkiNote
+        {
+            public long NoteId { get; set; }
+            public long CardId { get; set; }
+            public string Guid { get; set; } = "";
+            public long ModelId { get; set; }
+            public long DeckId { get; set; }
+            public string Flds { get; set; } = "";
+            public string Sfld { get; set; } = "";
+            public long Csum { get; set; }
+        }
+
+        private string ConvertMarkdownToAnki(string markdown, string tempDir, Dictionary<string, string> mediaFiles)
+        {
+            if (string.IsNullOrEmpty(markdown))
+                return "";
+
+            var result = markdown;
+
+            // 1. Bilder verarbeiten
+            result = MarkdownImageRegex.Replace(result, m =>
+            {
+                var altText = m.Groups[1].Value;
+                var mimeType = m.Groups[2].Value;
+                var base64Data = m.Groups[3].Value;
+
+                try
+                {
+                    var bytes = Convert.FromBase64String(base64Data);
+                    var extension = mimeType switch
+                    {
+                        "image/jpeg" => "jpg",
+                        "image/png" => "png",
+                        "image/gif" => "gif",
+                        "image/webp" => "webp",
+                        _ => "jpg"
+                    };
+
+                    var currentIdx = mediaFiles.Count;
+                    var zipFileName = currentIdx.ToString();
+                    var contentFileName = $"image-{currentIdx}.{extension}";
+
+                    var filePath = Path.Combine(tempDir, zipFileName);
+                    File.WriteAllBytes(filePath, bytes);
+
+                    mediaFiles[zipFileName] = contentFileName;
+
+                    return $"<img src=\"{contentFileName}\">";
+                }
+                catch
+                {
+                    return m.Value;
+                }
+            });
+
+            // 2. Block-Level Elemente verarbeiten (Listen, Absätze)
+            result = ConvertBlocksToHtml(result);
+
+            return result;
+        }
+
+        private string ConvertBlocksToHtml(string markdown)
+        {
+            var lines = markdown.Split('\n');
+            var output = new List<string>();
+            var listStack = new Stack<(string Type, int Indent)>();
+            int lastListIndent = -1;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                
+                // Prüfe ob Zeile eine Liste ist
+                var listInfo = ParseListLine(line);
+                
+                if (listInfo.IsList)
+                {
+                    lastListIndent = listInfo.Indent;
+                    
+                    // Schließe Listen mit größerer Einrückung (wir gehen zurück)
+                    while (listStack.Count > 0 && listStack.Peek().Indent > listInfo.Indent)
+                    {
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                    }
+
+                    // Schließe Listen gleichen Typs auf gleicher Ebene (neues Element)
+                    if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type == listInfo.Type)
+                    {
+                        // Nichts schließen - wir fügen ein neues <li> hinzu
+                    }
+                    else if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type != listInfo.Type)
+                    {
+                        // Typ hat sich geändert (ul -> ol oder ol -> ul) auf gleicher Ebene
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
+                        listStack.Push((listInfo.Type, listInfo.Indent));
+                    }
+                    else if (listStack.Count == 0 || listStack.Peek().Indent < listInfo.Indent)
+                    {
+                        // Neue Liste auf tieferer Ebene
+                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
+                        listStack.Push((listInfo.Type, listInfo.Indent));
+                    }
+
+                    // Füge Listenelement hinzu (auch wenn Content leer ist)
+                    var content = string.IsNullOrWhiteSpace(listInfo.Content) ? "" : ConvertInlineFormatting(listInfo.Content);
+                    output.Add($"<li>{content}</li>");
+                }
+                else if (string.IsNullOrWhiteSpace(line))
+                {
+                    // Leere Zeile: Nur schließen wenn nächste Zeile keine Liste ist
+                    if (i + 1 < lines.Length)
+                    {
+                        var nextListInfo = ParseListLine(lines[i + 1]);
+                        if (!nextListInfo.IsList || nextListInfo.Indent < lastListIndent)
+                        {
+                            // Nächste Zeile ist keine Liste oder höher eingerückt - schließe Listen
+                            while (listStack.Count > 0)
+                            {
+                                var closed = listStack.Pop();
+                                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                            }
+                            lastListIndent = -1;
+                        }
+                        // Wenn nächste Zeile eine Liste ist, mach nichts (Leerzeile innerhalb Liste ignorieren)
+                    }
+                    else
+                    {
+                        // Letzte Zeile ist leer
+                        while (listStack.Count > 0)
+                        {
+                            var closed = listStack.Pop();
+                            output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                        }
+                        lastListIndent = -1;
+                    }
+                }
+                else
+                {
+                    // Nicht-Listen-Zeile: Schließe alle Listen
+                    lastListIndent = -1;
+                    while (listStack.Count > 0)
+                    {
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                    }
+
+                    // Verarbeite Nicht-Listen-Zeile
+                    output.Add($"<div>{ConvertInlineFormatting(line)}</div>");
+                }
+            }
+
+            // Schließe verbleibende Listen
+            while (listStack.Count > 0)
+            {
+                var closed = listStack.Pop();
+                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+            }
+
+            return string.Join("", output);
+        }
+
+        private (bool IsList, string Type, int Indent, string Content) ParseListLine(string line)
+        {
+            if (string.IsNullOrEmpty(line))
+                return (false, "", 0, "");
+
+            var leadingSpaces = line.TakeWhile(c => c == ' ').Count();
+            var trimmed = line.TrimStart();
+
+            // Unordered list: - item oder nur "-"
+            if (trimmed.StartsWith("- ") || trimmed == "-")
+            {
+                var content = trimmed.StartsWith("- ") ? trimmed.Substring(2) : "";
+                return (true, "ul", leadingSpaces, content);
+            }
+
+            // Ordered list: 1. item oder nur "1."
+            var orderedMatch = Regex.Match(trimmed, @"^(\d+)\.\s*(.*)$");
+            if (orderedMatch.Success)
+            {
+                var content = orderedMatch.Groups[2].Value;
+                return (true, "ol", leadingSpaces, content);
+            }
+
+            return (false, "", leadingSpaces, line);
+        }
+
+        private string ConvertInlineFormatting(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            // Reihenfolge wichtig: zuerst längere Patterns
+            text = Regex.Replace(text, @"\*\*(.+?)\*\*", "<b>$1</b>");  // Bold
+            text = Regex.Replace(text, @"__(.+?)__", "<u>$1</u>");        // Underline
+            text = Regex.Replace(text, @"\*(.+?)\*", "<i>$1</i>");        // Italic
+            text = Regex.Replace(text, @"_(.+?)_", "<i>$1</i>");          // Italic (alternative)
+            text = Regex.Replace(text, @"==(.+?)==", "<mark>$1</mark>");  // Highlight
+
+            return text;
+        }
+
+        private static long GetCrc32(string input)
+        {
+            // Korrekte CRC32 Implementierung für Anki
+            var bytes = Encoding.UTF8.GetBytes(input);
+            uint crc = 0xffffffff;
+            foreach (var b in bytes)
+            {
+                crc ^= b;
+                for (int i = 0; i < 8; i++)
+                {
+                    if ((crc & 1) != 0)
+                        crc = (crc >> 1) ^ 0xedb88320;
+                    else
+                        crc >>= 1;
+                }
+            }
+            return (long)(~crc); // Als long zurückgeben für DB
+        }
+
+        private class AnkiCardData
+        {
+            public string Front { get; set; } = "";
+            public string Back { get; set; } = "";
+            public string SubDeckName { get; set; } = "";
+        }
 
         private static async Task<string> GetDeckNameAsync(SqliteConnection connection)
         {
