@@ -4,7 +4,7 @@
       Single Source of Truth for the Version.
       This will be updated automatically by the CI/CD pipeline.
     -->
-    <Version>2.4.0</Version>
+    <Version>2.4.1</Version>
     <!-- 
       Ensure Android builds use the correct JDK (OpenJDK 21). 
       This is required because newer JDKs (like 25) are not yet supported by Xamarin.Android.
