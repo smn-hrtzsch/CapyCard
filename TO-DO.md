@@ -24,7 +24,7 @@
 
 ## UI-Overhaul
 
-- [ ] User mehr optionen zur Farbgebung geben 
+- [ ] User mehr optionen zur Farbgebung geben (nicht nur Teal sondern z.B. auch Blau, Grün, Rot etc.). Auf ausreichend kontrast muss geachtet werden und dass die App trotzdem ein einheitliches Design hat. Die Position der Einstellungen muss gut gewählt werden (ggf. in der DeckListView in der Titelzeile oben rechts als settings Icon?)
 - [ ] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
 - [ ] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
 
@@ -34,7 +34,7 @@
 
 ## Bugs
 
-- [ ] Kontraste der Bewertungs-Buttons im Smart Learn Mode sind nicht gut genug, die Schriftfarbe kann man nur schwer von den Buttonfarben unterscheiden. Passe die Farben der Buttons an, sodass der Kontrast besser ist.
+- [ ] Kontraste der Bewertungs-Buttons im Smart Learn Mode sind nicht gut genug, die Schriftfarbe kann man nur schwer von den Buttonfarben unterscheiden. Passe die Farben der Buttons an, sodass der Kontrast besser ist. Hier ein Screenshot zum aktuellen Stand: 
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 - [ ] Auf iOS lässt sich das Themen Dropdown im Card Detail View nicht schließen, weil der Button zum schließen nach unten außerhalb des Bildschirms verschwindet. Prüfe dieses Verhalten für Mobile, auch die in Android und die Einabezeile für neue Themen verschwindet nach unten außerhalb des Bildschirms, wenn man die Themen ausklappt.
