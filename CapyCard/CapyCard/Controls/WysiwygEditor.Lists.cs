@@ -60,6 +60,10 @@ namespace CapyCard.Controls
             // Füge neue Zeile mit Listenpunkt ein
             var insertText = "\n" + newPrefix;
             var newTextContent = text.Substring(0, cursorPos) + insertText + text.Substring(cursorPos);
+            
+            // Nummeriere alle Listen im Text neu (korrigiert nachfolgende Einträge)
+            newTextContent = RenumberAllLists(newTextContent);
+            
             EditorTextBox.Text = newTextContent;
             
             var newCursorPos = cursorPos + insertText.Length;
@@ -147,6 +151,10 @@ namespace CapyCard.Controls
 
             // Ersetze die Zeile
             var newText = text.Substring(0, lineStart) + newLine + text.Substring(lineEnd);
+            
+            // Nummeriere alle Listen im Text neu
+            newText = RenumberAllLists(newText);
+            
             EditorTextBox.Text = newText;
 
             var newCursorPos = Math.Max(lineStart, cursorPos + cursorDelta);
@@ -228,6 +236,73 @@ namespace CapyCard.Controls
         }
 
         /// <summary>
+        /// Nummeriert alle nummerierten Listen im Text neu.
+        /// Für jede Einrückungsebene werden separate Listen erkannt (getrennt durch Leerzeilen).
+        /// Nachfolgende Einträge werden korrigiert wenn neue Zeilen eingefügt werden.
+        /// Explizite "1." Eingaben vom User starten immer eine neue Liste.
+        /// </summary>
+        private string RenumberAllLists(string text)
+        {
+            var lines = text.Split('\n');
+            var result = new System.Collections.Generic.List<string>();
+            
+            // Counters für jede Einrückungsebene
+            var counters = new System.Collections.Generic.Dictionary<string, int>();
+            // Speichert ob die vorherige Zeile leer war (für neue Listen-Erkennung)
+            var wasPreviousLineEmpty = true; // Am Anfang gilt als "neue Liste"
+            
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                var match = Regex.Match(line, @"^(\s*)(\d+)\. ");
+                
+                if (match.Success)
+                {
+                    var indent = match.Groups[1].Value;
+                    var originalNumber = int.Parse(match.Groups[2].Value);
+                    var content = line.Substring(match.Length);
+                    
+                    // Prüfe ob dies eine neue Liste ist:
+                    // 1. Nach Leerzeile oder erste Zeile
+                    // 2. ODER: User hat explizit "1." eingegeben (originalNumber == 1) 
+                    //    UND es gab schon Einträge in dieser Ebene
+                    bool isNewList = wasPreviousLineEmpty || 
+                                     (originalNumber == 1 && counters.ContainsKey(indent) && counters[indent] > 0);
+                    
+                    if (isNewList)
+                    {
+                        // Neue Liste beginnt - reset counter für diese Ebene
+                        counters[indent] = 1;
+                    }
+                    else if (!counters.ContainsKey(indent))
+                    {
+                        // Erster Eintrag in dieser Ebene
+                        counters[indent] = 1;
+                    }
+                    else
+                    {
+                        // Fortlaufende Liste - inkrementiere counter
+                        counters[indent]++;
+                    }
+                    
+                    // Ersetze die Zeile mit der korrekten Nummer
+                    var newLine = indent + counters[indent] + ". " + content;
+                    result.Add(newLine);
+                    wasPreviousLineEmpty = false;
+                }
+                else
+                {
+                    // Kein Listeneintrag - behalte Zeile bei
+                    result.Add(line);
+                    // Leerzeilen oder Nicht-List-Zeilen trennen Listen
+                    wasPreviousLineEmpty = string.IsNullOrWhiteSpace(line) || !Regex.IsMatch(line, @"^(\s*)- ");
+                }
+            }
+            
+            return string.Join('\n', result);
+        }
+
+        /// <summary>
         /// Erkennt Listen-Präfixe in einer Zeile.
         /// Gibt (vollständiges Präfix, Einrückung, istGeordnet, Nummer) zurück.
         /// </summary>
@@ -266,6 +341,9 @@ namespace CapyCard.Controls
             
             // Füge Präfix am Zeilenanfang ein
             var newText = text.Insert(lineStart, prefix);
+            
+            // Nummeriere alle Listen neu
+            newText = RenumberAllLists(newText);
             
             _isUpdating = true;
             EditorTextBox.Text = newText;
