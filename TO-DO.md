@@ -46,3 +46,5 @@
 
 - [x] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
 - [x] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
+- [x] Anki Import Fehler 500 "Ein Zahlwert war ungültig" und "index idx_notes_mid already exists" behoben. Ursachen waren leere JSON-Configs in der Legacy-DB, inkompatible Indizes und falsche Datentypen (String statt Zahl bei IDs). Export-Logik ist nun vollständig Anki-konform.
+- [x] Markdown Formatierung beim Anki Export verbessert: Listen, Fettdruck, Kursiv, Unterstreichungen und Hervorhebungen werden korrekt in HTML umgewandelt.

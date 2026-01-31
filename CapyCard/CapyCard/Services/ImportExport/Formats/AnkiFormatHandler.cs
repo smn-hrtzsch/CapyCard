@@ -122,18 +122,13 @@ namespace CapyCard.Services.ImportExport.Formats
             try
             {
                 using var tempDir = new TempDirectory();
-                var dbPath = Path.Combine(tempDir.Path, "collection.anki21");
                 var mediaFiles = new Dictionary<string, string>();
                 var ankiCards = new List<AnkiCardData>();
-                int mediaIndex = 0;
-
-                // Erstelle SQLite-Datenbank
-                using (var connection = new SqliteConnection($"Data Source={dbPath}"))
+                string deckName = "Export";
+                
+                // 1. Lade Karten aus CapyCard DB und konvertiere zu HTML
+                using (var context = new FlashcardDbContext())
                 {
-                    await connection.OpenAsync();
-                    await CreateAnkiSchemaAsync(connection);
-                    
-                    using var context = new FlashcardDbContext();
                     var deck = await context.Decks
                         .Include(d => d.SubDecks)
                             .ThenInclude(sd => sd.Cards)
@@ -142,6 +137,8 @@ namespace CapyCard.Services.ImportExport.Formats
 
                     if (deck == null)
                         return ExportResult.Failed("Fach nicht gefunden.");
+                    
+                    deckName = deck.Name;
 
                     // Sammle alle Karten basierend auf Scope
                     var allCards = new List<(Card Card, string SubDeckName)>();
@@ -185,9 +182,8 @@ namespace CapyCard.Services.ImportExport.Formats
                     // Konvertiere Karten und sammle Bilder
                     foreach (var (card, subDeckName) in allCards)
                     {
-                        var front = ConvertMarkdownToAnki(card.Front, mediaIndex, tempDir.Path, mediaFiles);
-                        var back = ConvertMarkdownToAnki(card.Back, mediaIndex, tempDir.Path, mediaFiles);
-                        mediaIndex = mediaFiles.Count; // Aktualisiere Index basierend auf Anzahl der Dateien
+                        var front = ConvertMarkdownToAnki(card.Front, tempDir.Path, mediaFiles);
+                        var back = ConvertMarkdownToAnki(card.Back, tempDir.Path, mediaFiles);
                         
                         ankiCards.Add(new AnkiCardData
                         {
@@ -196,78 +192,49 @@ namespace CapyCard.Services.ImportExport.Formats
                             SubDeckName = subDeckName
                         });
                     }
-
-                    // Erstelle Anki-Decks und füge Karten hinzu
-                    await InsertAnkiDataAsync(connection, deck.Name, ankiCards);
-
-                    // Erstelle collection.anki2 (Abwärtskompatibilität - leere Dummy-Datenbank)
-                    var anki2Path = Path.Combine(tempDir.Path, "collection.anki2");
-                    using (var anki2Connection = new SqliteConnection($"Data Source={anki2Path}"))
-                    {
-                        await anki2Connection.OpenAsync();
-                        using var anki2Cmd = new SqliteCommand(@"
-                            CREATE TABLE IF NOT EXISTS col (
-                                id INTEGER PRIMARY KEY, crt INTEGER, mod INTEGER, scm INTEGER, 
-                                ver INTEGER, dty INTEGER, usn INTEGER, ls INTEGER, 
-                                conf TEXT, models TEXT, decks TEXT, dconf TEXT, tags TEXT
-                            );
-                            CREATE TABLE IF NOT EXISTS notes (
-                                id INTEGER PRIMARY KEY, guid TEXT, mid INTEGER, mod INTEGER,
-                                usn INTEGER, tags TEXT, flds TEXT, sfld TEXT, csum INTEGER,
-                                flags INTEGER, data TEXT
-                            );
-                            CREATE TABLE IF NOT EXISTS cards (
-                                id INTEGER PRIMARY KEY, nid INTEGER, did INTEGER, ord INTEGER,
-                                mod INTEGER, usn INTEGER, type INTEGER, queue INTEGER,
-                                due INTEGER, ivl INTEGER, factor INTEGER, reps INTEGER,
-                                lapses INTEGER, left INTEGER, odue INTEGER, odid INTEGER,
-                                flags INTEGER, data TEXT
-                            );
-                            CREATE TABLE IF NOT EXISTS revlog (
-                                id INTEGER PRIMARY KEY, cid INTEGER, usn INTEGER, ease INTEGER,
-                                ivl INTEGER, lastIvl INTEGER, factor INTEGER, time INTEGER,
-                                type INTEGER
-                            );
-                            CREATE TABLE IF NOT EXISTS graves (usn INTEGER, oid INTEGER, type INTEGER);
-                            INSERT INTO col (id, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags)
-                            VALUES (1, @crt, @mod, @scm, 11, 0, -1, 0, '{}', '{}', '{}', '{}', '{}');
-                        ", anki2Connection);
-                        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                        anki2Cmd.Parameters.AddWithValue("@crt", now / 1000);
-                        anki2Cmd.Parameters.AddWithValue("@mod", now);
-                        anki2Cmd.Parameters.AddWithValue("@scm", now);
-                        await anki2Cmd.ExecuteNonQueryAsync();
-                    }
-
-                    // Erstelle meta Datei (Protobuf - Format Version 1 für Legacy 2)
-                    var metaPath = Path.Combine(tempDir.Path, "meta");
-                    await File.WriteAllBytesAsync(metaPath, new byte[] { 0x08, 0x01 });
                 }
 
-                // Erstelle media-Datei (JSON-Mapping)
+                // 2. Bereite Anki-Daten vor (IDs generieren, JSONs bauen)
+                // WICHTIG: Wir nutzen dieselben Daten für beide DBs, um Konsistenz zu gewährleisten.
+                var ankiExportData = GenerateAnkiData(deckName, ankiCards);
+
+                // 3. Erstelle collection.anki21 (Haupt-DB)
+                var dbPath = Path.Combine(tempDir.Path, "collection.anki21");
+                using (var connection = new SqliteConnection($"Data Source={dbPath}"))
+                {
+                    await connection.OpenAsync();
+                    await CreateAnkiSchemaAsync(connection);
+                    await WriteAnkiDataAsync(connection, ankiExportData);
+                }
+
+                // 4. Erstelle collection.anki2 (Legacy-DB) - Identischer Inhalt!
+                // Anki benötigt auch in der Legacy-DB gültige JSON-Konfigurationen.
+                var anki2Path = Path.Combine(tempDir.Path, "collection.anki2");
+                using (var anki2Connection = new SqliteConnection($"Data Source={anki2Path}"))
+                {
+                    await anki2Connection.OpenAsync();
+                    await CreateAnkiSchemaAsync(anki2Connection);
+                    await WriteAnkiDataAsync(anki2Connection, ankiExportData);
+                }
+
+                // 5. Erstelle meta Datei (Protobuf - Format Version 1 für Legacy 2)
+                var metaPath = Path.Combine(tempDir.Path, "meta");
+                await File.WriteAllBytesAsync(metaPath, new byte[] { 0x08, 0x01 });
+
+                // 6. Erstelle media-Datei (JSON-Mapping)
                 var mediaMap = mediaFiles.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 var mediaJson = System.Text.Json.JsonSerializer.Serialize(mediaMap);
                 var mediaPath = Path.Combine(tempDir.Path, "media");
                 await File.WriteAllTextAsync(mediaPath, mediaJson);
 
-                // Erstelle ZIP-Archiv (.apkg)
+                // 7. Erstelle ZIP-Archiv (.apkg)
                 using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    // Füge Datenbank hinzu
                     archive.CreateEntryFromFile(dbPath, "collection.anki21", CompressionLevel.Optimal);
-                    
-                    // Füge collection.anki2 hinzu
-                    var anki2Path = Path.Combine(tempDir.Path, "collection.anki2");
                     archive.CreateEntryFromFile(anki2Path, "collection.anki2", CompressionLevel.Optimal);
-                    
-                    // Füge meta hinzu
-                    var metaPath = Path.Combine(tempDir.Path, "meta");
                     archive.CreateEntryFromFile(metaPath, "meta", CompressionLevel.Optimal);
-                    
-                    // Füge media-Datei hinzu
                     archive.CreateEntryFromFile(mediaPath, "media", CompressionLevel.Optimal);
                     
-                    // Füge alle Bilder hinzu
                     foreach (var kvp in mediaFiles)
                     {
                         var filePath = Path.Combine(tempDir.Path, kvp.Key);
@@ -289,6 +256,8 @@ namespace CapyCard.Services.ImportExport.Formats
 
         private async Task CreateAnkiSchemaAsync(SqliteConnection connection)
         {
+            // Schema angelehnt an Anki Standard (mit NOT NULL und korrekten Typen)
+            // Indizes angepasst an 'Good' Export (kein idx_notes_mid!)
             using var cmd = new SqliteCommand(@"
                 CREATE TABLE IF NOT EXISTS col (
                     id INTEGER PRIMARY KEY,
@@ -314,10 +283,10 @@ namespace CapyCard.Services.ImportExport.Formats
                     usn INTEGER NOT NULL DEFAULT -1,
                     tags TEXT NOT NULL,
                     flds TEXT NOT NULL,
-                    sfld TEXT NOT NULL,
-                    csum INTEGER,
-                    flags INTEGER DEFAULT 0,
-                    data TEXT DEFAULT ''
+                    sfld INTEGER NOT NULL,
+                    csum INTEGER NOT NULL,
+                    flags INTEGER NOT NULL DEFAULT 0,
+                    data TEXT NOT NULL DEFAULT ''
                 );
 
                 CREATE TABLE IF NOT EXISTS cards (
@@ -327,18 +296,18 @@ namespace CapyCard.Services.ImportExport.Formats
                     ord INTEGER NOT NULL DEFAULT 0,
                     mod INTEGER NOT NULL,
                     usn INTEGER NOT NULL DEFAULT -1,
-                    type INTEGER DEFAULT 0,
-                    queue INTEGER DEFAULT 0,
-                    due INTEGER DEFAULT 0,
-                    ivl INTEGER DEFAULT 0,
-                    factor INTEGER DEFAULT 0,
-                    reps INTEGER DEFAULT 0,
-                    lapses INTEGER DEFAULT 0,
-                    left INTEGER DEFAULT 0,
-                    odue INTEGER DEFAULT 0,
-                    odid INTEGER DEFAULT 0,
-                    flags INTEGER DEFAULT 0,
-                    data TEXT DEFAULT ''
+                    type INTEGER NOT NULL DEFAULT 0,
+                    queue INTEGER NOT NULL DEFAULT 0,
+                    due INTEGER NOT NULL DEFAULT 0,
+                    ivl INTEGER NOT NULL DEFAULT 0,
+                    factor INTEGER NOT NULL DEFAULT 0,
+                    reps INTEGER NOT NULL DEFAULT 0,
+                    lapses INTEGER NOT NULL DEFAULT 0,
+                    left INTEGER NOT NULL DEFAULT 0,
+                    odue INTEGER NOT NULL DEFAULT 0,
+                    odid INTEGER NOT NULL DEFAULT 0,
+                    flags INTEGER NOT NULL DEFAULT 0,
+                    data TEXT NOT NULL DEFAULT ''
                 );
 
                 CREATE TABLE IF NOT EXISTS revlog (
@@ -359,206 +328,273 @@ namespace CapyCard.Services.ImportExport.Formats
                     type INTEGER NOT NULL
                 );
 
-                CREATE INDEX IF NOT EXISTS idx_notes_usn ON notes(usn);
-                CREATE INDEX IF NOT EXISTS idx_notes_mid ON notes(mid);
-                CREATE INDEX IF NOT EXISTS idx_cards_usn ON cards(usn);
-                CREATE INDEX IF NOT EXISTS idx_cards_nid ON cards(nid);
-                CREATE INDEX IF NOT EXISTS idx_cards_odid ON cards(odid) WHERE odid != 0;
-                CREATE INDEX IF NOT EXISTS idx_revlog_usn ON revlog(usn);
+                CREATE INDEX IF NOT EXISTS ix_notes_usn ON notes (usn);
+                CREATE INDEX IF NOT EXISTS ix_cards_usn ON cards (usn);
+                CREATE INDEX IF NOT EXISTS ix_revlog_usn ON revlog (usn);
+                CREATE INDEX IF NOT EXISTS ix_cards_nid ON cards (nid);
+                CREATE INDEX IF NOT EXISTS ix_cards_sched ON cards (did, queue, due);
+                CREATE INDEX IF NOT EXISTS ix_revlog_cid ON revlog (cid);
+                CREATE INDEX IF NOT EXISTS ix_notes_csum ON notes (csum);
             ", connection);
             await cmd.ExecuteNonQueryAsync();
         }
 
-        private async Task InsertAnkiDataAsync(SqliteConnection connection, string deckName, List<AnkiCardData> cards)
+        private AnkiExportContext GenerateAnkiData(string deckName, List<AnkiCardData> cards)
         {
+            var ctx = new AnkiExportContext();
             var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var nowSeconds = now / 1000;
+
+            ctx.Crt = nowSeconds;
+            ctx.Mod = now;
             
-            // Verwende sichere, kleine IDs (int32 Bereich) um Überläufe zu vermeiden
-            // Anki IDs sind normalerweise Zeitstempel, aber für Import können kleinere Werte sicherer sein
-            // wenn irgendwo veraltete 32-bit Logik greift.
-            var rnd = new Random();
-            long deckId = rnd.Next(100000000, 200000000); 
-            long modelId = rnd.Next(200000000, 300000000);
+            // IDs generieren (Zeitstempel)
+            long deckId = now;
+            long modelId = now + 1;
             
-            var jsonOptions = new JsonSerializerOptions 
-            { 
-                PropertyNamingPolicy = null
-            };
-            
-            // Conf - Minimal
+            var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = null };
+
+            // Conf
             var confDict = new Dictionary<string, object>
             {
-                ["activeDecks"] = new[] { 1 }, // Setze auf Default Deck 1 um sicher zu gehen
+                ["creationOffset"] = -60,
+                ["sched2021"] = true,
+                ["dayLearnFirst"] = false,
+                ["nextPos"] = 1,
+                ["dueCounts"] = true,
+                ["schedVer"] = 2,
+                ["sortBackwards"] = false,
+                ["sortType"] = "noteFld",
+                ["estTimes"] = true,
+                ["timeLim"] = 0,
+                ["collapseTime"] = 1200,
                 ["curDeck"] = 1,
                 ["newSpread"] = 0,
-                ["collapseTime"] = 1200,
-                ["timeLim"] = 0,
-                ["estTimes"] = true,
-                ["dueCounts"] = true,
-                ["curModel"] = modelId.ToString(),
-                ["nextPos"] = 1,
-                ["sortType"] = "noteFld",
-                ["sortBackwards"] = false,
-                ["addToCur"] = true,
-                ["dayLearnFirst"] = false,
-                ["schedVer"] = 2,
-                ["sched2021"] = true,
-                ["creationOffset"] = 0
+                ["activeDecks"] = new[] { 1 },
+                ["curModel"] = modelId,
+                ["addToCur"] = true
             };
-            var confJson = JsonSerializer.Serialize(confDict, jsonOptions);
+            ctx.ConfJson = JsonSerializer.Serialize(confDict, jsonOptions);
 
             // Models
-            var modelDict = new Dictionary<string, object>
+            var model = new Dictionary<string, object>
             {
-                [modelId.ToString()] = new Dictionary<string, object>
+                ["id"] = modelId,
+                ["name"] = "Basis",
+                ["type"] = 0,
+                ["mod"] = 0,
+                ["usn"] = 0,
+                ["sortf"] = 0,
+                ["did"] = null,
+                ["tmpls"] = new[]
                 {
-                    ["id"] = modelId,
-                    ["name"] = "Basis",
-                    ["type"] = 0,
-                    ["mod"] = nowSeconds,
-                    ["usn"] = -1,
-                    ["sortf"] = 0,
-                    ["did"] = deckId, 
-                    ["tmpls"] = new[] 
-                    { 
-                        new Dictionary<string, object> {
-                            ["name"] = "Karte 1",
-                            ["ord"] = 0,
-                            ["qfmt"] = "{{Vorderseite}}",
-                            ["afmt"] = "{{Vorderseite}}<hr id=answer>{{Rückseite}}",
-                            ["bqfmt"] = "",
-                            ["bafmt"] = "",
-                            ["did"] = null!
-                        } 
+                    new Dictionary<string, object> {
+                        ["name"] = "Karte 1",
+                        ["ord"] = 0,
+                        ["qfmt"] = "{{Vorderseite}}",
+                        ["afmt"] = "{{Vorderseite}}<hr id=answer>{{Rückseite}}",
+                        ["bqfmt"] = "",
+                        ["bafmt"] = "",
+                        ["did"] = null,
+                        ["bfont"] = "",
+                        ["bsize"] = 0,
+                        ["id"] = Random.Shared.NextInt64()
+                    }
+                },
+                ["flds"] = new[]
+                {
+                    new Dictionary<string, object> { 
+                        ["name"] = "Vorderseite", ["ord"] = 0, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0] 
                     },
-                    ["flds"] = new[] 
-                    { 
-                        new Dictionary<string, object> { ["name"] = "Vorderseite", ["ord"] = 0, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["media"] = new object[0] },
-                        new Dictionary<string, object> { ["name"] = "Rückseite", ["ord"] = 1, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["media"] = new object[0] }
-                    },
-                    ["css"] = ".card { font-family: arial; font-size: 20px; text-align: center; color: black; background-color: white; }",
-                    ["req"] = new object[] { new object[] { 0, "all", new[] { 0 } } },
-                    ["tags"] = new object[0],
-                    ["vers"] = new object[0],
-                    ["latexPre"] = "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
-                    ["latexPost"] = "\\end{document}",
-                    ["latexsvg"] = false
-                }
+                    new Dictionary<string, object> { 
+                        ["name"] = "Rückseite", ["ord"] = 1, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0]
+                    }
+                },
+                ["css"] = ".card {\n    font-family: arial;\n    font-size: 20px;\n    line-height: 1.5;\n    text-align: center;\n    color: black;\n    background-color: white;\n}\n",
+                ["latexPre"] = "\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+                ["latexPost"] = "\\end{document}",
+                ["latexsvg"] = false,
+                ["req"] = new object[] { new object[] { 0, "any", new[] { 0 } } },
+                ["originalStockKind"] = 1
             };
-            var modelsJson = JsonSerializer.Serialize(modelDict, jsonOptions);
+            var modelDict = new Dictionary<string, object> { [modelId.ToString()] = model };
+            ctx.ModelsJson = JsonSerializer.Serialize(modelDict, jsonOptions);
 
             // Decks
+            var deckConf = new Dictionary<string, object>
+            {
+                ["id"] = 1,
+                ["mod"] = 0,
+                ["name"] = "Default",
+                ["usn"] = 0,
+                ["lrnToday"] = new[] { 0, 0 },
+                ["revToday"] = new[] { 0, 0 },
+                ["newToday"] = new[] { 0, 0 },
+                ["timeToday"] = new[] { 0, 0 },
+                ["collapsed"] = false,
+                ["browserCollapsed"] = false,
+                ["desc"] = "",
+                ["dyn"] = 0,
+                ["conf"] = 1,
+                ["extendNew"] = 0,
+                ["extendRev"] = 0,
+                ["reviewLimit"] = null,
+                ["newLimit"] = null,
+                ["reviewLimitToday"] = null,
+                ["newLimitToday"] = null,
+                ["desiredRetention"] = null
+            };
+            
+            var customDeck = new Dictionary<string, object>
+            {
+                ["id"] = deckId,
+                ["mod"] = 0,
+                ["name"] = deckName,
+                ["usn"] = 0,
+                ["lrnToday"] = new[] { 0, 0 },
+                ["revToday"] = new[] { 0, 0 },
+                ["newToday"] = new[] { 0, 0 },
+                ["timeToday"] = new[] { 0, 0 },
+                ["collapsed"] = false,
+                ["browserCollapsed"] = false,
+                ["desc"] = "",
+                ["dyn"] = 0,
+                ["conf"] = 1,
+                ["extendNew"] = 0,
+                ["extendRev"] = 0,
+                ["reviewLimit"] = null,
+                ["newLimit"] = null,
+                ["reviewLimitToday"] = null,
+                ["newLimitToday"] = null,
+                ["desiredRetention"] = null
+            };
+
             var deckDict = new Dictionary<string, object>
             {
-                ["1"] = new Dictionary<string, object>
-                {
-                    ["id"] = 1,
-                    ["name"] = "Default",
-                    ["desc"] = "",
-                    ["mod"] = nowSeconds,
-                    ["usn"] = 0,
-                    ["collapsed"] = false,
-                    ["browserCollapsed"] = false,
-                    ["newToday"] = new object[] { 0, 0 },
-                    ["revToday"] = new object[] { 0, 0 },
-                    ["lrnToday"] = new object[] { 0, 0 },
-                    ["timeToday"] = new object[] { 0, 0 },
-                    ["dyn"] = 0,
-                    ["conf"] = 1,
-                    ["extendNew"] = 10,
-                    ["extendRev"] = 50
-                },
-                [deckId.ToString()] = new Dictionary<string, object>
-                {
-                    ["id"] = deckId,
-                    ["name"] = deckName,
-                    ["desc"] = "",
-                    ["mod"] = nowSeconds,
-                    ["usn"] = -1,
-                    ["collapsed"] = false,
-                    ["browserCollapsed"] = false,
-                    ["newToday"] = new object[] { 0, 0 },
-                    ["revToday"] = new object[] { 0, 0 },
-                    ["lrnToday"] = new object[] { 0, 0 },
-                    ["timeToday"] = new object[] { 0, 0 },
-                    ["dyn"] = 0,
-                    ["conf"] = 1,
-                    ["extendNew"] = 10,
-                    ["extendRev"] = 50
-                }
+                ["1"] = deckConf,
+                [deckId.ToString()] = customDeck
             };
-            var decksJson = JsonSerializer.Serialize(deckDict, jsonOptions);
+            ctx.DecksJson = JsonSerializer.Serialize(deckDict, jsonOptions);
 
-            // Dconf - Manuell als String für Float-Sicherheit
-            var dconfJson = "{\"1\":{\"id\":1,\"name\":\"Standard\",\"mod\":" + nowSeconds + ",\"usn\":-1,\"maxTaken\":60,\"autoplay\":true,\"timer\":0,\"replayq\":true,\"new\":{\"bury\":false,\"delays\":[1.0,10.0],\"initialFactor\":2500,\"ints\":[1,4,0],\"order\":1,\"perDay\":20},\"rev\":{\"bury\":false,\"ease4\":1.3,\"hardFactor\":1.2,\"ivlFct\":1.0,\"maxIvl\":36500,\"perDay\":200},\"lapse\":{\"delays\":[10.0],\"leechAction\":1,\"leechFails\":8,\"minInt\":1,\"mult\":0.0},\"dyn\":false}}";
+            // Dconf
+            ctx.DconfJson = "{\"1\":{\"id\":1,\"mod\":0,\"name\":\"Default\",\"usn\":0,\"maxTaken\":60,\"autoplay\":true,\"timer\":0,\"replayq\":true,\"new\":{\"bury\":false,\"delays\":[1.0,10.0],\"initialFactor\":2500,\"ints\":[1,4,0],\"order\":1,\"perDay\":20},\"rev\":{\"bury\":false,\"ease4\":1.3,\"ivlFct\":1.0,\"maxIvl\":36500,\"perDay\":200,\"hardFactor\":1.2},\"lapse\":{\"delays\":[10.0],\"leechAction\":1,\"leechFails\":8,\"minInt\":1,\"mult\":0.0},\"dyn\":false,\"newMix\":0,\"newPerDayMinimum\":0,\"interdayLearningMix\":0,\"reviewOrder\":0,\"newSortOrder\":0,\"newGatherPriority\":0,\"buryInterdayLearning\":false,\"fsrsWeights\":[],\"fsrsParams5\":[],\"fsrsParams6\":[],\"desiredRetention\":0.9,\"ignoreRevlogsBeforeDate\":\"\",\"easyDaysPercentages\":[1.0,1.0,1.0,1.0,1.0,1.0,1.0],\"stopTimerOnAnswer\":false,\"secondsToShowQuestion\":0.0,\"secondsToShowAnswer\":0.0,\"questionAction\":0,\"answerAction\":0,\"waitForAudio\":true,\"sm2Retention\":0.9,\"weightSearch\":\"\"}}";
 
+            // Cards
+            long nextId = now + 1000;
+            int dueCounter = 1;
+
+            foreach (var card in cards)
+            {
+                long noteId = nextId++;
+                long cardId = nextId++;
+                
+                var sfld = Regex.Replace(card.Front, "<.*?>", "");
+                
+                ctx.Notes.Add(new AnkiNote
+                {
+                    NoteId = noteId,
+                    CardId = cardId,
+                    Guid = Guid.NewGuid().ToString("N").Substring(0, 10),
+                    ModelId = modelId,
+                    DeckId = deckId,
+                    Flds = card.Front + "\x1f" + card.Back,
+                    Sfld = sfld,
+                    Csum = GetCrc32(sfld)
+                });
+            }
+
+            return ctx;
+        }
+
+
+        private async Task WriteAnkiDataAsync(SqliteConnection connection, AnkiExportContext data)
+        {
             using (var cmd = new SqliteCommand(@"
                 INSERT INTO col (id, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags)
                 VALUES (@id, @crt, @mod, @scm, 11, 0, 0, 0, @conf, @models, @decks, @dconf, '{}')
             ", connection))
             {
-                cmd.Parameters.AddWithValue("@id", 1); // Col ID immer 1
-                cmd.Parameters.AddWithValue("@crt", nowSeconds);
-                cmd.Parameters.AddWithValue("@mod", now);
-                cmd.Parameters.AddWithValue("@scm", now);
-                cmd.Parameters.AddWithValue("@conf", confJson);
-                cmd.Parameters.AddWithValue("@models", modelsJson);
-                cmd.Parameters.AddWithValue("@decks", decksJson);
-                cmd.Parameters.AddWithValue("@dconf", dconfJson);
+                cmd.Parameters.AddWithValue("@id", 1);
+                cmd.Parameters.AddWithValue("@crt", data.Crt);
+                cmd.Parameters.AddWithValue("@mod", data.Mod);
+                cmd.Parameters.AddWithValue("@scm", data.Mod); // scm = mod
+                cmd.Parameters.AddWithValue("@conf", data.ConfJson);
+                cmd.Parameters.AddWithValue("@models", data.ModelsJson);
+                cmd.Parameters.AddWithValue("@decks", data.DecksJson);
+                cmd.Parameters.AddWithValue("@dconf", data.DconfJson);
                 await cmd.ExecuteNonQueryAsync();
             }
 
-            long noteId = rnd.Next(300000000, 400000000);
-            long cardId = rnd.Next(400000000, 500000000);
             int dueCounter = 1;
-            
-            foreach (var card in cards)
+            var nowSeconds = data.Crt;
+
+            using var transaction = connection.BeginTransaction();
+
+            foreach (var note in data.Notes)
             {
-                noteId++;
-                cardId++;
-                
-                var flds = card.Front + "\x1f" + card.Back;
-                var sfld = Regex.Replace(card.Front, "<.*?>", ""); 
-                
                 using (var cmd = new SqliteCommand(@"
                     INSERT INTO notes (id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data)
                     VALUES (@id, @guid, @mid, @mod, -1, '', @flds, @sfld, @csum, 0, '')
-                ", connection))
+                ", connection, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@id", noteId);
-                    cmd.Parameters.AddWithValue("@guid", Guid.NewGuid().ToString("N").Substring(0, 10));
-                    cmd.Parameters.AddWithValue("@mid", modelId);
+                    cmd.Parameters.AddWithValue("@id", note.NoteId);
+                    cmd.Parameters.AddWithValue("@guid", note.Guid);
+                    cmd.Parameters.AddWithValue("@mid", note.ModelId);
                     cmd.Parameters.AddWithValue("@mod", nowSeconds);
-                    cmd.Parameters.AddWithValue("@flds", flds);
-                    cmd.Parameters.AddWithValue("@sfld", sfld);
-                    cmd.Parameters.AddWithValue("@csum", GetCrc32(sfld));
+                    cmd.Parameters.AddWithValue("@flds", note.Flds);
+                    cmd.Parameters.AddWithValue("@sfld", note.Sfld); // Wird als INTEGER gespeichert, aber String ist ok in SQLite
+                    cmd.Parameters.AddWithValue("@csum", note.Csum);
                     await cmd.ExecuteNonQueryAsync();
                 }
 
                 using (var cmd = new SqliteCommand(@"
                     INSERT INTO cards (id, nid, did, ord, mod, usn, type, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data)
                     VALUES (@id, @nid, @did, 0, @mod, -1, 0, 0, @due, 0, 0, 0, 0, 0, 0, 0, 0, '')
-                ", connection))
+                ", connection, transaction))
                 {
-                    cmd.Parameters.AddWithValue("@id", cardId);
-                    cmd.Parameters.AddWithValue("@nid", noteId);
-                    cmd.Parameters.AddWithValue("@did", deckId);
+                    cmd.Parameters.AddWithValue("@id", note.CardId);
+                    cmd.Parameters.AddWithValue("@nid", note.NoteId);
+                    cmd.Parameters.AddWithValue("@did", note.DeckId);
                     cmd.Parameters.AddWithValue("@mod", nowSeconds);
-                    cmd.Parameters.AddWithValue("@due", dueCounter++); 
+                    cmd.Parameters.AddWithValue("@due", dueCounter++);
                     await cmd.ExecuteNonQueryAsync();
                 }
             }
+
+            await transaction.CommitAsync();
         }
 
-        private string ConvertMarkdownToAnki(string markdown, int mediaIndex, string tempDir, Dictionary<string, string> mediaFiles)
+        private class AnkiExportContext
+        {
+            public long Crt { get; set; }
+            public long Mod { get; set; }
+            public string ConfJson { get; set; } = "{}";
+            public string ModelsJson { get; set; } = "{}";
+            public string DecksJson { get; set; } = "{}";
+            public string DconfJson { get; set; } = "{}";
+            public List<AnkiNote> Notes { get; set; } = new();
+        }
+
+        private class AnkiNote
+        {
+            public long NoteId { get; set; }
+            public long CardId { get; set; }
+            public string Guid { get; set; } = "";
+            public long ModelId { get; set; }
+            public long DeckId { get; set; }
+            public string Flds { get; set; } = "";
+            public string Sfld { get; set; } = "";
+            public long Csum { get; set; }
+        }
+
+        private string ConvertMarkdownToAnki(string markdown, string tempDir, Dictionary<string, string> mediaFiles)
         {
             if (string.IsNullOrEmpty(markdown))
                 return "";
 
             var result = markdown;
-            var localIndex = mediaIndex;
 
+            // 1. Bilder verarbeiten
             result = MarkdownImageRegex.Replace(result, m =>
             {
                 var altText = m.Groups[1].Value;
@@ -577,14 +613,16 @@ namespace CapyCard.Services.ImportExport.Formats
                         _ => "jpg"
                     };
 
-                    var fileName = $"{localIndex}.{extension}";
-                    var filePath = Path.Combine(tempDir, fileName);
+                    var currentIdx = mediaFiles.Count;
+                    var zipFileName = currentIdx.ToString();
+                    var contentFileName = $"image-{currentIdx}.{extension}";
+
+                    var filePath = Path.Combine(tempDir, zipFileName);
                     File.WriteAllBytes(filePath, bytes);
 
-                    mediaFiles[fileName] = fileName;
-                    localIndex++;
+                    mediaFiles[zipFileName] = contentFileName;
 
-                    return $"<img src=\"{fileName}\">";
+                    return $"<img src=\"{contentFileName}\">";
                 }
                 catch
                 {
@@ -592,12 +630,110 @@ namespace CapyCard.Services.ImportExport.Formats
                 }
             });
 
-            result = result.Replace("**", "<b>");
-            result = result.Replace("*", "<i>");
-            result = result.Replace("_", "<i>");
-            result = result.Replace("\n", "<br>");
+            // 2. Block-Level Elemente verarbeiten (Listen, Absätze)
+            result = ConvertBlocksToHtml(result);
 
             return result;
+        }
+
+        private string ConvertBlocksToHtml(string markdown)
+        {
+            var lines = markdown.Split('\n');
+            var output = new List<string>();
+            var listStack = new Stack<(string Type, int Indent)>();
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                
+                // Prüfe ob Zeile eine Liste ist
+                var listInfo = ParseListLine(line);
+                
+                if (listInfo.IsList)
+                {
+                    // Schließe Listen mit gleicher oder größerer Einrückung
+                    while (listStack.Count > 0 && listStack.Peek().Indent >= listInfo.Indent)
+                    {
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                    }
+
+                    // Öffne neue Liste wenn nötig
+                    if (listStack.Count == 0 || listStack.Peek().Indent < listInfo.Indent)
+                    {
+                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
+                        listStack.Push((listInfo.Type, listInfo.Indent));
+                    }
+
+                    // Füge Listenelement hinzu
+                    output.Add($"<li>{ConvertInlineFormatting(listInfo.Content)}</li>");
+                }
+                else
+                {
+                    // Nicht-Listen-Zeile: Schließe alle Listen
+                    while (listStack.Count > 0)
+                    {
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                    }
+
+                    // Verarbeite Nicht-Listen-Zeile
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        output.Add($"<div>{ConvertInlineFormatting(line)}</div>");
+                    }
+                }
+            }
+
+            // Schließe verbleibende Listen
+            while (listStack.Count > 0)
+            {
+                var closed = listStack.Pop();
+                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+            }
+
+            return string.Join("", output);
+        }
+
+        private (bool IsList, string Type, int Indent, string Content) ParseListLine(string line)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                return (false, "", 0, "");
+
+            var leadingSpaces = line.TakeWhile(c => c == ' ').Count();
+            var trimmed = line.TrimStart();
+
+            // Unordered list: - item
+            if (trimmed.StartsWith("- "))
+            {
+                var content = trimmed.Substring(2);
+                return (true, "ul", leadingSpaces, content);
+            }
+
+            // Ordered list: 1. item
+            var orderedMatch = Regex.Match(trimmed, @"^(\d+)\.\s+(.+)$");
+            if (orderedMatch.Success)
+            {
+                var content = orderedMatch.Groups[2].Value;
+                return (true, "ol", leadingSpaces, content);
+            }
+
+            return (false, "", leadingSpaces, line);
+        }
+
+        private string ConvertInlineFormatting(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return text;
+
+            // Reihenfolge wichtig: zuerst längere Patterns
+            text = Regex.Replace(text, @"\*\*(.+?)\*\*", "<b>$1</b>");  // Bold
+            text = Regex.Replace(text, @"__(.+?)__", "<u>$1</u>");        // Underline
+            text = Regex.Replace(text, @"\*(.+?)\*", "<i>$1</i>");        // Italic
+            text = Regex.Replace(text, @"_(.+?)_", "<i>$1</i>");          // Italic (alternative)
+            text = Regex.Replace(text, @"==(.+?)==", "<mark>$1</mark>");  // Highlight
+
+            return text;
         }
 
         private static long GetCrc32(string input)
