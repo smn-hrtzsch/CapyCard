@@ -476,3 +476,5 @@ Release/**/.DS_Store
 *.jks
 
 .gemini-clipboard/
+
+*.apkg

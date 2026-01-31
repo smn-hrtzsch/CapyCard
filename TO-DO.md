@@ -22,21 +22,19 @@
 - [ ] Import/Export von Kartenstapeln (evtl. Anbindung an Anki): Es soll möglich sein bestehenden Kartenstapel zu importieren (aus den gängigen Formaten von Anki/RemNote etc.) und auch Kartenstapel zu exportieren. Es soll auch ein eigenes Import und Export Format geben (z.B. JSON oder CSV). Es müssen auch Bilder und die Formatierung der Karten unterstützt werden. Außerdem soll es einen klaren info-Button geben, der erklärt, wie der Import/Export funktioniert und welche Formate unterstützt werden.
 - [x] Es sollte möglich sein sich mit LLMs (z.B. im Web) Karteikarten zu generieren. Meine Idee: Der Nutzer kann ein Thema angeben oder Material (z.B. Text, PDF, Webseite) hochladen und dann werden automatisch Karteikarten generiert. Dafür brauchen wir ein geignetes Format, welches von unserer App als Import akzeptiert wird. Was ist dafür am besten geeignet? Könnten wir z.B. JSON nutzen und dann nicht als Datei Importieren, sondern direkt als Text? Oder beides Anbieten? Können wir einen Button "Prompt erzeugen" Button hinzufügen, der beim Klicken einen vordefinierten Prompt in die Zwischenablage kopiert, den der Nutzer dann in ein LLM seiner Wahl einfügen kann? Der Prompt sollte so gestaltet sein, dass er dem LLM erklärt, wie die Karteikarten formatiert sein sollen, damit sie von unserer App importiert werden können. Für Bilder sollte im Prompt erklärt werden, dass sie entweder direkt als Base64 eingebunden werden können oder ein Verweis auf das Material (z.B. Webseite oder PDF Seite) gegeben werden soll, damit der Nutzer die Bilder manuell hinzufügen kann.
 
-## Card Grid View
-
 ## UI-Overhaul
 
-- [x] Komplett neues App Design:
-  - [x] Orientierung am Design der Shopping List App (siehe Referenz für Farben und Styles)
-  - [x] Neues Farbschema
-  - [x] einheitliche Design-Sprache bei Icons
-  - [x] abgerundete Ecken bei Buttons, Eingabe-Feldern, Dialogen (falls vorhanden)
-  - [x] Eingabefelder für Themen und Fächer sollten Abstand zum rand haben und eher schweben, als am Rand kleben
+- [ ] User mehr optionen zur Farbgebung geben 
+- [ ] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
+- [ ] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
+
+## Editor
+
+- [ ] Optionen des Rich-Text Editors sollte man ausblenden können.
 
 ## Bugs
 
 - [ ] Kontraste der Bewertungs-Buttons im Smart Learn Mode sind nicht gut genug, die Schriftfarbe kann man nur schwer von den Buttonfarben unterscheiden. Passe die Farben der Buttons an, sodass der Kontrast besser ist.
-- [ ] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 - [ ] Auf iOS lässt sich das Themen Dropdown im Card Detail View nicht schließen, weil der Button zum schließen nach unten außerhalb des Bildschirms verschwindet. Prüfe dieses Verhalten für Mobile, auch die in Android und die Einabezeile für neue Themen verschwindet nach unten außerhalb des Bildschirms, wenn man die Themen ausklappt.
@@ -46,4 +44,5 @@
 
 ## Fixed Bugs
 
-- [x] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
+- [x] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
+- [x] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
