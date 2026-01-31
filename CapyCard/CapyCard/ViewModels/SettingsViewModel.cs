@@ -35,6 +35,24 @@ namespace CapyCard.ViewModels
         [ObservableProperty]
         private string _selectedMode;
 
+        public bool IsModeSystem
+        {
+            get => SelectedMode == "System";
+            set { if (value) SelectedMode = "System"; OnPropertyChanged(); }
+        }
+
+        public bool IsModeLight
+        {
+            get => SelectedMode == "Light";
+            set { if (value) SelectedMode = "Light"; OnPropertyChanged(); }
+        }
+
+        public bool IsModeDark
+        {
+            get => SelectedMode == "Dark";
+            set { if (value) SelectedMode = "Dark"; OnPropertyChanged(); }
+        }
+
         [ObservableProperty]
         private bool _isZenMode;
 
@@ -44,14 +62,14 @@ namespace CapyCard.ViewModels
         // Available Options
         public ObservableCollection<ColorOption> ColorOptions { get; } = new()
         {
-            new() { Name = "Teal", Color = "#018786" },
-            new() { Name = "Blue", Color = "#2196F3" },
-            new() { Name = "Green", Color = "#4CAF50" },
-            new() { Name = "Red", Color = "#F44336" },
+            new() { Name = "Teal", Color = "#00897B" },
+            new() { Name = "Blue", Color = "#1E88E5" },
+            new() { Name = "Green", Color = "#43A047" },
+            new() { Name = "Red", Color = "#E53935" },
             new() { Name = "Orange", Color = "#FF9800" },
-            new() { Name = "Purple", Color = "#9C27B0" },
-            new() { Name = "Pink", Color = "#E91E63" },
-            new() { Name = "Monochrome", Color = "#424242" }
+            new() { Name = "Purple", Color = "#8E24AA" },
+            new() { Name = "Pink", Color = "#D81B60" },
+            new() { Name = "Monochrome", Color = "#757575" }
         };
         
         public ObservableCollection<string> AvailableModes { get; } = new()
@@ -91,6 +109,11 @@ namespace CapyCard.ViewModels
             SelectedMode = settings.ThemeMode;
             IsZenMode = settings.IsZenMode;
             ShowEditorToolbar = settings.ShowEditorToolbar;
+            
+            // Trigger mode property changes
+            OnPropertyChanged(nameof(IsModeSystem));
+            OnPropertyChanged(nameof(IsModeLight));
+            OnPropertyChanged(nameof(IsModeDark));
         }
 
         partial void OnSelectedColorChanged(string value)
@@ -107,7 +130,14 @@ namespace CapyCard.ViewModels
             }
         }
 
-        partial void OnSelectedModeChanged(string value) => ApplyTheme();
+        partial void OnSelectedModeChanged(string value)
+        {
+            OnPropertyChanged(nameof(IsModeSystem));
+            OnPropertyChanged(nameof(IsModeLight));
+            OnPropertyChanged(nameof(IsModeDark));
+            ApplyTheme();
+        }
+
         partial void OnIsZenModeChanged(bool value) => ApplyTheme();
 
         private void ApplyTheme()

@@ -2,28 +2,30 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="PrimaryColor">#FFE91E63</Color>
-            <Color x:Key="PrimaryLightColor">#FFE91E63</Color>
+            <Color x:Key="PrimaryColor">#FFD81B60</Color>
+            <Color x:Key="PrimaryLightColor">#FFF06292</Color>
+            <Color x:Key="PrimaryHoverColor">#FFC2185B</Color>
             <Color x:Key="SecondaryColor">#FF00E676</Color>
-            <Color x:Key="ErrorColor">#FFC2185B</Color>
             
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
             <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
-
-            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFFFFFFF"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <Color x:Key="PrimaryColor">#FFF06292</Color>
-            <Color x:Key="PrimaryLightColor">#FFF48FB1</Color>
+            <Color x:Key="PrimaryColor">#FFD81B60</Color>
+            <Color x:Key="PrimaryLightColor">#FFF06292</Color>
+            <Color x:Key="PrimaryHoverColor">#FFC2185B</Color>
             <Color x:Key="SecondaryColor">#FF69F0AE</Color>
-            <Color x:Key="ErrorColor">#FFF48FB1</Color>
             
-            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FF000000"/>
-
-            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryColor}"/>
-            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFFFFFFF"/>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

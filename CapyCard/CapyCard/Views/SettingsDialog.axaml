@@ -21,6 +21,7 @@
                 Padding="24"
                 Margin="24"
                 MaxWidth="450"
+                MinHeight="500"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
                 CornerRadius="28"
@@ -44,8 +45,8 @@
                 </Grid>
     
                 <!-- Content -->
-                <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,16,0">
-                    <StackPanel Spacing="24">
+                <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,20,0">
+                    <StackPanel Spacing="32">
                         
                         <!-- Color Selection -->
                         <StackPanel Spacing="12">
@@ -102,11 +103,11 @@
                             <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
                             <StackPanel Orientation="Horizontal" Spacing="16">
                                  <RadioButton GroupName="Mode" Content="System" 
-                                              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=System}"/>
+                                              IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
                                  <RadioButton GroupName="Mode" Content="Hell" 
-                                              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Light}"/>
+                                              IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
                                  <RadioButton GroupName="Mode" Content="Dunkel" 
-                                              IsChecked="{Binding SelectedMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Dark}"/>
+                                              IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
                             </StackPanel>
                         </StackPanel>
                         

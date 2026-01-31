@@ -19,7 +19,18 @@ namespace CapyCard.Services
                 "Dark" => ThemeVariant.Dark,
                 _ => ThemeVariant.Default
             };
+            
+            // Set Application level variant
             app.RequestedThemeVariant = themeVariant;
+
+            // Explicitly set on all windows to force update
+            if (app.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                foreach (var window in desktop.Windows)
+                {
+                    window.RequestedThemeVariant = themeVariant;
+                }
+            }
 
             // 2. Determine Color Palette Source
             // If Zen Mode is active, we might want to enforce Monochrome or a muted theme.

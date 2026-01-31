@@ -33,19 +33,14 @@
         
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <!-- Brushes -->
-                    <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{DynamicResource PrimaryLightColor}"/>
-                    <SolidColorBrush x:Key="SecondaryBrush" Color="{DynamicResource SecondaryColor}"/>
                     <SolidColorBrush x:Key="BackgroundBrush" Color="#FFDDDDDD"/>
                     <SolidColorBrush x:Key="SurfaceBrush" Color="#FFCACACA"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFBDBDBD"/>
-                    <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource ErrorColor}"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="#FFB71C1C"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FF333333"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FF808080"/>
-                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
                     
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFE0E0E0"/>
@@ -58,6 +53,11 @@
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FFBDBDBD"/>
 
+                    <!-- Toggle Switch Overrides -->
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{DynamicResource PrimaryColor}"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource PrimaryHoverColor}"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{DynamicResource PrimaryColor}"/>
+
                     <!-- RadioButton & CheckBox Overrides -->
                     <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
@@ -86,24 +86,19 @@
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFDDDDDD"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFDDDDDD"/>
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{DynamicResource TextOnPrimaryColor}"/>
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{DynamicResource TextOnPrimaryColor}"/>
                 </ResourceDictionary>
                 
                 <ResourceDictionary x:Key="Dark">
-                    <!-- Brushes -->
-                    <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{DynamicResource PrimaryLightColor}"/>
-                    <SolidColorBrush x:Key="SecondaryBrush" Color="{DynamicResource SecondaryColor}"/>
                     <SolidColorBrush x:Key="BackgroundBrush" Color="#FF333333"/>
                     <SolidColorBrush x:Key="SurfaceBrush" Color="#FF505050"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF616161"/>
-                    <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource ErrorColor}"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="#FFE57373"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FFDDDDDD"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA5A5A7"/>
-                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
 
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FF424242"/>
@@ -116,6 +111,11 @@
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FF616161"/>
 
+                    <!-- Toggle Switch Overrides -->
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{DynamicResource PrimaryColor}"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource PrimaryHoverColor}"/>
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{DynamicResource PrimaryColor}"/>
+
                     <!-- RadioButton & CheckBox Overrides -->
                     <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
@@ -144,8 +144,8 @@
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{DynamicResource PrimaryColor}"/>
                     <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFDDDDDD"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFDDDDDD"/>
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{DynamicResource TextOnPrimaryColor}"/>
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{DynamicResource TextOnPrimaryColor}"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
