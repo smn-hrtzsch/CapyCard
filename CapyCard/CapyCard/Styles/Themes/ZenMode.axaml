@@ -1,0 +1,56 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+    
+    <!-- Zen Mode Overrides: Make buttons less distracting (Outline instead of Filled) -->
+    
+    <!-- Primary Buttons -> Outline Style -->
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}" />
+        <Setter Property="Opacity" Value="0.1" />
+    </Style>
+    
+    <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}" />
+        <Setter Property="Opacity" Value="0.3" />
+    </Style>
+
+    <!-- FABs -> Outline Style -->
+    <Style Selector="Button.fab">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" /> <!-- Keep surface background to cover content below -->
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+    
+    <Style Selector="Button.fab:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnPrimaryBrush}" />
+    </Style>
+
+    <!-- Hide Icons in Buttons that also have text (heuristic approach) -->
+    <!-- This assumes Buttons with text don't rely solely on the icon. -->
+    <!-- We target specific buttons if needed, or generally apply "calmness" -->
+    
+    <!-- Reduce saturation of secondary elements -->
+    <!-- Secondary Buttons -> More muted -->
+    <Style Selector="Button.secondary">
+        <Setter Property="Opacity" Value="0.7" />
+    </Style>
+    
+    <!-- Floating Inputs -> Less colorful focus -->
+    <Style Selector="TextBox.floating:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+</Styles>

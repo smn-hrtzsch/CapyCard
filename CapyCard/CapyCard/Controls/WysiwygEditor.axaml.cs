@@ -187,7 +187,10 @@ namespace CapyCard.Controls
             }
             else if (change.Property == IsToolbarVisibleProperty)
             {
-                UpdateToolbarVisibility((bool)change.NewValue);
+                if (change.NewValue is bool visible)
+                {
+                    UpdateToolbarVisibility(visible);
+                }
             }
         }
 

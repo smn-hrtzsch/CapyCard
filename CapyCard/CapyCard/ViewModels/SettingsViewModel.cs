@@ -1,3 +1,4 @@
+using Avalonia.Media;
 using CapyCard.Models;
 using CapyCard.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,10 +8,15 @@ using System.Threading.Tasks;
 
 namespace CapyCard.ViewModels
 {
-    public class ColorOption
+    public partial class ColorOption : ObservableObject
     {
         public required string Name { get; set; }
         public required string Color { get; set; }
+
+        [ObservableProperty]
+        private bool _isSelected;
+        
+        public IBrush PreviewBrush => Brush.Parse(Color);
     }
 
     public partial class SettingsViewModel : ViewModelBase
@@ -63,6 +69,8 @@ namespace CapyCard.ViewModels
             _selectedMode = "System";
             _isZenMode = false;
             _showEditorToolbar = true;
+            
+            UpdateColorSelection();
         }
 
         public async Task InitializeAsync()
@@ -85,7 +93,20 @@ namespace CapyCard.ViewModels
             ShowEditorToolbar = settings.ShowEditorToolbar;
         }
 
-        partial void OnSelectedColorChanged(string value) => ApplyTheme();
+        partial void OnSelectedColorChanged(string value)
+        {
+            UpdateColorSelection();
+            ApplyTheme();
+        } 
+        
+        private void UpdateColorSelection()
+        {
+            foreach (var option in ColorOptions)
+            {
+                option.IsSelected = option.Name == SelectedColor;
+            }
+        }
+
         partial void OnSelectedModeChanged(string value) => ApplyTheme();
         partial void OnIsZenModeChanged(bool value) => ApplyTheme();
 

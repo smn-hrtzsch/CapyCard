@@ -40,7 +40,7 @@ namespace CapyCard.Services
             
             try
             {
-                // Create new ResourceInclude
+                // Create new ResourceInclude for Colors
                 var newTheme = new ResourceInclude(new Uri("avares://CapyCard/App.axaml"))
                 {
                     Source = newSource
@@ -55,10 +55,52 @@ namespace CapyCard.Services
                 {
                     app.Resources.MergedDictionaries.Add(newTheme);
                 }
+
+                // 3. Zen Mode - Apply or Remove Overrides
+                // We use index 1 for Zen Mode styles if they exist, or append.
+                // Best practice: manage specific "slots" in MergedDictionaries.
+                // Slot 0: Colors (managed above)
+                // Slot 1: Zen Mode (managed here)
+                
+                var zenSource = new Uri("avares://CapyCard/Styles/Themes/ZenMode.axaml");
+                
+                // Remove existing Zen Mode if present
+                for (int i = app.Resources.MergedDictionaries.Count - 1; i >= 0; i--)
+                {
+                    var dict = app.Resources.MergedDictionaries[i] as ResourceInclude;
+                    if (dict?.Source == zenSource)
+                    {
+                        app.Resources.MergedDictionaries.RemoveAt(i);
+                    }
+                    // Also check Styles collection for StyleInclude
+                    // ZenMode.axaml contains <Styles>, so it should be added to Application.Styles, not Resources!
+                }
+                
+                // Handle Zen Mode Styles in Application.Styles
+                // Slot: We assume we can append to Styles.
+                var zenStyleSource = new Uri("avares://CapyCard/Styles/Themes/ZenMode.axaml");
+                
+                // First remove any existing Zen styles
+                for (int i = app.Styles.Count - 1; i >= 0; i--)
+                {
+                    if (app.Styles[i] is StyleInclude include && include.Source == zenStyleSource)
+                    {
+                        app.Styles.RemoveAt(i);
+                    }
+                }
+
+                if (isZen)
+                {
+                    var zenStyle = new StyleInclude(new Uri("avares://CapyCard/App.axaml"))
+                    {
+                        Source = zenStyleSource
+                    };
+                    app.Styles.Add(zenStyle);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to load theme {color}: {ex.Message}");
+                Console.WriteLine($"Failed to load theme {color} or Zen Mode: {ex.Message}");
             }
         }
     }

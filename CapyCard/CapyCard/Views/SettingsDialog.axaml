@@ -59,60 +59,6 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <RadioButton GroupName="Colors"
-                                                     Margin="0,0,12,12"
-                                                     Theme="{StaticResource {x:Null}}"
-                                                     Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
-                                                     CommandParameter="{Binding Name}">
-                                            <RadioButton.IsChecked>
-                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                    <Binding Path="$parent[UserControl].DataContext.SelectedColor" Converter="{x:Static StringConverters.IsNotNullOrEmpty}"/>
-                                                    <!-- Note: This binding is tricky without a custom converter for comparison. 
-                                                         Instead, let's use a simpler approach with Button and a Border for selection state. -->
-                                                </MultiBinding>
-                                            </RadioButton.IsChecked>
-                                            
-                                            <!-- Custom Color Button Template -->
-                                            <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
-                                                    CommandParameter="{Binding Name}"
-                                                    Padding="0"
-                                                    CornerRadius="20"
-                                                    Width="40"
-                                                    Height="40"
-                                                    Background="Transparent"
-                                                    BorderThickness="0">
-                                                <Panel>
-                                                    <!-- Selection Ring -->
-                                                    <Border Width="40" Height="40" CornerRadius="20"
-                                                            BorderBrush="{DynamicResource TextControlForeground}"
-                                                            BorderThickness="2"
-                                                            IsVisible="{Binding Name, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={Binding $parent[UserControl].DataContext.SelectedColor}}"/>
-                                                    
-                                                    <!-- Color Circle -->
-                                                    <Border Width="32" Height="32" CornerRadius="16"
-                                                            Background="{Binding Color}"
-                                                            HorizontalAlignment="Center"
-                                                            VerticalAlignment="Center"/>
-                                                </Panel>
-                                            </Button>
-                                        </RadioButton>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <!-- Note: The RadioButton approach above is complex to bind 'IsChecked' correctly without a converter. 
-                                 Let's simplify by using just a Button inside the ItemsControl. -->
-                        </StackPanel>
-                        
-                        <!-- Simplified ItemsControl for Colors -->
-                         <StackPanel Spacing="12">
-                            <ItemsControl ItemsSource="{Binding ColorOptions}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
                                         <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
                                                 CommandParameter="{Binding Name}"
                                                 Padding="0"
@@ -128,46 +74,25 @@
                                             </Button.Styles>
                                             <Panel>
                                                 <!-- Selection Ring (Active) -->
-                                                <!-- We need a way to compare Binding Name with DataContext.SelectedColor.
-                                                     Since we don't have a generic EqualityConverter easily available, 
-                                                     we will rely on the ViewModel having a property 'IsSelected' on the ColorOption? 
-                                                     No, ViewModel is simple.
-                                                     
-                                                     Let's assume we can't do the ring easily without a converter.
-                                                     I'll just put a checkmark icon if selected.
-                                                -->
+                                                <Border Width="44" Height="44" CornerRadius="22"
+                                                        BorderBrush="{DynamicResource TextControlForeground}"
+                                                        BorderThickness="2"
+                                                        IsVisible="{Binding IsSelected}"/>
+                                                
+                                                <!-- Color Circle -->
                                                 <Border Width="34" Height="34" CornerRadius="17"
-                                                        Background="{Binding Color}"
+                                                        Background="{Binding PreviewBrush}"
                                                         HorizontalAlignment="Center"
                                                         VerticalAlignment="Center"/>
                                                         
                                                  <!-- Selected Indicator -->
-                                                 <!-- Using string equality in XAML is hard without a converter. 
-                                                      I'll try to add a 'SetSelectedColorCommand' in the VM. 
-                                                      But for visual feedback...
-                                                      Actually, Avalonia 11 supports binding to methods or some logical operators? No.
-                                                      
-                                                      Let's accept that we might not show the ring easily without a converter.
-                                                      Wait, I can use a ValueConverter if I create one.
-                                                      I'll use the existing 'ObjectConverters.Equal' with a binding to the parent DataContext.
-                                                 -->
-                                                <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White">
-                                                    <materialIcons:MaterialIcon.IsVisible>
-                                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                            <!-- This requires a custom converter to compare A and B. -->
-                                                            <!-- ABORT: Simplest way is to define a helper property in ColorOption or just use the ComboBox if I can't make it pretty. -->
-                                                            <!-- Or, I can use a basic border and rely on the user seeing the theme change immediately. -->
-                                                        </MultiBinding>
-                                                    </materialIcons:MaterialIcon.IsVisible>
-                                                </materialIcons:MaterialIcon>
+                                                <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White"
+                                                                          IsVisible="{Binding IsSelected}"/>
                                             </Panel>
                                         </Button>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <!-- Note: I will use a simple ItemsControl and rely on the instant theme switch feedback. 
-                                 The user clicks, the theme changes. The ring is nice but tricky without C# changes.
-                                 Actually, I can add a 'IsSelected' property to ColorOption in the ViewModel and update it when selection changes! -->
                          </StackPanel>
                         
                         <Separator Background="{DynamicResource DividerBrush}" Height="1"/>
