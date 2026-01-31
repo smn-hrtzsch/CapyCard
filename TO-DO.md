@@ -13,7 +13,7 @@
 - [x] Das Hinzufügen, Löschen und Bearbeiten von Themen sollte auch im DeckListView möglich sein. Aktuell ist das nur im CardDetailView möglich. Dazu sollte ein Eingabefeld für das Thema und einen Button zum Hinzufügen geben, das sollte aber dezenter sein, als die Eingabefelder für Fächer im DeckListView. Vielleicht am Anfang der Themen-Liste, wenn man ein Fach ausgeklappt hat.
 - [x] Datei-Import sollte auch .txt oder .json Dateien im bereits unterstützem Format (KI/Text-Import Format) möglich sein.
 - [ ] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig.
-- [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import integrieren.
+- [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
 - [ ] Tippfehler Rot unterstreichen
 - [ ] Fenstergröße automatisch an Bildschirmgröße anpassen (Desktop-Fenster ist auf kleineren Bildschirmen zu groß)
 - [ ] Textgröße auf Mobile anpassen
