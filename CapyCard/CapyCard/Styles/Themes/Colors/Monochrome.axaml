@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="PrimaryColor">#FF424242</Color>
-            <Color x:Key="PrimaryLightColor">#FF616161</Color>
+            <Color x:Key="PrimaryColor">#FF212121</Color>
+            <Color x:Key="PrimaryLightColor">#FF424242</Color>
             <Color x:Key="SecondaryColor">#FF757575</Color>
             <Color x:Key="ErrorColor">#FFB71C1C</Color>
             
@@ -14,12 +14,12 @@
             <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <Color x:Key="PrimaryColor">#FFE0E0E0</Color>
-            <Color x:Key="PrimaryLightColor">#FFFFFFFF</Color>
+            <Color x:Key="PrimaryColor">#FF000000</Color>
+            <Color x:Key="PrimaryLightColor">#FF212121</Color>
             <Color x:Key="SecondaryColor">#FFBDBDBD</Color>
             <Color x:Key="ErrorColor">#FFE57373</Color>
             
-            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FF000000"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
 
             <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
             <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryColor}"/>

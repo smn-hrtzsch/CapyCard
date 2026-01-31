@@ -44,7 +44,7 @@
                 </Grid>
     
                 <!-- Content -->
-                <ScrollViewer Grid.Row="1" MaxHeight="450" Padding="0,0,16,0">
+                <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,16,0">
                     <StackPanel Spacing="24">
                         
                         <!-- Color Selection -->
@@ -54,7 +54,7 @@
                             <ItemsControl ItemsSource="{Binding ColorOptions}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal"/>
+                                        <UniformGrid Columns="4"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>

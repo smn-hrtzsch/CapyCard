@@ -3,7 +3,7 @@
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
             <Color x:Key="PrimaryColor">#FF018786</Color>
-            <Color x:Key="PrimaryLightColor">#FF018786</Color>
+            <Color x:Key="PrimaryLightColor">#FF4DB6AC</Color>
             <Color x:Key="SecondaryColor">#FF6200EE</Color>
             <Color x:Key="ErrorColor">#FFB71C1C</Color>
             
