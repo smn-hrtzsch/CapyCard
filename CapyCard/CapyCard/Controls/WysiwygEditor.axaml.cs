@@ -57,14 +57,6 @@ namespace CapyCard.Controls
         // Speichere die Original-Foreground-Farbe
         private IBrush? _originalForeground;
         
-        // Speichert den Zustand der Toolbar-Sichtbarkeit
-        private bool _isToolbarVisible = true;
-        
-        // Statische Felder für globale Toolbar-Sichtbarkeit über alle Instanzen
-        private static bool _globalToolbarVisible = true;
-        private static readonly List<WysiwygEditor> _instances = new();
-        public static event Action<bool>? GlobalToolbarVisibilityChanged;
-
         #endregion
 
         #region Dependency Properties
@@ -74,6 +66,9 @@ namespace CapyCard.Controls
 
         public static readonly StyledProperty<string> WatermarkProperty =
             AvaloniaProperty.Register<WysiwygEditor, string>(nameof(Watermark), "Text eingeben...");
+            
+        public static readonly StyledProperty<bool> IsToolbarVisibleProperty =
+            AvaloniaProperty.Register<WysiwygEditor, bool>(nameof(IsToolbarVisible), true);
 
         /// <summary>
         /// Der Text im Editor (mit Markdown-Formatierung).
@@ -91,6 +86,12 @@ namespace CapyCard.Controls
         {
             get => GetValue(WatermarkProperty);
             set => SetValue(WatermarkProperty, value);
+        }
+        
+        public bool IsToolbarVisible
+        {
+            get => GetValue(IsToolbarVisibleProperty);
+            set => SetValue(IsToolbarVisibleProperty, value);
         }
 
         #endregion
@@ -121,17 +122,6 @@ namespace CapyCard.Controls
             
             // Tooltips je nach Betriebssystem anpassen
             UpdateToolbarTooltips();
-            
-            // Registriere diese Instanz und abonniere globale Events
-            _instances.Add(this);
-            GlobalToolbarVisibilityChanged += UpdateToolbarVisibility;
-            
-            // Cleanup wenn das Control entladen wird
-            Unloaded += (s, e) =>
-            {
-                _instances.Remove(this);
-                GlobalToolbarVisibilityChanged -= UpdateToolbarVisibility;
-            };
         }
 
         #endregion
@@ -167,8 +157,8 @@ namespace CapyCard.Controls
             // TextBox-Text initial unsichtbar (bis fokussiert)
             EditorTextBox.Foreground = Brushes.Transparent;
             
-            // Initiale Toolbar-Sichtbarkeit basierend auf globalem Zustand
-            UpdateToolbarVisibility(_globalToolbarVisible);
+            // Initiale Toolbar-Sichtbarkeit basierend auf Property
+            UpdateToolbarVisibility(IsToolbarVisible);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -194,6 +184,10 @@ namespace CapyCard.Controls
                 {
                     _isUpdating = false;
                 }
+            }
+            else if (change.Property == IsToolbarVisibleProperty)
+            {
+                UpdateToolbarVisibility((bool)change.NewValue);
             }
         }
 
@@ -428,33 +422,17 @@ namespace CapyCard.Controls
 
         private void OnToggleToolbarClick(object? sender, RoutedEventArgs e)
         {
-            // Toggle globalen Zustand
-            _globalToolbarVisible = !_globalToolbarVisible;
-            
-            // Aktualisiere alle Instanzen
-            UpdateAllInstancesToolbarVisibility(_globalToolbarVisible);
-            
-            // Fire global event
-            GlobalToolbarVisibilityChanged?.Invoke(_globalToolbarVisible);
-        }
-        
-        private static void UpdateAllInstancesToolbarVisibility(bool visible)
-        {
-            foreach (var instance in _instances)
-            {
-                instance.UpdateToolbarVisibility(visible);
-            }
+            // Toggle lokalen Zustand (via Property)
+            IsToolbarVisible = !IsToolbarVisible;
         }
         
         private void UpdateToolbarVisibility(bool visible)
         {
-            _isToolbarVisible = visible;
-            
             // Toolbar ein- oder ausblenden
-            ToolbarBorder.IsVisible = _isToolbarVisible;
+            ToolbarBorder.IsVisible = visible;
             
             // Icon wechseln je nach Zustand (EyeOff = Toolbar ist sichtbar, Eye = Toolbar ist ausgeblendet)
-            if (_isToolbarVisible)
+            if (visible)
             {
                 ToggleToolbarIcon.Kind = Material.Icons.MaterialIconKind.EyeOff;
                 ToolTip.SetTip(ToggleToolbarButton, "Toolbar ausblenden");

@@ -24,13 +24,13 @@
 
 ## UI-Overhaul
 
-- [ ] User mehr optionen zur Farbgebung geben (nicht nur Teal sondern z.B. auch Blau, Grün, Rot etc.). Auf ausreichend kontrast muss geachtet werden und dass die App trotzdem ein einheitliches Design hat. Die Position der Einstellungen muss gut gewählt werden (ggf. in der DeckListView in der Titelzeile oben rechts als settings Icon?)
-- [ ] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
-- [ ] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
+- [x] User mehr optionen zur Farbgebung geben (nicht nur Teal sondern z.B. auch Blau, Grün, Rot etc.). Auf ausreichend kontrast muss geachtet werden und dass die App trotzdem ein einheitliches Design hat. Die Position der Einstellungen muss gut gewählt werden (ggf. in der DeckListView in der Titelzeile oben rechts als settings Icon?)
+- [x] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
+- [x] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
 
 ## Editor
 
-- [ ] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen.
+- [x] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen. (Persistent via Einstellungen speicherbar)
 
 ## Bugs
 

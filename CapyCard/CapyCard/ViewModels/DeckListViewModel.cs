@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using CapyCard.Services;
 
 namespace CapyCard.ViewModels
 {
@@ -20,56 +21,63 @@ namespace CapyCard.ViewModels
         [ObservableProperty]
         private bool _isConfirmingDelete = false;
 
-        // KORREKTUR: Speichert jetzt das DeckItemViewModel für die Lösch-Bestätigung
         private DeckItemViewModel? _deckToConfirmDelete;
 
-        // KORREKTUR: Die Liste verwaltet jetzt DeckItemViewModels
         public ObservableCollection<DeckItemViewModel> Decks { get; } = new();
 
-        // Import/Export ViewModels
         public ImportViewModel ImportViewModel { get; }
         public FormatInfoViewModel FormatInfoViewModel { get; }
         public ImportHelpViewModel ImportHelpViewModel { get; }
-        // Event for file picker (to be wired up from View)
+        
         public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
-        // KORREKTUR: Die Eigenschaft für das ausgewählte Item ist jetzt vom Typ DeckItemViewModel
+        
         private DeckItemViewModel? _selectedDeck;
         public DeckItemViewModel? SelectedDeck
         {
             get => _selectedDeck;
             set
             {
-                // Beim Auswählen eines Items (Klick für Navigation)...
                 if (SetProperty(ref _selectedDeck, value) && value != null)
                 {
-                    // ...solange wir nicht gerade dieses Item bearbeiten...
                     if (!value.IsEditing)
                     {
-                        // ...navigiere zur Detail-Ansicht.
                         OnDeckSelected?.Invoke(value.Deck);
-                        _selectedDeck = null; // Auswahl aufheben
+                        _selectedDeck = null;
                         OnPropertyChanged(nameof(SelectedDeck));
                     }
                 }
             }
         }
         public event Action<Deck>? OnDeckSelected;
-        public DeckListViewModel()
+
+        public SettingsViewModel SettingsViewModel { get; }
+
+        public DeckListViewModel(IUserSettingsService userSettingsService, ThemeService themeService)
         {
-            // _dbContext removed
             ImportViewModel = new ImportViewModel();
             FormatInfoViewModel = new FormatInfoViewModel();
             ImportHelpViewModel = new ImportHelpViewModel();
-            // Wire up import events
+            SettingsViewModel = new SettingsViewModel(userSettingsService, themeService);
+
             ImportViewModel.OnRequestFileOpen += async () => await (OnRequestFileOpen?.Invoke() ?? Task.FromResult<IStorageFile?>(null));
             ImportViewModel.OnImportCompleted += OnImportCompleted;
             ImportViewModel.RequestShowFormatInfo += () => ImportHelpViewModel.Show();
             LoadDecks();
         }
+        
+        public DeckListViewModel() : this(new UserSettingsService(), new ThemeService()) 
+        {
+        }
+
+        [RelayCommand]
+        private async Task OpenSettings()
+        {
+            await SettingsViewModel.InitializeAsync();
+            SettingsViewModel.IsOpen = true;
+        }
 
         private void OnImportCompleted(ImportResult result)
         {
-            // Refresh deck list after successful import
             LoadDecks();
         }
 
@@ -84,7 +92,6 @@ namespace CapyCard.ViewModels
             
             using (var context = new FlashcardDbContext())
             {
-                // Load all decks to build hierarchy in memory (simpler for now than recursive SQL)
                 var allDecks = await context.Decks
                     .AsNoTracking()
                     .Include(d => d.Cards)
@@ -102,13 +109,12 @@ namespace CapyCard.ViewModels
 
         private DeckItemViewModel CreateDeckItemViewModel(Deck deck, System.Collections.Generic.List<Deck> allDecks)
         {
-            // Calculate total cards recursively
             int totalCards = CalculateTotalCards(deck, allDecks);
             var vm = new DeckItemViewModel(deck, totalCards);
             
             var subDecks = allDecks
                 .Where(d => d.ParentDeckId == deck.Id)
-                .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
+                .OrderByDescending(d => d.Name == "Allgemein") 
                 .ThenBy(d => d.Id)
                 .ToList();
 
@@ -137,7 +143,6 @@ namespace CapyCard.ViewModels
 
         public void UpdateDeckCardCount(int deckId, int cardCount)
         {
-            // Recursive search
             var deckVm = FindDeckViewModel(Decks, deckId);
             if (deckVm != null)
             {
@@ -171,12 +176,10 @@ namespace CapyCard.ViewModels
                 await context.SaveChangesAsync();
             }
             
-            // KORREKTUR: Füge den Wrapper zur UI-Liste hinzu
             Decks.Add(new DeckItemViewModel(newDeck));
             NewDeckName = string.Empty;
         }
 
-        // KORREKTUR: Nimmt jetzt ein DeckItemViewModel entgegen
         [RelayCommand]
         private void DeleteDeck(DeckItemViewModel? itemVM)
         {
@@ -193,8 +196,6 @@ namespace CapyCard.ViewModels
 
             using (var context = new FlashcardDbContext())
             {
-                // KORREKTUR: Löscht das 'innere' Deck-Modell
-                // Wir müssen es erst attachen oder finden
                 var deckToDelete = await context.Decks.FindAsync(_deckToConfirmDelete.Deck.Id);
                 if (deckToDelete != null)
                 {
@@ -203,10 +204,8 @@ namespace CapyCard.ViewModels
                 }
             }
 
-            // KORREKTUR: Entfernt das Wrapper-ViewModel aus der UI-Liste
             if (!RemoveRecursive(Decks, _deckToConfirmDelete))
             {
-                // Fallback, falls es aus irgendeinem Grund nicht gefunden wurde (sollte nicht passieren)
                 Decks.Remove(_deckToConfirmDelete);
             }
 
@@ -231,37 +230,29 @@ namespace CapyCard.ViewModels
             IsConfirmingDelete = false; 
         }
 
-        // NEU: Befehl zum Speichern des bearbeiteten Fachnamens
         [RelayCommand]
         private async Task SaveDeckEdit(DeckItemViewModel? itemVM)
         {
             if (itemVM == null || string.IsNullOrWhiteSpace(itemVM.EditText))
             {
-                itemVM?.CancelEdit(); // Breche ab, wenn der Name leer ist
+                itemVM?.CancelEdit();
                 SelectedDeck = null;
                 return;
             }
 
             using (var context = new FlashcardDbContext())
             {
-                // Finde das Fach in der Datenbank
                 var trackedDeck = await context.Decks.FindAsync(itemVM.Deck.Id);
                 if (trackedDeck != null)
                 {
-                    // 1. Aktualisiere die Datenbank
                     trackedDeck.Name = itemVM.EditText;
                     await context.SaveChangesAsync();
 
-                    // 2. Aktualisiere die "Name"-Eigenschaft im UI-Modell
-                    //    (Dadurch wird das TextBlock in der UI aktualisiert)
                     itemVM.Name = itemVM.EditText;
-
-                    // 3. Beende den Bearbeiten-Modus
                     itemVM.IsEditing = false;
                 }
                 else
                 {
-                    // Fach nicht gefunden? Breche den Editiermodus ab.
                     itemVM.CancelEdit();
                 }
             }

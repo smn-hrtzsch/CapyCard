@@ -19,22 +19,34 @@
             <DockPanel Margin="16">
                 <!-- TOP AREA: Create New Deck -->
                 <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,16">
-                    <Border Background="{DynamicResource SurfaceBorderBrush}" 
-                            CornerRadius="20" 
-                            Padding="16,4" 
-                            HorizontalAlignment="Center"
-                            Margin="12,0"
-                            Opacity="0.8">
-                        <TextBlock Text="Meine Fächer" 
-                                   FontWeight="Bold" 
-                                   FontSize="18"
-                                   TextAlignment="Center"
-                                   Foreground="{DynamicResource TextControlForeground}"/>
-                    </Border>
+                    <Grid ColumnDefinitions="*,Auto,*" Margin="12,0">
+                        <!-- Centered Header -->
+                        <Border Grid.Column="1"
+                                Background="{DynamicResource SurfaceBorderBrush}" 
+                                CornerRadius="20" 
+                                Padding="16,4" 
+                                HorizontalAlignment="Center"
+                                Opacity="0.8">
+                            <TextBlock Text="Meine Fächer" 
+                                       FontWeight="Bold" 
+                                       FontSize="18"
+                                       TextAlignment="Center"
+                                       Foreground="{DynamicResource TextControlForeground}"/>
+                        </Border>
+                        
+                        <!-- Right Aligned Settings -->
+                        <Button Grid.Column="2"
+                                Classes="icon"
+                                Command="{Binding OpenSettingsCommand}"
+                                HorizontalAlignment="Right"
+                                ToolTip.Tip="Einstellungen">
+                            <materialIcons:MaterialIcon Kind="Cog" Width="24" Height="24" Foreground="{DynamicResource TextMutedBrush}"/>
+                        </Button>
+                    </Grid>
                     
                     <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
                     
-                    <Grid ColumnDefinitions="*, Auto, Auto, Auto">
+                    <Grid ColumnDefinitions="*, Auto, Auto, Auto, Auto">
                         <TextBox x:Name="NewDeckTextBox"
                                  Classes="floating"
                                  Text="{Binding NewDeckName, Mode=TwoWay}"
@@ -364,5 +376,8 @@
         
         <!-- Import Help Dialog Overlay -->
         <views:ImportHelpDialog x:Name="ImportHelpDialog" DataContext="{Binding ImportHelpViewModel}"/>
+
+        <!-- Settings Dialog Overlay -->
+        <views:SettingsDialog IsVisible="{Binding IsOpen, Mode=TwoWay}" DataContext="{Binding SettingsViewModel}"/>
     </Grid>
 </UserControl>

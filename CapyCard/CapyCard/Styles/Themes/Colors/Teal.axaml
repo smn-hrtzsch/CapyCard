@@ -1,0 +1,29 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <Color x:Key="PrimaryColor">#FF018786</Color>
+            <Color x:Key="PrimaryLightColor">#FF018786</Color>
+            <Color x:Key="SecondaryColor">#FF6200EE</Color>
+            <Color x:Key="ErrorColor">#FFB71C1C</Color>
+            
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
+            
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="PrimaryColor">#FF00897B</Color>
+            <Color x:Key="PrimaryLightColor">#FF03DAC5</Color>
+            <Color x:Key="SecondaryColor">#FFBB86FC</Color>
+            <Color x:Key="ErrorColor">#FFE57373</Color>
+            
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
+
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
