@@ -3,15 +3,35 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:CapyCard.ViewModels"
-             xmlns:controls="using:CapyCard.Controls"
-             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-             x:Class="CapyCard.Views.LearnView"
-             x:DataType="vm:LearnViewModel"
-             x:Name="Root"
-             Focusable="True">
+              xmlns:controls="using:CapyCard.Controls"
+              xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+              x:Class="CapyCard.Views.LearnView"
+              x:DataType="vm:LearnViewModel"
+              x:Name="Root"
+              Focusable="True">
 
-    <UserControl.KeyBindings>
+     <UserControl.Styles>
+         <!-- Rating Button Hover Styles - even darker on hover -->
+         <Style Selector="Button.rating-btn-red:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+             <Setter Property="Background" Value="#E57373"/>
+             <Setter Property="TextElement.Foreground" Value="#000000"/>
+         </Style>
+         <Style Selector="Button.rating-btn-orange:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+             <Setter Property="Background" Value="#FFB74D"/>
+             <Setter Property="TextElement.Foreground" Value="#000000"/>
+         </Style>
+         <Style Selector="Button.rating-btn-green:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+             <Setter Property="Background" Value="#81C784"/>
+             <Setter Property="TextElement.Foreground" Value="#000000"/>
+         </Style>
+         <Style Selector="Button.rating-btn-blue:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+             <Setter Property="Background" Value="#64B5F6"/>
+             <Setter Property="TextElement.Foreground" Value="#000000"/>
+         </Style>
+     </UserControl.Styles>
+
+     <UserControl.KeyBindings>
         <KeyBinding Command="{Binding SaveEditCommand}" Gesture="Ctrl+Enter"/>
         <KeyBinding Command="{Binding SaveEditCommand}" Gesture="Meta+Enter"/>
     </UserControl.KeyBindings>
@@ -186,18 +206,22 @@
                                         IsVisible="{Binding ShowShowBackButton}"/>
 
                                  <Grid ColumnDefinitions="*,*,*,*" IsVisible="{Binding ShowNextCardButton}" Margin="0,8,0,0">
-                                    <Button x:Name="Rate1Btn" Grid.Column="0" Content="Nochmal" Command="{Binding RateCardCommand}" CommandParameter="1" HotKey="D1" 
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
-                                            Background="#FFEF9A9A" Foreground="#B71C1C" CornerRadius="25" Margin="0,0,4,0"/>
-                                    <Button x:Name="Rate2Btn" Grid.Column="1" Content="Schwer" Command="{Binding RateCardCommand}" CommandParameter="2" HotKey="D2" 
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
-                                            Background="#FFFFCC80" Foreground="#E65100" CornerRadius="25" Margin="4,0,4,0"/>
-                                    <Button x:Name="Rate3Btn" Grid.Column="2" Content="Gut" Command="{Binding RateCardCommand}" CommandParameter="3" HotKey="D3" 
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
-                                            Background="#FFA5D6A7" Foreground="#1B5E20" CornerRadius="25" Margin="4,0,4,0"/>
-                                    <Button x:Name="Rate4Btn" Grid.Column="3" Content="Einfach" Command="{Binding RateCardCommand}" CommandParameter="4" HotKey="D4" 
-                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" 
-                                            Background="#FF90CAF9" Foreground="#0D47A1" CornerRadius="25" Margin="4,0,0,0"/>
+                                     <Button x:Name="Rate1Btn" Grid.Column="0" Content="Nochmal" Command="{Binding RateCardCommand}" CommandParameter="1" HotKey="D1"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                             Classes="rating-btn-red"
+                                             Background="#EF9A9A" Foreground="#000000" CornerRadius="25" Margin="0,0,4,0" FontWeight="SemiBold"/>
+                                     <Button x:Name="Rate2Btn" Grid.Column="1" Content="Schwer" Command="{Binding RateCardCommand}" CommandParameter="2" HotKey="D2"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                             Classes="rating-btn-orange"
+                                             Background="#FFCC80" Foreground="#000000" CornerRadius="25" Margin="4,0,4,0" FontWeight="SemiBold"/>
+                                     <Button x:Name="Rate3Btn" Grid.Column="2" Content="Gut" Command="{Binding RateCardCommand}" CommandParameter="3" HotKey="D3"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                             Classes="rating-btn-green"
+                                             Background="#A5D6A7" Foreground="#000000" CornerRadius="25" Margin="4,0,4,0" FontWeight="SemiBold"/>
+                                     <Button x:Name="Rate4Btn" Grid.Column="3" Content="Einfach" Command="{Binding RateCardCommand}" CommandParameter="4" HotKey="D4"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                                             Classes="rating-btn-blue"
+                                             Background="#90CAF9" Foreground="#000000" CornerRadius="25" Margin="4,0,0,0" FontWeight="SemiBold"/>
                                  </Grid>
                                  
                                  <Button Content="{Binding ReshuffleButtonText}"

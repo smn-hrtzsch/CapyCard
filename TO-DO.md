@@ -34,7 +34,6 @@
 
 ## Bugs
 
-- [ ] Kontraste der Bewertungs-Buttons im Smart Learn Mode sind nicht gut genug, die Schriftfarbe kann man nur schwer von den Buttonfarben unterscheiden. Passe die Farben der Buttons an, sodass der Kontrast besser ist. Hier ein Screenshot zum aktuellen Stand: 
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 - [ ] Auf iOS lässt sich das Themen Dropdown im Card Detail View nicht schließen, weil der Button zum schließen nach unten außerhalb des Bildschirms verschwindet. Prüfe dieses Verhalten für Mobile, auch die in Android und die Einabezeile für neue Themen verschwindet nach unten außerhalb des Bildschirms, wenn man die Themen ausklappt.
@@ -44,7 +43,8 @@
 
 ## Fixed Bugs
 
-- [x] Beim erstellen einer nummerierten Liste im Rich-Text Editor wird die Nummerierung nicht korrekt gehandhabt, wenn man einrückungen vornimmt. Momentan kann man Einrückungen vornehmen und die Nummerierung aus der ersten Ebene wird weitergeführt, anstatt eine neue Ebene zu beginnen. Passe das Verhalten so an, dass bei Einrückungen eine neue nummerierte Ebene begonnen wird.
+- [x] Kontraste der Bewertungs-Buttons im Smart Learn Mode verbessert. Schriftfarbe auf dunkles Schwarz/Grau geändert für besseren Kontrast.
+- [x] Beim erstellen einer nummerierten Liste im Rich-Text Editor wird die Nummerierung nicht korrekt gehandhabt, wenn man einrückungen vornimmt. Momentan kann man Einrückungen vornehmen und die Nummerierung aus der ersten Ebene wird weitergeführt, anstatt eine neue Ebene zu beginnen. Passe das Verhalten so an, dass bei Einrückungen eine neue nummerierte Ebene begonnen wird.
 - [x] Anki Import funktioniert noch nicht. Es gibt diese Meldungen, wenn ich apkg Dateien importieren möchte: "Bitte installieren Sie die aktuelle Anki-Version. Importieren Sie die .colpkg-Datei anschließend erneut." oder "Please update to the latest Anki version, then import the .colpkg/.apkg file again.". Aber ich habe die aktuelle Version von Anki installiert (25.09) und die apkg Dateien sollten funktionieren. Prüfe, ob wir die Anki .apkg Dateien korrekt fomatieren und importieren können.
 - [x] Beim Export als .apkg Datei werden Bilder nicht korrekt exportiert und bei Anki nicht angezeigt. Prüfe, ob die Bilder korrekt in die .apkg Datei eingebunden werden.
 - [x] Anki Import Fehler 500 "Ein Zahlwert war ungültig" und "index idx_notes_mid already exists" behoben. Ursachen waren leere JSON-Configs in der Legacy-DB, inkompatible Indizes und falsche Datentypen (String statt Zahl bei IDs). Export-Logik ist nun vollständig Anki-konform.
