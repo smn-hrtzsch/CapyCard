@@ -608,11 +608,16 @@
         <!-- IMAGE PREVIEW OVERLAY -->
         <Grid IsVisible="{Binding IsImagePreviewOpen}" Background="#E6000000" ZIndex="2000" Name="ImagePreviewOverlay">
             <Grid>
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="0,0,0,100" Name="ImageScrollViewer">
-                    <LayoutTransformControl HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <LayoutTransformControl.LayoutTransform><ScaleTransform ScaleX="{Binding ImageZoomLevel}" ScaleY="{Binding ImageZoomLevel}"/></LayoutTransformControl.LayoutTransform>
-                        <Image Source="{Binding PreviewImageSource}" Stretch="None" HorizontalAlignment="Center" VerticalAlignment="Center" Name="PreviewImageControl"/>
-                    </LayoutTransformControl>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Padding="40" Name="ImageScrollViewer">
+                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" 
+                            Width="{Binding ScaledImageWidth}" 
+                            Height="{Binding ScaledImageHeight}">
+                        <Image Source="{Binding PreviewImageSource}" 
+                               Stretch="Uniform"
+                               Width="{Binding ScaledImageWidth}"
+                               Height="{Binding ScaledImageHeight}"
+                               Name="PreviewImageControl"/>
+                    </Canvas>
                 </ScrollViewer>
                 <Button Command="{Binding CloseImagePreviewCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="24" Width="48" Height="48" CornerRadius="24" Background="#66000000" Padding="0"><materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="White"/></Button>
                 <Border HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,48" CornerRadius="28" Background="#CC202020" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="24,12" BoxShadow="0 4 16 0 #80000000">
