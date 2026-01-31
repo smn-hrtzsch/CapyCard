@@ -66,7 +66,9 @@ namespace CapyCard.Controls
             
             EditorTextBox.Text = newTextContent;
             
-            var newCursorPos = cursorPos + insertText.Length;
+            // Cursor nach der neuen Nummer positionieren
+            // Finde die Zeile nach cursorPos und setze Cursor nach dem Listen-Präfix
+            var newCursorPos = FindPositionAfterListPrefix(newTextContent, cursorPos);
             EditorTextBox.SelectionStart = newCursorPos;
             EditorTextBox.SelectionEnd = newCursorPos;
             
@@ -300,6 +302,35 @@ namespace CapyCard.Controls
             }
             
             return string.Join('\n', result);
+        }
+
+        /// <summary>
+        /// Findet die Cursor-Position nach dem Listen-Präfix auf der Zeile, die nach insertPosition beginnt.
+        /// Stellt sicher, dass der Cursor hinter der Nummer/Aufzählungszeichen positioniert wird.
+        /// </summary>
+        private int FindPositionAfterListPrefix(string text, int insertPosition)
+        {
+            // Finde den Zeilenanfang der neuen Zeile (nach insertPosition)
+            var newLineStart = text.IndexOf('\n', insertPosition);
+            if (newLineStart == -1) return text.Length;
+            newLineStart++; // Position nach dem \n
+            
+            // Finde das Ende dieser Zeile
+            var lineEnd = text.IndexOf('\n', newLineStart);
+            if (lineEnd == -1) lineEnd = text.Length;
+            
+            var line = text.Substring(newLineStart, lineEnd - newLineStart);
+            
+            // Prüfe auf Listen-Präfix in dieser Zeile
+            var match = Regex.Match(line, @"^(\s*)(?:(\d+)\. |- )");
+            if (match.Success)
+            {
+                // Cursor nach dem Präfix positionieren
+                return newLineStart + match.Length;
+            }
+            
+            // Fallback: Cursor an den Zeilenanfang
+            return newLineStart;
         }
 
         /// <summary>
