@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="200"
              x:Class="CapyCard.Controls.WysiwygEditor"
              x:Name="Root"
@@ -17,7 +18,6 @@
         <StreamGeometry x:Key="IconPaste">M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z</StreamGeometry>
         <StreamGeometry x:Key="IconImage">M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z</StreamGeometry>
         <StreamGeometry x:Key="IconBulletList">M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z</StreamGeometry>
-        <StreamGeometry x:Key="IconNumberList">M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z</StreamGeometry>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -38,6 +38,25 @@
         </Style>
         <Style Selector="Button.toolbar-btn.active /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}"/>
+        </Style>
+        
+        <!-- Floating Toggle Button Style -->
+        <Style Selector="Button.floating-btn">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Opacity" Value="0.7"/>
+        </Style>
+        <Style Selector="Button.floating-btn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+            <Setter Property="Opacity" Value="1.0"/>
+        </Style>
+        <Style Selector="Button.floating-btn:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListMediumBrush}"/>
         </Style>
         
         <!-- Inner TextBox - transparent background on all states -->
@@ -75,147 +94,168 @@
             BorderThickness="1" 
             CornerRadius="12"
             Background="{DynamicResource SurfaceBrush}">
-        <Grid RowDefinitions="Auto,*">
-            <!-- Toolbar -->
-            <Border Grid.Row="0" 
-                    Background="{DynamicResource SurfaceBorderBrush}"
-                    BorderBrush="{DynamicResource DividerBrush}"
-                    BorderThickness="0,0,0,1"
-                    CornerRadius="12,12,0,0"
-                    Padding="4">
-                <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-                <StackPanel Orientation="Horizontal" Spacing="2">
-                    <!-- Fett -->
-                    <Button x:Name="BoldButton"
-                            Classes="toolbar-btn" 
-                            Click="OnBoldClick"
-                            Focusable="False"
-                            ToolTip.Tip="Fett (Strg+B)">
-                        <PathIcon Data="{StaticResource IconBold}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Kursiv -->
-                    <Button x:Name="ItalicButton"
-                            Classes="toolbar-btn" 
-                            Click="OnItalicClick"
-                            Focusable="False"
-                            ToolTip.Tip="Kursiv (Strg+I)">
-                        <PathIcon Data="{StaticResource IconItalic}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Unterstrichen -->
-                    <Button x:Name="UnderlineButton"
-                            Classes="toolbar-btn" 
-                            Click="OnUnderlineClick"
-                            Focusable="False"
-                            ToolTip.Tip="Unterstrichen (Strg+U)">
-                        <PathIcon Data="{StaticResource IconUnderline}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Hervorhebung -->
-                    <Button x:Name="HighlightButton"
-                            Classes="toolbar-btn" 
-                            Click="OnHighlightClick"
-                            Focusable="False"
-                            ToolTip.Tip="Hervorheben (Strg+H)">
-                        <PathIcon Data="{StaticResource IconHighlight}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Einfügen -->
-                    <Button x:Name="PasteButton"
-                            Classes="toolbar-btn" 
-                            Click="OnPasteClick"
-                            Focusable="False"
-                            ToolTip.Tip="Einfügen">
-                        <PathIcon Data="{StaticResource IconPaste}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Separator -->
-                    <Border Classes="toolbar-separator"/>
-                    
-                    <!-- Bild einfügen -->
-                    <Button x:Name="ImageButton"
-                            Classes="toolbar-btn" 
-                            Click="OnImageClick"
-                            Focusable="False"
-                            ToolTip.Tip="Bild einfügen">
-                        <PathIcon Data="{StaticResource IconImage}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Separator -->
-                    <Border Classes="toolbar-separator"/>
-                    
-                    <!-- Aufzählungsliste -->
-                    <Button x:Name="BulletListButton"
-                            Classes="toolbar-btn" 
-                            Click="OnBulletListClick"
-                            Focusable="False"
-                            ToolTip.Tip="Aufzählungsliste">
-                        <PathIcon Data="{StaticResource IconBulletList}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                    
-                    <!-- Nummerierte Liste -->
-                    <Button x:Name="NumberListButton"
-                            Classes="toolbar-btn" 
-                            Click="OnNumberListClick"
-                            Focusable="False"
-                            ToolTip.Tip="Nummerierte Liste">
-                        <PathIcon Data="{StaticResource IconNumberList}" 
-                                  Width="14" Height="14"/>
-                    </Button>
-                </StackPanel>
+        <Panel>
+            <!-- Main Grid with Toolbar and Editor -->
+            <Grid RowDefinitions="Auto,*">
+                <!-- Toolbar Zeile -->
+                <Border x:Name="ToolbarBorder"
+                        Grid.Row="0" 
+                        Background="{DynamicResource SurfaceBorderBrush}"
+                        BorderBrush="{DynamicResource DividerBrush}"
+                        BorderThickness="0,0,0,1"
+                        CornerRadius="12,12,0,0"
+                        Padding="4">
+                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" 
+                                  VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                            <!-- Fett -->
+                            <Button x:Name="BoldButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnBoldClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Fett (Strg+B)">
+                                <PathIcon Data="{StaticResource IconBold}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Kursiv -->
+                            <Button x:Name="ItalicButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnItalicClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Kursiv (Strg+I)">
+                                <PathIcon Data="{StaticResource IconItalic}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Unterstrichen -->
+                            <Button x:Name="UnderlineButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnUnderlineClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Unterstrichen (Strg+U)">
+                                <PathIcon Data="{StaticResource IconUnderline}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Hervorhebung -->
+                            <Button x:Name="HighlightButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnHighlightClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Hervorheben (Strg+H)">
+                                <PathIcon Data="{StaticResource IconHighlight}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Einfügen -->
+                            <Button x:Name="PasteButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnPasteClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Einfügen">
+                                <PathIcon Data="{StaticResource IconPaste}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Separator -->
+                            <Border Classes="toolbar-separator"/>
+                            
+                            <!-- Bild einfügen -->
+                            <Button x:Name="ImageButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnImageClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Bild einfügen">
+                                <PathIcon Data="{StaticResource IconImage}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Separator -->
+                            <Border Classes="toolbar-separator"/>
+                            
+                            <!-- Aufzählungsliste -->
+                            <Button x:Name="BulletListButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnBulletListClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Aufzählungsliste">
+                                <PathIcon Data="{StaticResource IconBulletList}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                            
+                            <!-- Nummerierte Liste -->
+                            <Button x:Name="NumberListButton"
+                                    Classes="toolbar-btn" 
+                                    Click="OnNumberListClick"
+                                    Focusable="False"
+                                    ToolTip.Tip="Nummerierte Liste">
+                                <PathIcon Data="{StaticResource IconNumberList}" 
+                                          Width="14" Height="14"/>
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+                
+                <!-- Editor Area - Flexibel mit MinHeight, wächst mit verfügbarem Platz -->
+                <!-- Ein gemeinsamer ScrollViewer für beide Modi damit sie gleich groß sind -->
+                <ScrollViewer Grid.Row="1" 
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              x:Name="EditorScrollViewer">
+                    <Grid MinHeight="80">
+                        <!-- Live formatierte Anzeige (sichtbar wenn NICHT editiert wird) -->
+                        <TextBlock x:Name="FormattedDisplay"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Top"
+                                   Margin="14,12,14,12"
+                                   IsHitTestVisible="False"
+                                   IsVisible="False"/>
+                        
+                        <!-- Watermark (nur sichtbar wenn leer und nicht fokussiert) -->
+                        <TextBlock x:Name="WatermarkDisplay"
+                                   Text="{Binding Watermark, ElementName=Root}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Top"
+                                   Margin="14,12,14,12"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   Opacity="0.6"
+                                   IsHitTestVisible="False"
+                                   IsVisible="True"/>
+                        
+                        <!-- TextBox für Eingabe - immer vorhanden, Text-Farbe wechselt -->
+                        <TextBox x:Name="EditorTextBox"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 Padding="12,10,12,10"
+                                 Margin="0"
+                                 VerticalAlignment="Stretch"
+                                 HorizontalAlignment="Stretch"
+                                 KeyDown="OnEditorKeyDown"
+                                 TextChanged="OnTextChanged"
+                                 GotFocus="OnEditorGotFocus"
+                                 LostFocus="OnEditorLostFocus"/>
+                    </Grid>
                 </ScrollViewer>
-            </Border>
+            </Grid>
             
-            <!-- Editor Area - Flexibel mit MinHeight, wächst mit verfügbarem Platz -->
-            <!-- Ein gemeinsamer ScrollViewer für beide Modi damit sie gleich groß sind -->
-            <ScrollViewer Grid.Row="1" 
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled"
-                          x:Name="EditorScrollViewer">
-                <Grid MinHeight="80">
-                    <!-- Live formatierte Anzeige (sichtbar wenn NICHT editiert wird) -->
-                    <TextBlock x:Name="FormattedDisplay"
-                               TextWrapping="Wrap"
-                               VerticalAlignment="Top"
-                               Margin="14,12,14,12"
-                               IsHitTestVisible="False"
-                               IsVisible="False"/>
-                    
-                    <!-- Watermark (nur sichtbar wenn leer und nicht fokussiert) -->
-                    <TextBlock x:Name="WatermarkDisplay"
-                               Text="{Binding Watermark, ElementName=Root}"
-                               TextWrapping="Wrap"
-                               VerticalAlignment="Top"
-                               Margin="14,12,14,12"
-                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                               Opacity="0.6"
-                               IsHitTestVisible="False"
-                               IsVisible="True"/>
-                    
-                    <!-- TextBox für Eingabe - immer vorhanden, Text-Farbe wechselt -->
-                    <TextBox x:Name="EditorTextBox"
-                             AcceptsReturn="True"
-                             TextWrapping="Wrap"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             Padding="12,10,12,10"
-                             Margin="0"
-                             VerticalAlignment="Stretch"
-                             HorizontalAlignment="Stretch"
-                             KeyDown="OnEditorKeyDown"
-                             TextChanged="OnTextChanged"
-                             GotFocus="OnEditorGotFocus"
-                             LostFocus="OnEditorLostFocus"/>
-                </Grid>
-            </ScrollViewer>
-        </Grid>
+            <!-- Floating Toggle Button (outside the Grid, always visible) -->
+            <Button x:Name="ToggleToolbarButton"
+                    Classes="floating-btn" 
+                    Click="OnToggleToolbarClick"
+                    Focusable="False"
+                    ToolTip.Tip="Toolbar ausblenden"
+                    ZIndex="100"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Right"
+                    Margin="0,4,4,0">
+                <materialIcons:MaterialIcon x:Name="ToggleToolbarIcon"
+                                             Kind="EyeOff" 
+                                             Width="12" 
+                                             Height="12"/>
+            </Button>
+        </Panel>
     </Border>
 </UserControl>

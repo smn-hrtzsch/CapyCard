@@ -7,6 +7,8 @@ using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Material.Icons;
+using Material.Icons.Avalonia;
 
 namespace CapyCard.Controls
 {
@@ -54,6 +56,14 @@ namespace CapyCard.Controls
         
         // Speichere die Original-Foreground-Farbe
         private IBrush? _originalForeground;
+        
+        // Speichert den Zustand der Toolbar-Sichtbarkeit
+        private bool _isToolbarVisible = true;
+        
+        // Statische Felder für globale Toolbar-Sichtbarkeit über alle Instanzen
+        private static bool _globalToolbarVisible = true;
+        private static readonly List<WysiwygEditor> _instances = new();
+        public static event Action<bool>? GlobalToolbarVisibilityChanged;
 
         #endregion
 
@@ -111,6 +121,17 @@ namespace CapyCard.Controls
             
             // Tooltips je nach Betriebssystem anpassen
             UpdateToolbarTooltips();
+            
+            // Registriere diese Instanz und abonniere globale Events
+            _instances.Add(this);
+            GlobalToolbarVisibilityChanged += UpdateToolbarVisibility;
+            
+            // Cleanup wenn das Control entladen wird
+            Unloaded += (s, e) =>
+            {
+                _instances.Remove(this);
+                GlobalToolbarVisibilityChanged -= UpdateToolbarVisibility;
+            };
         }
 
         #endregion
@@ -145,6 +166,9 @@ namespace CapyCard.Controls
             
             // TextBox-Text initial unsichtbar (bis fokussiert)
             EditorTextBox.Foreground = Brushes.Transparent;
+            
+            // Initiale Toolbar-Sichtbarkeit basierend auf globalem Zustand
+            UpdateToolbarVisibility(_globalToolbarVisible);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -400,6 +424,46 @@ namespace CapyCard.Controls
         private async void OnImageClick(object? sender, RoutedEventArgs e)
         {
             await InsertImageAsync();
+        }
+
+        private void OnToggleToolbarClick(object? sender, RoutedEventArgs e)
+        {
+            // Toggle globalen Zustand
+            _globalToolbarVisible = !_globalToolbarVisible;
+            
+            // Aktualisiere alle Instanzen
+            UpdateAllInstancesToolbarVisibility(_globalToolbarVisible);
+            
+            // Fire global event
+            GlobalToolbarVisibilityChanged?.Invoke(_globalToolbarVisible);
+        }
+        
+        private static void UpdateAllInstancesToolbarVisibility(bool visible)
+        {
+            foreach (var instance in _instances)
+            {
+                instance.UpdateToolbarVisibility(visible);
+            }
+        }
+        
+        private void UpdateToolbarVisibility(bool visible)
+        {
+            _isToolbarVisible = visible;
+            
+            // Toolbar ein- oder ausblenden
+            ToolbarBorder.IsVisible = _isToolbarVisible;
+            
+            // Icon wechseln je nach Zustand (EyeOff = Toolbar ist sichtbar, Eye = Toolbar ist ausgeblendet)
+            if (_isToolbarVisible)
+            {
+                ToggleToolbarIcon.Kind = Material.Icons.MaterialIconKind.EyeOff;
+                ToolTip.SetTip(ToggleToolbarButton, "Toolbar ausblenden");
+            }
+            else
+            {
+                ToggleToolbarIcon.Kind = Material.Icons.MaterialIconKind.Eye;
+                ToolTip.SetTip(ToggleToolbarButton, "Toolbar einblenden");
+            }
         }
 
         #endregion
