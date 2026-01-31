@@ -34,6 +34,8 @@
 
 ## Bugs
 
+## Mobile Bugs
+
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 - [ ] Auf Mobile sollte in der Tabelle die Spalte für die Checkboxen schmaler sein und der Quick Button für die Vorschau nicht in jeder Zeile einzeln, sondern oben über der Tabelle rechtsbündig auf Höhe des Titels. Dann kann die letzte Spalte für das 3 Punkte Menü auch noch schmaler sein und wir haben mehr Platz für die Karteninhalte.
