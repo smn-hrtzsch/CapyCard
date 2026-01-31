@@ -30,7 +30,7 @@
 
 ## Editor
 
-- [ ] Optionen des Rich-Text Editors sollte man ausblenden können.
+- [ ] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen.
 
 ## Bugs
 
