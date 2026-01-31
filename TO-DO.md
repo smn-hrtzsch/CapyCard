@@ -38,7 +38,7 @@
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
 - [ ] Auf iOS lässt sich das Themen Dropdown im Card Detail View nicht schließen, weil der Button zum schließen nach unten außerhalb des Bildschirms verschwindet. Prüfe dieses Verhalten für Mobile, auch die in Android und die Einabezeile für neue Themen verschwindet nach unten außerhalb des Bildschirms, wenn man die Themen ausklappt.
 - [ ] Auf Mobile sollte in der Tabelle die Spalte für die Checkboxen schmaler sein und der Quick Button für die Vorschau nicht in jeder Zeile einzeln, sondern oben über der Tabelle rechtsbündig auf Höhe des Titels. Dann kann die letzte Spalte für das 3 Punkte Menü auch noch schmaler sein und wir haben mehr Platz für die Karteninhalte.
-- [ ] Vorschau Dialog für Karten im Card List View auf Mobile muss noch responsiv optimiert werden.
+- [ ] Vorschau Dialog für Karten im Card List View auf Mobile muss noch responsiv optimiert werden. Die Buttons zum wechseln rechts und links sind zu breit und nehmen zu viel Platz ein. Vielleicht können wir die Buttons etwas kleiner machen oder den Abstand zur Karte verringern, um mehr Platz für die Karte zu haben. Außerdem sollte auf Mobile die Wischgesten nach rechts und links auf dem Touch Screen unterstützt werden, um zur nächsten oder vorherigen Karte zu wechseln.
 - [ ] Elemente der Image Preview auf Mobile Geräten sieht man teilweise nicht mehr, weil sie nach rechts oder links außerhalb des Bildschirms verschwinden. Prüfe das Verhalten auf verschiedenen Bildschirmgrößen.
 
 ## Fixed Bugs
