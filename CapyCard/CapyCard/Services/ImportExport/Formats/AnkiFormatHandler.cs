@@ -377,7 +377,7 @@ namespace CapyCard.Services.ImportExport.Formats
             ctx.ConfJson = JsonSerializer.Serialize(confDict, jsonOptions);
 
             // Models
-            var model = new Dictionary<string, object>
+            var model = new Dictionary<string, object?>
             {
                 ["id"] = modelId,
                 ["name"] = "Basis",
@@ -388,7 +388,7 @@ namespace CapyCard.Services.ImportExport.Formats
                 ["did"] = null,
                 ["tmpls"] = new[]
                 {
-                    new Dictionary<string, object> {
+                    new Dictionary<string, object?> {
                         ["name"] = "Karte 1",
                         ["ord"] = 0,
                         ["qfmt"] = "{{Vorderseite}}",
@@ -403,10 +403,10 @@ namespace CapyCard.Services.ImportExport.Formats
                 },
                 ["flds"] = new[]
                 {
-                    new Dictionary<string, object> { 
+                    new Dictionary<string, object?> { 
                         ["name"] = "Vorderseite", ["ord"] = 0, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0] 
                     },
-                    new Dictionary<string, object> { 
+                    new Dictionary<string, object?> { 
                         ["name"] = "Rückseite", ["ord"] = 1, ["sticky"] = false, ["rtl"] = false, ["font"] = "Arial", ["size"] = 20, ["description"] = "", ["plainText"] = false, ["collapsed"] = false, ["excludeFromSearch"] = false, ["id"] = Random.Shared.NextInt64(), ["tag"] = null, ["preventDeletion"] = false, ["media"] = new object[0]
                     }
                 },
@@ -421,7 +421,7 @@ namespace CapyCard.Services.ImportExport.Formats
             ctx.ModelsJson = JsonSerializer.Serialize(modelDict, jsonOptions);
 
             // Decks
-            var deckConf = new Dictionary<string, object>
+            var deckConf = new Dictionary<string, object?>
             {
                 ["id"] = 1,
                 ["mod"] = 0,
@@ -445,7 +445,7 @@ namespace CapyCard.Services.ImportExport.Formats
                 ["desiredRetention"] = null
             };
             
-            var customDeck = new Dictionary<string, object>
+            var customDeck = new Dictionary<string, object?>
             {
                 ["id"] = deckId,
                 ["mod"] = 0,
@@ -481,7 +481,6 @@ namespace CapyCard.Services.ImportExport.Formats
 
             // Cards
             long nextId = now + 1000;
-            int dueCounter = 1;
 
             foreach (var card in cards)
             {
@@ -641,6 +640,7 @@ namespace CapyCard.Services.ImportExport.Formats
             var lines = markdown.Split('\n');
             var output = new List<string>();
             var listStack = new Stack<(string Type, int Indent)>();
+            int lastListIndent = -1;
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -651,26 +651,72 @@ namespace CapyCard.Services.ImportExport.Formats
                 
                 if (listInfo.IsList)
                 {
-                    // Schließe Listen mit gleicher oder größerer Einrückung
-                    while (listStack.Count > 0 && listStack.Peek().Indent >= listInfo.Indent)
+                    lastListIndent = listInfo.Indent;
+                    
+                    // Schließe Listen mit größerer Einrückung (wir gehen zurück)
+                    while (listStack.Count > 0 && listStack.Peek().Indent > listInfo.Indent)
                     {
                         var closed = listStack.Pop();
                         output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
                     }
 
-                    // Öffne neue Liste wenn nötig
-                    if (listStack.Count == 0 || listStack.Peek().Indent < listInfo.Indent)
+                    // Schließe Listen gleichen Typs auf gleicher Ebene (neues Element)
+                    if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type == listInfo.Type)
                     {
+                        // Nichts schließen - wir fügen ein neues <li> hinzu
+                    }
+                    else if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type != listInfo.Type)
+                    {
+                        // Typ hat sich geändert (ul -> ol oder ol -> ul) auf gleicher Ebene
+                        var closed = listStack.Pop();
+                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
+                        listStack.Push((listInfo.Type, listInfo.Indent));
+                    }
+                    else if (listStack.Count == 0 || listStack.Peek().Indent < listInfo.Indent)
+                    {
+                        // Neue Liste auf tieferer Ebene
                         output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
                         listStack.Push((listInfo.Type, listInfo.Indent));
                     }
 
-                    // Füge Listenelement hinzu
-                    output.Add($"<li>{ConvertInlineFormatting(listInfo.Content)}</li>");
+                    // Füge Listenelement hinzu (auch wenn Content leer ist)
+                    var content = string.IsNullOrWhiteSpace(listInfo.Content) ? "" : ConvertInlineFormatting(listInfo.Content);
+                    output.Add($"<li>{content}</li>");
+                }
+                else if (string.IsNullOrWhiteSpace(line))
+                {
+                    // Leere Zeile: Nur schließen wenn nächste Zeile keine Liste ist
+                    if (i + 1 < lines.Length)
+                    {
+                        var nextListInfo = ParseListLine(lines[i + 1]);
+                        if (!nextListInfo.IsList || nextListInfo.Indent < lastListIndent)
+                        {
+                            // Nächste Zeile ist keine Liste oder höher eingerückt - schließe Listen
+                            while (listStack.Count > 0)
+                            {
+                                var closed = listStack.Pop();
+                                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                            }
+                            lastListIndent = -1;
+                        }
+                        // Wenn nächste Zeile eine Liste ist, mach nichts (Leerzeile innerhalb Liste ignorieren)
+                    }
+                    else
+                    {
+                        // Letzte Zeile ist leer
+                        while (listStack.Count > 0)
+                        {
+                            var closed = listStack.Pop();
+                            output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
+                        }
+                        lastListIndent = -1;
+                    }
                 }
                 else
                 {
                     // Nicht-Listen-Zeile: Schließe alle Listen
+                    lastListIndent = -1;
                     while (listStack.Count > 0)
                     {
                         var closed = listStack.Pop();
@@ -678,10 +724,7 @@ namespace CapyCard.Services.ImportExport.Formats
                     }
 
                     // Verarbeite Nicht-Listen-Zeile
-                    if (!string.IsNullOrWhiteSpace(line))
-                    {
-                        output.Add($"<div>{ConvertInlineFormatting(line)}</div>");
-                    }
+                    output.Add($"<div>{ConvertInlineFormatting(line)}</div>");
                 }
             }
 
@@ -697,21 +740,21 @@ namespace CapyCard.Services.ImportExport.Formats
 
         private (bool IsList, string Type, int Indent, string Content) ParseListLine(string line)
         {
-            if (string.IsNullOrWhiteSpace(line))
+            if (string.IsNullOrEmpty(line))
                 return (false, "", 0, "");
 
             var leadingSpaces = line.TakeWhile(c => c == ' ').Count();
             var trimmed = line.TrimStart();
 
-            // Unordered list: - item
-            if (trimmed.StartsWith("- "))
+            // Unordered list: - item oder nur "-"
+            if (trimmed.StartsWith("- ") || trimmed == "-")
             {
-                var content = trimmed.Substring(2);
+                var content = trimmed.StartsWith("- ") ? trimmed.Substring(2) : "";
                 return (true, "ul", leadingSpaces, content);
             }
 
-            // Ordered list: 1. item
-            var orderedMatch = Regex.Match(trimmed, @"^(\d+)\.\s+(.+)$");
+            // Ordered list: 1. item oder nur "1."
+            var orderedMatch = Regex.Match(trimmed, @"^(\d+)\.\s*(.*)$");
             if (orderedMatch.Success)
             {
                 var content = orderedMatch.Groups[2].Value;

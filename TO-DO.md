@@ -34,6 +34,7 @@
 
 ## Bugs
 
+- [ ] Beim erstellen einer nummerierten Liste im Rich-Text Editor wird die Nummerierung nicht korrekt gehandhabt, wenn man einrückungen vornimmt. Momentan kann man Einrückungen vornehmen und die Nummerierung aus der ersten Ebene wird weitergeführt, anstatt eine neue Ebene zu beginnen. Passe das Verhalten so an, dass bei Einrückungen eine neue nummerierte Ebene begonnen wird.
 - [ ] Kontraste der Bewertungs-Buttons im Smart Learn Mode sind nicht gut genug, die Schriftfarbe kann man nur schwer von den Buttonfarben unterscheiden. Passe die Farben der Buttons an, sodass der Kontrast besser ist.
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [ ] Beim Zoomen in der Image Preview sind die Bereiche oben und unten vom Bild ab einem gewissen Zoom-Level nicht mehr sichtbar und erreichbar. Horizontal klappt das Scrollen, aber Vertikal nicht.
