@@ -9,165 +9,178 @@
              x:Class="CapyCard.Views.SettingsDialog"
              x:DataType="vm:SettingsViewModel"
              Background="#80000000"
+             Focusable="True"
              IsVisible="False">
              
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}"/>
+        <KeyBinding Gesture="Enter" Command="{Binding SaveCommand}"/>
+    </UserControl.KeyBindings>
+
     <Grid>
-        <Grid.KeyBindings>
-            <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}"/>
-            <KeyBinding Gesture="Enter" Command="{Binding SaveCommand}"/>
-        </Grid.KeyBindings>
-
-        <Border Background="{DynamicResource SurfaceBrush}"
-                Padding="24"
-                Margin="16"
-                Width="420"
-                MaxWidth="420"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                CornerRadius="28"
-                BoxShadow="0 4 10 0 #40000000">
-                
-            <Grid RowDefinitions="Auto,*,Auto">
-                <!-- Header -->
-                <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" 
-                               Text="Einstellungen" 
-                               FontSize="20" FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextControlForeground}"/>
-                                
-                    <Button Grid.Column="1"
-                            Classes="icon"
-                            Command="{Binding CancelCommand}"
-                            ToolTip.Tip="Schließen">
-                        <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
-                    </Button>
-                </Grid>
-    
-                <!-- Content -->
-                <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,20,0">
-                    <StackPanel Spacing="12">
-                        
-                        <!-- Color Selection -->
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Farbschema" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                            
-                            <ItemsControl ItemsSource="{Binding ColorOptions}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Columns="4"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
-                                                CommandParameter="{Binding Name}"
-                                                Padding="0"
-                                                Margin="0,0,12,12"
-                                                CornerRadius="22"
-                                                Width="44"
-                                                Height="44"
-                                                Background="Transparent">
-                                            <Button.Styles>
-                                                <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                </Style>
-                                            </Button.Styles>
-                                            <Panel>
-                                                <!-- Selection Ring (Active) -->
-                                                <Border Width="44" Height="44" CornerRadius="22"
-                                                        BorderBrush="{DynamicResource TextControlForeground}"
-                                                        BorderThickness="2"
-                                                        IsVisible="{Binding IsSelected}"/>
-                                                
-                                                <!-- Color Circle -->
-                                                <Border Width="34" Height="34" CornerRadius="17"
-                                                        Background="{Binding PreviewBrush}"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center"/>
-                                                        
-                                                 <!-- Selected Indicator -->
-                                                <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White"
-                                                                          IsVisible="{Binding IsSelected}"/>
-                                            </Panel>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                         </StackPanel>
-                        
-                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
-    
-                        <!-- Mode Selection -->
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                            <UniformGrid Columns="3">
-                                 <RadioButton GroupName="Mode" Content="System" 
-                                              IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
-                                 <RadioButton GroupName="Mode" Content="Hell" 
-                                              IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
-                                 <RadioButton GroupName="Mode" Content="Dunkel" 
-                                              IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
-                            </UniformGrid>
-                        </StackPanel>
-                        
-                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
-    
-                        <!-- Zen Mode -->
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Lernmodus" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="Zen Modus" 
-                                           Foreground="{DynamicResource TextControlForeground}"
-                                           VerticalAlignment="Center"/>
-                                <ToggleSwitch Grid.Column="1"
-                                              IsChecked="{Binding IsZenMode}"
-                                              OnContent=""
-                                              OffContent=""
-                                              MinWidth="0"/>
-                            </Grid>
-                        </StackPanel>
-    
-                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
-    
-                        <!-- Editor Toolbar -->
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Editor" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                                <TextBlock Text="Toolbar verbergen" 
-                                           Foreground="{DynamicResource TextControlForeground}"
-                                           VerticalAlignment="Center"/>
-                                <ToggleSwitch Grid.Column="1"
-                                              IsChecked="{Binding HideEditorToolbar}"
-                                              OnContent=""
-                                              OffContent=""
-                                              MinWidth="0"/>
-                            </Grid>
-                        </StackPanel>
+        <!-- This outer container ensures responsiveness and centering -->
+        <Grid HorizontalAlignment="Center" 
+              VerticalAlignment="Center" 
+              MaxWidth="450" 
+              Margin="16"
+              Width="450"> <!-- Set Width but MaxWidth will override if window is smaller -->
+            
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    Padding="24"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    CornerRadius="28"
+                    BoxShadow="0 4 10 0 #40000000">
                     
-                    </StackPanel>
-                </ScrollViewer>
-
-    
-                <!-- Actions -->
-                <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,24,0,0">
-                    <Button Grid.Column="0"
-                            Content="Abbrechen" 
-                            Command="{Binding CancelCommand}"
-                            Classes="secondary"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Margin="0,0,8,0"/>
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" 
+                                   Text="Einstellungen" 
+                                   FontSize="20" FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                    
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Command="{Binding CancelCommand}"
+                                ToolTip.Tip="Schließen">
+                            <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
+                        </Button>
+                    </Grid>
+        
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,20,0">
+                        <StackPanel Spacing="16">
                             
-                    <Button Grid.Column="1"
-                            Content="Speichern" 
-                            Command="{Binding SaveCommand}"
-                            Classes="primary"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Margin="8,0,0,0"/>
+                            <!-- Color Selection -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Farbschema" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <ItemsControl ItemsSource="{Binding ColorOptions}" HorizontalAlignment="Stretch">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="4"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
+                                                    CommandParameter="{Binding Name}"
+                                                    Padding="0"
+                                                    Margin="0,0,0,12"
+                                                    CornerRadius="22"
+                                                    Width="44"
+                                                    Height="44"
+                                                    HorizontalAlignment="Center"
+                                                    Background="Transparent">
+                                                <Button.Styles>
+                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </Style>
+                                                </Button.Styles>
+                                                <Panel>
+                                                    <!-- Selection Ring (Active) -->
+                                                    <Border Width="44" Height="44" CornerRadius="22"
+                                                            BorderBrush="{DynamicResource TextControlForeground}"
+                                                            BorderThickness="2"
+                                                            IsVisible="{Binding IsSelected}"/>
+                                                    
+                                                    <!-- Color Circle -->
+                                                    <Border Width="34" Height="34" CornerRadius="17"
+                                                            Background="{Binding PreviewBrush}"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                                            
+                                                     <!-- Selected Indicator -->
+                                                    <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White"
+                                                                              IsVisible="{Binding IsSelected}"/>
+                                                </Panel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                             </StackPanel>
+                            
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+        
+                            <!-- Mode Selection -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                <UniformGrid Columns="3">
+                                     <RadioButton GroupName="Mode" Content="System" 
+                                                  HorizontalAlignment="Center"
+                                                  IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
+                                     <RadioButton GroupName="Mode" Content="Hell" 
+                                                  HorizontalAlignment="Center"
+                                                  IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
+                                     <RadioButton GroupName="Mode" Content="Dunkel" 
+                                                  HorizontalAlignment="Center"
+                                                  IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
+                                </UniformGrid>
+                            </StackPanel>
+                            
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+        
+                            <!-- Anzeige Settings -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Anzeige" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <!-- Zen Mode -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Zen Modus" 
+                                               Foreground="{DynamicResource TextControlForeground}"
+                                               VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding IsZenMode}"
+                                                  OnContent=""
+                                                  OffContent=""
+                                                  MinWidth="0"/>
+                                </Grid>
+                            </StackPanel>
+    
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+    
+                            <!-- Editor Settings -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Editor" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <!-- Editor Toolbar -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Toolbar verbergen" 
+                                               Foreground="{DynamicResource TextControlForeground}"
+                                               VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding HideEditorToolbar}"
+                                                  OnContent=""
+                                                  OffContent=""
+                                                  MinWidth="0"/>
+                                </Grid>
+                            </StackPanel>
+                        
+                        </StackPanel>
+                    </ScrollViewer>
+        
+                    <!-- Actions -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,24,0,0">
+                        <Button Grid.Column="0"
+                                Content="Abbrechen" 
+                                Command="{Binding CancelCommand}"
+                                Classes="secondary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Margin="0,0,8,0"/>
+                                
+                        <Button Grid.Column="1"
+                                Content="Speichern" 
+                                Command="{Binding SaveCommand}"
+                                Classes="primary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Margin="8,0,0,0"/>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Border>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
