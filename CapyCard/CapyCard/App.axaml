@@ -52,42 +52,6 @@
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF616161"/>
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FFBDBDBD"/>
-
-                    <!-- Toggle Switch Overrides -->
-                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource PrimaryHoverColor}"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{DynamicResource PrimaryColor}"/>
-
-                    <!-- RadioButton & CheckBox Overrides -->
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFill" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPointerOverFill" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPressedFill" Color="{DynamicResource PrimaryColor}"/>
-
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedFill" Color="Transparent"/>
-                    
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPressedFill" Color="Transparent"/>
-
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{DynamicResource TextOnPrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{DynamicResource TextOnPrimaryColor}"/>
                 </ResourceDictionary>
                 
                 <ResourceDictionary x:Key="Dark">
@@ -110,42 +74,6 @@
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFEEEEEE"/>
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FF616161"/>
-
-                    <!-- Toggle Switch Overrides -->
-                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource PrimaryHoverColor}"/>
-                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{DynamicResource PrimaryColor}"/>
-
-                    <!-- RadioButton & CheckBox Overrides -->
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverStroke" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFill" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPointerOverFill" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPressedFill" Color="{DynamicResource PrimaryColor}"/>
-
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedFill" Color="Transparent"/>
-                    
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPressedFill" Color="Transparent"/>
-
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{DynamicResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{DynamicResource TextOnPrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{DynamicResource TextOnPrimaryColor}"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 

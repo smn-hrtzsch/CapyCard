@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Styling;
 using System;
+using System.Linq;
 
 namespace CapyCard.Services
 {
@@ -20,10 +21,8 @@ namespace CapyCard.Services
                 _ => ThemeVariant.Default
             };
             
-            // Set Application level variant
             app.RequestedThemeVariant = themeVariant;
 
-            // Explicitly set on all windows to force update
             if (app.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
             {
                 foreach (var window in desktop.Windows)
@@ -33,31 +32,16 @@ namespace CapyCard.Services
             }
 
             // 2. Determine Color Palette Source
-            // If Zen Mode is active, we might want to enforce Monochrome or a muted theme.
-            // For now, let's respect the user's color choice unless Zen implies Monochrome.
-            // Let's assume Zen Mode forces Monochrome for "weniger Ablenkung durch Farben".
-            // Or maybe the user selects "Monochrome" explicitly.
-            
-            // Let's stick to the selected color. Zen Mode might affect UI density later.
-            // The prompt said "Zen Mode ... Buttons dezenter". 
-            // This might mean avoiding strong Primary colors. 
-            // I'll leave Zen Mode logic minimal for now (just boolean flag stored), 
-            // maybe in the future we swap specific brushes.
-            
-            // Validate color string to prevent crashes
             if (string.IsNullOrWhiteSpace(color)) color = "Teal";
-            
-            var newSource = new Uri($"avares://CapyCard/Styles/Themes/Colors/{color}.axaml");
+            var colorUri = new Uri($"avares://CapyCard/Styles/Themes/Colors/{color}.axaml");
             
             try
             {
-                // Create new ResourceInclude for Colors
                 var newTheme = new ResourceInclude(new Uri("avares://CapyCard/App.axaml"))
                 {
-                    Source = newSource
+                    Source = colorUri
                 };
 
-                // Replace the first dictionary (which we know is our color theme from App.axaml)
                 if (app.Resources.MergedDictionaries.Count > 0)
                 {
                     app.Resources.MergedDictionaries[0] = newTheme;
@@ -67,34 +51,15 @@ namespace CapyCard.Services
                     app.Resources.MergedDictionaries.Add(newTheme);
                 }
 
-                // 3. Zen Mode - Apply or Remove Overrides
-                // We use index 1 for Zen Mode styles if they exist, or append.
-                // Best practice: manage specific "slots" in MergedDictionaries.
-                // Slot 0: Colors (managed above)
-                // Slot 1: Zen Mode (managed here)
+                // 3. Zen Mode - Apply or Remove Overrides via Application Styles
+                var zenUri = "avares://CapyCard/Styles/Themes/ZenMode.axaml";
                 
-                var zenSource = new Uri("avares://CapyCard/Styles/Themes/ZenMode.axaml");
-                
-                // Remove existing Zen Mode if present
-                for (int i = app.Resources.MergedDictionaries.Count - 1; i >= 0; i--)
-                {
-                    var dict = app.Resources.MergedDictionaries[i] as ResourceInclude;
-                    if (dict?.Source == zenSource)
-                    {
-                        app.Resources.MergedDictionaries.RemoveAt(i);
-                    }
-                    // Also check Styles collection for StyleInclude
-                    // ZenMode.axaml contains <Styles>, so it should be added to Application.Styles, not Resources!
-                }
-                
-                // Handle Zen Mode Styles in Application.Styles
-                // Slot: We assume we can append to Styles.
-                var zenStyleSource = new Uri("avares://CapyCard/Styles/Themes/ZenMode.axaml");
-                
-                // First remove any existing Zen styles
+                // Robust removal: find any StyleInclude that points to ZenMode.axaml
+                // We compare the Source.ToString()
                 for (int i = app.Styles.Count - 1; i >= 0; i--)
                 {
-                    if (app.Styles[i] is StyleInclude include && include.Source == zenStyleSource)
+                    if (app.Styles[i] is StyleInclude include && include.Source != null && 
+                        (include.Source.ToString().Contains("ZenMode.axaml") || include.Source.ToString().EndsWith("ZenMode.axaml")))
                     {
                         app.Styles.RemoveAt(i);
                     }
@@ -102,10 +67,13 @@ namespace CapyCard.Services
 
                 if (isZen)
                 {
+                    // Create a fresh instance to be safe
                     var zenStyle = new StyleInclude(new Uri("avares://CapyCard/App.axaml"))
                     {
-                        Source = zenStyleSource
+                        Source = new Uri(zenUri)
                     };
+                    
+                    // Add to the end for highest priority
                     app.Styles.Add(zenStyle);
                 }
             }

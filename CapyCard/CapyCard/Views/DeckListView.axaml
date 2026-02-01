@@ -26,6 +26,7 @@
                                 CornerRadius="20" 
                                 Padding="16,4" 
                                 HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
                                 Opacity="0.8">
                             <TextBlock Text="Meine Fächer" 
                                        FontWeight="Bold" 
@@ -39,6 +40,7 @@
                                 Classes="icon"
                                 Command="{Binding OpenSettingsCommand}"
                                 HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
                                 ToolTip.Tip="Einstellungen">
                             <materialIcons:MaterialIcon Kind="Cog" Width="24" Height="24" Foreground="{DynamicResource TextMutedBrush}"/>
                         </Button>

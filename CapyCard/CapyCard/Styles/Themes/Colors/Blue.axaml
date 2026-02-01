@@ -6,26 +6,48 @@
             <Color x:Key="PrimaryLightColor">#FF42A5F5</Color>
             <Color x:Key="PrimaryHoverColor">#FF1565C0</Color>
             <Color x:Key="SecondaryColor">#FFFF4081</Color>
-            
+            <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
+
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
             <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
             <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
             <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
-            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFFFFFFF"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{StaticResource TextOnPrimaryColor}"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <Color x:Key="PrimaryColor">#FF1976D2</Color>
             <Color x:Key="PrimaryLightColor">#FF42A5F5</Color>
             <Color x:Key="PrimaryHoverColor">#FF1565C0</Color>
             <Color x:Key="SecondaryColor">#FFFF80AB</Color>
-            
+            <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
+
             <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
             <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
             <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
             <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
-            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFFFFFFF"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{StaticResource TextOnPrimaryColor}"/>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>

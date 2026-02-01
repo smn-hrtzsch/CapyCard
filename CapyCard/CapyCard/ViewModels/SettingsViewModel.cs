@@ -57,7 +57,14 @@ namespace CapyCard.ViewModels
         private bool _isZenMode;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HideEditorToolbar))]
         private bool _showEditorToolbar;
+
+        public bool HideEditorToolbar
+        {
+            get => !ShowEditorToolbar;
+            set => ShowEditorToolbar = !value;
+        }
 
         // Available Options
         public ObservableCollection<ColorOption> ColorOptions { get; } = new()
@@ -110,10 +117,11 @@ namespace CapyCard.ViewModels
             IsZenMode = settings.IsZenMode;
             ShowEditorToolbar = settings.ShowEditorToolbar;
             
-            // Trigger mode property changes
+            // Trigger property changes
             OnPropertyChanged(nameof(IsModeSystem));
             OnPropertyChanged(nameof(IsModeLight));
             OnPropertyChanged(nameof(IsModeDark));
+            OnPropertyChanged(nameof(HideEditorToolbar));
         }
 
         partial void OnSelectedColorChanged(string value)
@@ -174,7 +182,7 @@ namespace CapyCard.ViewModels
                 ThemeColor = SelectedColor,
                 ThemeMode = SelectedMode,
                 IsZenMode = IsZenMode,
-                ShowEditorToolbar = ShowEditorToolbar
+                ShowEditorToolbar = !HideEditorToolbar // Save inverted logic
             };
             
             await _settingsService.SaveSettingsAsync(settings);

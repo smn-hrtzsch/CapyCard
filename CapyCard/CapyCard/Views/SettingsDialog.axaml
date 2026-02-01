@@ -19,9 +19,9 @@
 
         <Border Background="{DynamicResource SurfaceBrush}"
                 Padding="24"
-                Margin="24"
-                MaxWidth="450"
-                MinHeight="500"
+                Margin="16"
+                Width="420"
+                MaxWidth="420"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
                 CornerRadius="28"
@@ -35,7 +35,7 @@
                                FontSize="20" FontWeight="Bold"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource TextControlForeground}"/>
-                               
+                                
                     <Button Grid.Column="1"
                             Classes="icon"
                             Command="{Binding CancelCommand}"
@@ -46,10 +46,10 @@
     
                 <!-- Content -->
                 <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,20,0">
-                    <StackPanel Spacing="32">
+                    <StackPanel Spacing="12">
                         
                         <!-- Color Selection -->
-                        <StackPanel Spacing="12">
+                        <StackPanel Spacing="8">
                             <TextBlock Text="Farbschema" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
                             
                             <ItemsControl ItemsSource="{Binding ColorOptions}">
@@ -96,47 +96,58 @@
                             </ItemsControl>
                          </StackPanel>
                         
-                        <Separator Background="{DynamicResource DividerBrush}" Height="1"/>
+                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
     
                         <!-- Mode Selection -->
                         <StackPanel Spacing="8">
                             <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                            <StackPanel Orientation="Horizontal" Spacing="16">
+                            <UniformGrid Columns="3">
                                  <RadioButton GroupName="Mode" Content="System" 
                                               IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
                                  <RadioButton GroupName="Mode" Content="Hell" 
                                               IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
                                  <RadioButton GroupName="Mode" Content="Dunkel" 
                                               IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
-                            </StackPanel>
+                            </UniformGrid>
                         </StackPanel>
                         
-                        <Separator Background="{DynamicResource DividerBrush}" Height="1"/>
+                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
     
                         <!-- Zen Mode -->
                         <StackPanel Spacing="8">
-                             <ToggleSwitch IsChecked="{Binding IsZenMode}"
-                                           OnContent="Zen-Modus Aktiv"
-                                           OffContent="Zen-Modus Aus"
-                                           Content="Ablenkungsfreies Lernen"/>
-                             <TextBlock Text="Reduziert visuelle Ablenkungen." 
-                                        FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Lernmodus" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <TextBlock Text="Zen Modus" 
+                                           Foreground="{DynamicResource TextControlForeground}"
+                                           VerticalAlignment="Center"/>
+                                <ToggleSwitch Grid.Column="1"
+                                              IsChecked="{Binding IsZenMode}"
+                                              OnContent=""
+                                              OffContent=""
+                                              MinWidth="0"/>
+                            </Grid>
                         </StackPanel>
     
-                        <Separator Background="{DynamicResource DividerBrush}" Height="1"/>
+                        <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
     
                         <!-- Editor Toolbar -->
                         <StackPanel Spacing="8">
-                             <ToggleSwitch IsChecked="{Binding ShowEditorToolbar}"
-                                           OnContent="Toolbar anzeigen"
-                                           OffContent="Toolbar verbergen"
-                                           Content="Editor Toolbar"/>
-                             <TextBlock Text="Standardmäßig Formatierungsleiste im Editor anzeigen." 
-                                        FontSize="12" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Editor" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                <TextBlock Text="Toolbar verbergen" 
+                                           Foreground="{DynamicResource TextControlForeground}"
+                                           VerticalAlignment="Center"/>
+                                <ToggleSwitch Grid.Column="1"
+                                              IsChecked="{Binding HideEditorToolbar}"
+                                              OnContent=""
+                                              OffContent=""
+                                              MinWidth="0"/>
+                            </Grid>
                         </StackPanel>
                     
                     </StackPanel>
                 </ScrollViewer>
+
     
                 <!-- Actions -->
                 <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,24,0,0">
