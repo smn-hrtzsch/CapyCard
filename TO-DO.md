@@ -35,6 +35,7 @@
 ## Bugs
 
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
+- [x] Zen Mode deaktivieren aktualisiert Primary Buttons nicht sofort (bleibt bis View/App-Neustart)
 
 ## Mobile Bugs
 

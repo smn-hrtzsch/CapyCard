@@ -11,20 +11,14 @@
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
     </Style>
-    
-    <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
-    </Style>
 
-    <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Button.primary:pointerover">
         <Setter Property="Background" Value="#15808080" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryHoverBrush}" />
     </Style>
-    
-    <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+
+    <Style Selector="Button.primary:pressed">
         <Setter Property="Background" Value="#25808080" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
@@ -37,14 +31,8 @@
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
     </Style>
-    
-    <Style Selector="Button.destructive /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
-    </Style>
 
-    <Style Selector="Button.destructive:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Button.destructive:pointerover">
         <Setter Property="Background" Value="#15808080" />
         <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
@@ -58,20 +46,14 @@
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
     </Style>
-    
-    <Style Selector="Button.fab /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
-    </Style>
 
-    <Style Selector="Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Style Selector="Button.fab:pointerover">
         <Setter Property="Background" Value="#15808080" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryHoverBrush}" />
     </Style>
-    
-    <Style Selector="Button.fab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+
+    <Style Selector="Button.fab:pressed">
         <Setter Property="Background" Value="#25808080" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
