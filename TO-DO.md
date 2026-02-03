@@ -27,6 +27,7 @@
 - [x] User mehr optionen zur Farbgebung geben (nicht nur Teal sondern z.B. auch Blau, Grün, Rot etc.). Auf ausreichend kontrast muss geachtet werden und dass die App trotzdem ein einheitliches Design hat. Die Position der Einstellungen muss gut gewählt werden (ggf. in der DeckListView in der Titelzeile oben rechts als settings Icon?)
 - [x] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
 - [x] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
+- [x] Farbauswahl in den Einstellungen nach Farbaehnlichkeit sortieren
 
 ## Editor
 

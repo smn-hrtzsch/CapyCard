@@ -2,9 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="PrimaryColor">#FFE53935</Color>
+            <Color x:Key="PrimaryColor">#FFD32F2F</Color>
             <Color x:Key="PrimaryLightColor">#FFEF5350</Color>
-            <Color x:Key="PrimaryHoverColor">#FFC62828</Color>
+            <Color x:Key="PrimaryHoverColor">#FFB71C1C</Color>
             <Color x:Key="SecondaryColor">#FF536DFE</Color>
             <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
 
@@ -26,9 +26,9 @@
             <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{StaticResource TextOnPrimaryColor}"/>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <Color x:Key="PrimaryColor">#FFE53935</Color>
+            <Color x:Key="PrimaryColor">#FFD32F2F</Color>
             <Color x:Key="PrimaryLightColor">#FFEF5350</Color>
-            <Color x:Key="PrimaryHoverColor">#FFC62828</Color>
+            <Color x:Key="PrimaryHoverColor">#FFB71C1C</Color>
             <Color x:Key="SecondaryColor">#FF8C9EFF</Color>
             <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
 
