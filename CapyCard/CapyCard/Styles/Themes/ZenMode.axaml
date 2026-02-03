@@ -160,41 +160,41 @@
     <!-- Secondary Buttons -> Muted but readable (neutral text + subtle accent border) -->
     <Style Selector=".zen Button.secondary">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
 
     <Style Selector=".zen Button.secondary /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
 
     <Style Selector=".zen Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
 
     <Style Selector=".zen Button.secondary:pointerover">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
 
     <Style Selector=".zen Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
 
     <Style Selector=".zen Button.secondary:pressed">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextControlForeground}" />
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
     </Style>
