@@ -10,6 +10,15 @@ namespace CapyCard.Views
             InitializeComponent();
         }
 
+        protected override void OnSizeChanged(SizeChangedEventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            var w = e.NewSize.Width;
+            Classes.Set("very-narrow", w < 340);
+            Classes.Set("narrow", w < 420);
+        }
+
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
         {
             base.OnPropertyChanged(change);

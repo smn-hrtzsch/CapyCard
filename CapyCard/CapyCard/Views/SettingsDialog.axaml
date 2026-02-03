@@ -10,7 +10,36 @@
              x:DataType="vm:SettingsViewModel"
              Background="#80000000"
              Focusable="True"
-             IsVisible="False">
+              IsVisible="False">
+
+    <UserControl.Styles>
+        <Style Selector=".narrow UniformGrid#ColorGrid">
+            <Setter Property="Columns" Value="3"/>
+        </Style>
+        <Style Selector=".very-narrow UniformGrid#ColorGrid">
+            <Setter Property="Columns" Value="2"/>
+        </Style>
+
+        <Style Selector=".narrow ScrollViewer#ContentScroll">
+            <Setter Property="Padding" Value="0,0,16,0"/>
+        </Style>
+        <Style Selector=".very-narrow ScrollViewer#ContentScroll">
+            <Setter Property="Padding" Value="0,0,12,0"/>
+        </Style>
+
+        <Style Selector="StackPanel#ActionsVertical">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="Grid#ActionsHorizontal">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector=".narrow StackPanel#ActionsVertical">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector=".narrow Grid#ActionsHorizontal">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+    </UserControl.Styles>
              
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}"/>
@@ -19,11 +48,10 @@
 
     <Grid>
         <!-- This outer container ensures responsiveness and centering -->
-        <Grid HorizontalAlignment="Center" 
-              VerticalAlignment="Center" 
-              MaxWidth="450" 
-              Margin="16"
-              Width="450"> <!-- Set Width but MaxWidth will override if window is smaller -->
+        <Grid HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              MaxWidth="450"
+              Margin="16">
             
             <Border Background="{DynamicResource SurfaceBrush}"
                     Padding="24"
@@ -50,30 +78,30 @@
                     </Grid>
         
                     <!-- Content -->
-                    <ScrollViewer Grid.Row="1" MaxHeight="600" Padding="0,0,20,0">
+                    <ScrollViewer Grid.Row="1" Name="ContentScroll" MaxHeight="600" Padding="0,0,24,0" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Spacing="16">
                             
                             <!-- Color Selection -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Farbschema" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
                                 
-                                <ItemsControl ItemsSource="{Binding ColorOptions}" HorizontalAlignment="Stretch">
+                                <ItemsControl ItemsSource="{Binding ColorOptions}" HorizontalAlignment="Stretch" Margin="0,4,0,0">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <UniformGrid Columns="4"/>
+                                            <UniformGrid x:Name="ColorGrid" Columns="4" HorizontalAlignment="Stretch"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
-                                                    CommandParameter="{Binding Name}"
-                                                    Padding="0"
-                                                    Margin="0,0,0,12"
-                                                    CornerRadius="22"
-                                                    Width="44"
-                                                    Height="44"
-                                                    HorizontalAlignment="Center"
-                                                    Background="Transparent">
+                                                     CommandParameter="{Binding Name}"
+                                                     Padding="0"
+                                                    Margin="0"
+                                                     CornerRadius="22"
+                                                     Width="44"
+                                                     Height="44"
+                                                     HorizontalAlignment="Center"
+                                                     Background="Transparent">
                                                 <Button.Styles>
                                                     <Style Selector="Button:pointerover /template/ ContentPresenter">
                                                         <Setter Property="Background" Value="Transparent"/>
@@ -102,22 +130,25 @@
                                 </ItemsControl>
                              </StackPanel>
                             
-                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,12,0,4"/>
         
                             <!-- Mode Selection -->
                             <StackPanel Spacing="8">
                                 <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
-                                <UniformGrid Columns="3">
-                                     <RadioButton GroupName="Mode" Content="System" 
-                                                  HorizontalAlignment="Center"
-                                                  IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
-                                     <RadioButton GroupName="Mode" Content="Hell" 
-                                                  HorizontalAlignment="Center"
-                                                  IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
-                                     <RadioButton GroupName="Mode" Content="Dunkel" 
-                                                  HorizontalAlignment="Center"
-                                                  IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
-                                </UniformGrid>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <RadioButton GroupName="Mode" Content="System"
+                                                 MinWidth="110"
+                                                 Margin="0,0,16,8"
+                                                 IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
+                                    <RadioButton GroupName="Mode" Content="Hell"
+                                                 MinWidth="110"
+                                                 Margin="0,0,16,8"
+                                                 IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
+                                    <RadioButton GroupName="Mode" Content="Dunkel"
+                                                 MinWidth="110"
+                                                 Margin="0,0,0,8"
+                                                 IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
+                                </WrapPanel>
                             </StackPanel>
                             
                             <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
@@ -130,6 +161,7 @@
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Zen Modus" 
                                                Foreground="{DynamicResource TextControlForeground}"
+                                               TextWrapping="Wrap"
                                                VerticalAlignment="Center"/>
                                     <ToggleSwitch Grid.Column="1"
                                                   IsChecked="{Binding IsZenMode}"
@@ -149,6 +181,7 @@
                                 <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
                                     <TextBlock Text="Toolbar verbergen" 
                                                Foreground="{DynamicResource TextControlForeground}"
+                                               TextWrapping="Wrap"
                                                VerticalAlignment="Center"/>
                                     <ToggleSwitch Grid.Column="1"
                                                   IsChecked="{Binding HideEditorToolbar}"
@@ -162,22 +195,38 @@
                     </ScrollViewer>
         
                     <!-- Actions -->
-                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,24,0,0">
-                        <Button Grid.Column="0"
-                                Content="Abbrechen" 
-                                Command="{Binding CancelCommand}"
-                                Classes="secondary"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"
-                                Margin="0,0,8,0"/>
-                                
-                        <Button Grid.Column="1"
-                                Content="Speichern" 
-                                Command="{Binding SaveCommand}"
-                                Classes="primary"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"
-                                Margin="8,0,0,0"/>
+                    <Grid Grid.Row="2" Margin="0,24,0,0">
+                        <Grid Name="ActionsHorizontal" ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Content="Abbrechen"
+                                    Command="{Binding CancelCommand}"
+                                    Classes="secondary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                            <Button Grid.Column="1"
+                                    Content="Speichern"
+                                    Command="{Binding SaveCommand}"
+                                    Classes="primary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="8,0,0,0"/>
+                        </Grid>
+
+                        <StackPanel Name="ActionsVertical" Spacing="12">
+                            <Button Content="Speichern"
+                                    Command="{Binding SaveCommand}"
+                                    Classes="primary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+
+                            <Button Content="Abbrechen"
+                                    Command="{Binding CancelCommand}"
+                                    Classes="secondary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+                        </StackPanel>
                     </Grid>
                 </Grid>
             </Border>

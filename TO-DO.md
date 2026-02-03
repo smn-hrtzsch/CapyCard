@@ -28,6 +28,7 @@
 - [x] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
 - [x] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
 - [x] Farbauswahl in den Einstellungen nach Farbaehnlichkeit sortieren
+- [x] Settings-Dialog responsiv machen (schmale Fenster)
 
 ## Editor
 
