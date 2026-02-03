@@ -12,10 +12,13 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Avalonia.Platform.Storage;
 
+using CapyCard.Services;
+
 namespace CapyCard.ViewModels
 {
     public partial class DeckDetailViewModel : ObservableObject
     {
+        private readonly IUserSettingsService _userSettingsService;
         private Deck? _currentDeck;
         private Card? _cardToEdit;
 
@@ -90,8 +93,12 @@ namespace CapyCard.ViewModels
         // Event for file picker (to be wired up from View)
         public event Func<string, string, Task<IStorageFile?>>? OnRequestFileSave;
 
-        public DeckDetailViewModel()
+        [ObservableProperty]
+        private bool _isEditorToolbarVisible = true;
+
+        public DeckDetailViewModel(IUserSettingsService userSettingsService)
         {
+            _userSettingsService = userSettingsService;
             // _dbContext removed. We use short-lived contexts now.
             ExportViewModel = new ExportViewModel();
             
@@ -100,8 +107,17 @@ namespace CapyCard.ViewModels
                 await (OnRequestFileSave?.Invoke(name, ext) ?? Task.FromResult<IStorageFile?>(null));
         }
 
+        public DeckDetailViewModel() : this(new UserSettingsService()) { }
+
+        private async void LoadToolbarSettings()
+        {
+             var settings = await _userSettingsService.LoadSettingsAsync();
+             IsEditorToolbarVisible = settings.ShowEditorToolbar;
+        }
+
         public async Task LoadDeck(Deck deck)
         {
+            LoadToolbarSettings();
             _currentDeck = deck;
             
             using (var context = new FlashcardDbContext())
@@ -126,6 +142,7 @@ namespace CapyCard.ViewModels
         
         public async Task LoadCardForEditing(Deck deck, Card card)
         {
+            LoadToolbarSettings();
             _currentDeck = deck;
             _cardToEdit = card;
             

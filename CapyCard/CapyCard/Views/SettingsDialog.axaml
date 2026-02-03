@@ -1,0 +1,235 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="using:CapyCard.Converters"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="550"
+             x:Class="CapyCard.Views.SettingsDialog"
+             x:DataType="vm:SettingsViewModel"
+             Background="#80000000"
+             Focusable="True"
+              IsVisible="False">
+
+    <UserControl.Styles>
+        <Style Selector=".narrow UniformGrid#ColorGrid">
+            <Setter Property="Columns" Value="3"/>
+        </Style>
+        <Style Selector=".very-narrow UniformGrid#ColorGrid">
+            <Setter Property="Columns" Value="2"/>
+        </Style>
+
+        <Style Selector=".narrow ScrollViewer#ContentScroll">
+            <Setter Property="Padding" Value="0,0,16,0"/>
+        </Style>
+        <Style Selector=".very-narrow ScrollViewer#ContentScroll">
+            <Setter Property="Padding" Value="0,0,12,0"/>
+        </Style>
+
+        <Style Selector="StackPanel#ActionsVertical">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="Grid#ActionsHorizontal">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector=".narrow StackPanel#ActionsVertical">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector=".narrow Grid#ActionsHorizontal">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+    </UserControl.Styles>
+             
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}"/>
+        <KeyBinding Gesture="Enter" Command="{Binding SaveCommand}"/>
+    </UserControl.KeyBindings>
+
+    <Grid>
+        <!-- This outer container ensures responsiveness and centering -->
+        <Grid HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              MaxWidth="450"
+              Margin="16">
+            
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    Padding="24"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    CornerRadius="28"
+                    BoxShadow="0 4 10 0 #40000000">
+                    
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,16" ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" 
+                                   Text="Einstellungen" 
+                                   FontSize="20" FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                    
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Command="{Binding CancelCommand}"
+                                ToolTip.Tip="Schließen">
+                            <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
+                        </Button>
+                    </Grid>
+        
+                    <!-- Content -->
+                    <ScrollViewer Grid.Row="1" Name="ContentScroll" MaxHeight="600" Padding="0,0,24,0" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Spacing="16">
+                            
+                            <!-- Color Selection -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Farbschema" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <ItemsControl ItemsSource="{Binding ColorOptions}" HorizontalAlignment="Stretch" Margin="0,4,0,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid x:Name="ColorGrid" Columns="4" HorizontalAlignment="Stretch"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
+                                                     CommandParameter="{Binding Name}"
+                                                     Padding="0"
+                                                    Margin="0"
+                                                     CornerRadius="22"
+                                                     Width="44"
+                                                     Height="44"
+                                                     HorizontalAlignment="Center"
+                                                     Background="Transparent">
+                                                <Button.Styles>
+                                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                    </Style>
+                                                </Button.Styles>
+                                                <Panel>
+                                                    <!-- Selection Ring (Active) -->
+                                                    <Border Width="44" Height="44" CornerRadius="22"
+                                                            BorderBrush="{DynamicResource TextControlForeground}"
+                                                            BorderThickness="2"
+                                                            IsVisible="{Binding IsSelected}"/>
+                                                    
+                                                    <!-- Color Circle -->
+                                                    <Border Width="34" Height="34" CornerRadius="17"
+                                                            Background="{Binding PreviewBrush}"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"/>
+                                                            
+                                                     <!-- Selected Indicator -->
+                                                    <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White"
+                                                                              IsVisible="{Binding IsSelected}"/>
+                                                </Panel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                             </StackPanel>
+                            
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,12,0,4"/>
+        
+                            <!-- Mode Selection -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Erscheinungsbild" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <RadioButton GroupName="Mode" Content="System"
+                                                 MinWidth="110"
+                                                 Margin="0,0,16,8"
+                                                 IsChecked="{Binding IsModeSystem, Mode=TwoWay}"/>
+                                    <RadioButton GroupName="Mode" Content="Hell"
+                                                 MinWidth="110"
+                                                 Margin="0,0,16,8"
+                                                 IsChecked="{Binding IsModeLight, Mode=TwoWay}"/>
+                                    <RadioButton GroupName="Mode" Content="Dunkel"
+                                                 MinWidth="110"
+                                                 Margin="0,0,0,8"
+                                                 IsChecked="{Binding IsModeDark, Mode=TwoWay}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                            
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+        
+                            <!-- Anzeige Settings -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Anzeige" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <!-- Zen Mode -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Zen Modus" 
+                                               Foreground="{DynamicResource TextControlForeground}"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding IsZenMode}"
+                                                  OnContent=""
+                                                  OffContent=""
+                                                  MinWidth="0"/>
+                                </Grid>
+                            </StackPanel>
+    
+                            <Separator Background="{DynamicResource TextMutedBrush}" Height="1" Margin="0,4"/>
+    
+                            <!-- Editor Settings -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Editor" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}"/>
+                                
+                                <!-- Editor Toolbar -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="Toolbar verbergen" 
+                                               Foreground="{DynamicResource TextControlForeground}"
+                                               TextWrapping="Wrap"
+                                               VerticalAlignment="Center"/>
+                                    <ToggleSwitch Grid.Column="1"
+                                                  IsChecked="{Binding HideEditorToolbar}"
+                                                  OnContent=""
+                                                  OffContent=""
+                                                  MinWidth="0"/>
+                                </Grid>
+                            </StackPanel>
+                        
+                        </StackPanel>
+                    </ScrollViewer>
+        
+                    <!-- Actions -->
+                    <Grid Grid.Row="2" Margin="0,24,0,0">
+                        <Grid Name="ActionsHorizontal" ColumnDefinitions="*,*">
+                            <Button Grid.Column="0"
+                                    Content="Abbrechen"
+                                    Command="{Binding CancelCommand}"
+                                    Classes="secondary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="0,0,8,0"/>
+
+                            <Button Grid.Column="1"
+                                    Content="Speichern"
+                                    Command="{Binding SaveCommand}"
+                                    Classes="primary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Margin="8,0,0,0"/>
+                        </Grid>
+
+                        <StackPanel Name="ActionsVertical" Spacing="12">
+                            <Button Content="Speichern"
+                                    Command="{Binding SaveCommand}"
+                                    Classes="primary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+
+                            <Button Content="Abbrechen"
+                                    Command="{Binding CancelCommand}"
+                                    Classes="secondary"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

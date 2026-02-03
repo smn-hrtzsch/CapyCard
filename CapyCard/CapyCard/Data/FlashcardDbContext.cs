@@ -12,6 +12,7 @@ namespace CapyCard.Data
         public DbSet<Card> Cards { get; set; }
         public DbSet<CardSmartScore> CardSmartScores { get; set; }
         public DbSet<LearningSession> LearningSessions { get; set; }
+        public DbSet<UserSettings> UserSettings { get; set; }
 
         public string DbPath { get; }
 

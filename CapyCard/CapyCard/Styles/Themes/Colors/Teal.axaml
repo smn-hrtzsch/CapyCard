@@ -1,0 +1,59 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <!-- Base Colors -->
+            <Color x:Key="PrimaryColor">#FF00897B</Color>
+            <Color x:Key="PrimaryLightColor">#FF4DB6AC</Color>
+            <Color x:Key="PrimaryHoverColor">#FF00695C</Color>
+            <Color x:Key="SecondaryColor">#FF6200EE</Color>
+            <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
+
+            <!-- Brushes -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+
+            <!-- Control Overrides -->
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{StaticResource TextOnPrimaryColor}"/>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <!-- Base Colors -->
+            <Color x:Key="PrimaryColor">#FF00897B</Color>
+            <Color x:Key="PrimaryLightColor">#FF03DAC5</Color>
+            <Color x:Key="PrimaryHoverColor">#FF00695C</Color>
+            <Color x:Key="SecondaryColor">#FFBB86FC</Color>
+            <Color x:Key="TextOnPrimaryColor">#FFFFFFFF</Color>
+
+            <!-- Brushes -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
+            <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="ButtonForegroundBrush" Color="{StaticResource TextOnPrimaryColor}"/>
+
+            <!-- Control Overrides -->
+            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{StaticResource PrimaryColor}"/>
+
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="{StaticResource TextOnPrimaryColor}"/>
+            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="{StaticResource TextOnPrimaryColor}"/>
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

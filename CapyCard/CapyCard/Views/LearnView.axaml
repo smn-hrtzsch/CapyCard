@@ -67,7 +67,7 @@
                                 ToolTip.Tip="Lern-Modus wechseln"
                                 Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Panel>
+                                <Panel Classes="zen-hide-icon">
                                     <materialIcons:MaterialIcon Kind="FormatListBulleted" Width="24" Height="24" IsVisible="{Binding IsSequentialMode}"/>
                                     <materialIcons:MaterialIcon Kind="Shuffle" Width="24" Height="24" IsVisible="{Binding IsRandomMode}"/>
                                     <materialIcons:MaterialIcon Kind="Brain" Width="24" Height="24" IsVisible="{Binding IsSmartMode}"/>

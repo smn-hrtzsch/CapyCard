@@ -38,6 +38,7 @@
 
                     <controls:WysiwygEditor x:Name="FrontEditor"
                                             Text="{Binding NewCardFront, Mode=TwoWay}"
+                                            IsToolbarVisible="{Binding IsEditorToolbarVisible, Mode=TwoWay}"
                                             Watermark="Text für Vorderseite..."
                                             MinHeight="180"
                                             VerticalAlignment="Stretch"
@@ -54,6 +55,7 @@
                     
                     <controls:WysiwygEditor x:Name="BackEditor"
                                             Text="{Binding NewCardBack, Mode=TwoWay}"
+                                            IsToolbarVisible="{Binding IsEditorToolbarVisible, Mode=TwoWay}"
                                             Watermark="Text für Rückseite..."
                                             MinHeight="180"
                                             VerticalAlignment="Stretch"

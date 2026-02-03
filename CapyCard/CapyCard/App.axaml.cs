@@ -4,6 +4,7 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using CapyCard.Services;
 using CapyCard.ViewModels;
 using CapyCard.Views;
 using CapyCard.Data;
@@ -47,6 +48,19 @@ public partial class App : Application
         if (CapyCard.Services.ClipboardService.Current == null)
         {
             CapyCard.Services.ClipboardService.Current = new CapyCard.Services.DesktopClipboardService();
+        }
+
+        // 5. Load and Apply User Settings
+        try 
+        {
+            var userSettingsService = new UserSettingsService();
+            var themeService = new ThemeService();
+            var settings = userSettingsService.LoadSettingsAsync().GetAwaiter().GetResult();
+            themeService.ApplyTheme(settings.ThemeColor, settings.ThemeMode, settings.IsZenMode);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[App] Failed to load/apply settings: {ex.Message}");
         }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

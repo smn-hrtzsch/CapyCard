@@ -23,143 +23,65 @@
         
         <!-- Custom App Styles -->
         <StyleInclude Source="/Styles/AppStyles.axaml" />
+        <StyleInclude Source="/Styles/Themes/ZenMode.axaml" />
     </Application.Styles>
     
     <Application.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Styles/Themes/Colors/Teal.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <!-- Base Colors -->
-                    <Color x:Key="PrimaryColor">#FF018786</Color>
-                    <Color x:Key="PrimaryLightColor">#FF018786</Color>
-                    <Color x:Key="SecondaryColor">#FF6200EE</Color>
-                    <Color x:Key="BackgroundColor">#FFDDDDDD</Color>
-                    <Color x:Key="SurfaceColor">#FFCACACA</Color>
-                    <Color x:Key="ErrorColor">#FFB71C1C</Color>
-                    
-                    <!-- Brushes -->
-                    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
-                    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-                    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-                    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#FFDDDDDD"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#FFCACACA"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFBDBDBD"/>
-                    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="#FFB71C1C"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FF333333"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FF808080"/>
-                    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FFFFFFFF"/>
-                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
                     
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FFE0E0E0"/>
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FF808080"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FF757575"/>
                     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FFE0E0E0"/>
+
+                    <!-- Buttons -->
+                    <!-- Secondary outlined buttons need stronger contrast in Light mode -->
+                    <SolidColorBrush x:Key="SecondaryOutlineBrush" Color="{DynamicResource PrimaryHoverColor}"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFEEEEEE"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF616161"/>
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FFBDBDBD"/>
-
-                    <!-- RadioButton & CheckBox Overrides -->
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFill" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPointerOverFill" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPressedFill" Color="{StaticResource PrimaryColor}"/>
-
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedFill" Color="Transparent"/>
-                    
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPressedFill" Color="Transparent"/>
-
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFDDDDDD"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFDDDDDD"/>
                 </ResourceDictionary>
                 
                 <ResourceDictionary x:Key="Dark">
-                    <!-- Base Colors -->
-                    <Color x:Key="PrimaryColor">#FF00897B</Color>
-                    <Color x:Key="PrimaryLightColor">#FF03DAC5</Color>
-                    <Color x:Key="SecondaryColor">#FFBB86FC</Color>
-                    <Color x:Key="BackgroundColor">#FF333333</Color>
-                    <Color x:Key="SurfaceColor">#FF505050</Color>
-                    <Color x:Key="ErrorColor">#FFE57373</Color>
-                    
-                    <!-- Brushes -->
-                    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}"/>
-                    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}"/>
-                    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
-                    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#FF333333"/>
+                    <SolidColorBrush x:Key="SurfaceBrush" Color="#FF505050"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF616161"/>
-                    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+                    <SolidColorBrush x:Key="ErrorBrush" Color="#FFE57373"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FFDDDDDD"/>
                     <SolidColorBrush x:Key="TextMutedBrush" Color="#FFA5A5A7"/>
-                    <SolidColorBrush x:Key="TextOnPrimaryBrush" Color="#FF000000"/>
-                    <SolidColorBrush x:Key="ButtonForegroundBrush" Color="#FFDDDDDD"/>
 
                     <!-- Components -->
                     <SolidColorBrush x:Key="ButtonBackgroundBrush" Color="#FF424242"/>
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FFBDBDBD"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FFEEEEEE"/>
                     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FF707070"/>
+
+                    <!-- Buttons -->
+                    <SolidColorBrush x:Key="SecondaryOutlineBrush" Color="{DynamicResource PrimaryLightColor}"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FF616161"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFEEEEEE"/>
                     
                     <SolidColorBrush x:Key="DividerBrush" Color="#FF616161"/>
-
-                    <!-- RadioButton & CheckBox Overrides -->
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverStroke" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFill" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPointerOverFill" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckGlyphPressedFill" Color="{StaticResource PrimaryColor}"/>
-
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonOuterEllipseCheckedPressedFill" Color="Transparent"/>
-                    
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipsePressedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPointerOverFill" Color="Transparent"/>
-                    <SolidColorBrush x:Key="RadioButtonCheckOuterEllipseCheckedPressedFill" Color="Transparent"/>
-
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundChecked" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPointerOver" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundCheckedPressed" Color="{StaticResource PrimaryColor}"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="#FFDDDDDD"/>
-                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="#FFDDDDDD"/>
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
 
