@@ -38,8 +38,6 @@
 - [x] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen. (Persistent via Einstellungen speicherbar)
 
 ## Bugs
-
-- [ ] Kopieren des Systemprompts für die KI-gestützte Kartengenerierung in die Zwischenablage funktioniert auf Windows nicht. Auf MacOS und Android und iOS scheint es zu funktionieren.
 - [ ] Beim Starten der App wird sie immer im Standard Modus dargestellt, obwohl ich den Zen Modus aktiviert und gespeichert habe. Erst nach dem erneuten aktivieren zur Laufzeit der App wird alles korrekt im Zen Modus dargestellt. Der Zen Modus sollte direkt beim Start der App geladen und angewendet werden, solange er in den Einstellungen aktiviert ist.
 - [ ] Die Farben für die Auswahl des Farbschemas im Settings Dialog sollten übereinstimmen mit den tatsächlich verwendeten Farben in der App. Passe die Farbcodes für die Vorschau an, sodass sie gleich ist oder einfach direkt die Farben aus den Theme Dateien laden.
 - [ ] Wenn der Zen Modus aktiviert ist, gibt es ein Problem mit dem Kompakt Modus. Dadurch, dass die Icons für Buttons ausgeblendet werden, ist im Kompaktmodus dann in dem Button gar nichts mehr sichtbar, da der Text auch ausgeblendet wird. In diesem Fall, sollte dann im Kompaktmodus die Icons auch im Zen Modus sichtbar bleiben, damit die Buttons nicht leer sind.
@@ -55,6 +53,7 @@
 
 ## Fixed Bugs
 
+- [x] Kopieren des Systemprompts für die KI-gestützte Kartengenerierung in die Zwischenablage funktioniert auf Windows nicht. Auf MacOS und Android und iOS scheint es zu funktionieren.
 - [x] Der Systemprompt, der für die KI-gestützte Kartengenerierung verwendet wird, sollte überarbeitet werden, um konsistentere und qualitativ hochwertigere Ergebnisse zu erzielen. Der aktuelle Prompt führt manchmal zu ungenauen oder unvollständigen Karten. Eine klarere Struktur und spezifischere Anweisungen könnten helfen, bessere Karten zu generieren. Außerdem muss der Prompt so angepasst werden, dass das Modell angewiesen wird eine wirklich ausführliche Anzahl an Karten zu generieren. Vor allem, wenn Material beigelegt wird wie PDFs, Texte oder Webseiten. Die Anzahl der Karten sollte sich nach dem Umfang des Materials richten. Es dient dem Nutzer als Prüfungsvorbereitung und Lerngrundlage, daher sollten so viele relevante Karten wie möglich generiert werden.
 - [x] Auf iOS lässt sich das Themen Dropdown im Card Detail View nicht schließen, weil der Button zum schließen nach unten außerhalb des Bildschirms verschwindet. Prüfe dieses Verhalten für Mobile, auch die in Android und die Einabezeile für neue Themen verschwindet nach unten außerhalb des Bildschirms, wenn man die Themen ausklappt. Auf Desktop gibt es auch das Problem, dass die Eingabezeile für neue Themen nach unten außerhalb des Fensters verschwindet.
 - [x] Kontraste der Bewertungs-Buttons im Smart Learn Mode verbessert. Schriftfarbe auf dunkles Schwarz/Grau geändert für besseren Kontrast.
