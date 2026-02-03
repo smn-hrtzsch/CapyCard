@@ -48,6 +48,10 @@
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FF808080"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FF757575"/>
                     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FFE0E0E0"/>
+
+                    <!-- Buttons -->
+                    <!-- Secondary outlined buttons need stronger contrast in Light mode -->
+                    <SolidColorBrush x:Key="SecondaryOutlineBrush" Color="{DynamicResource PrimaryHoverColor}"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FFEEEEEE"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FF616161"/>
@@ -70,6 +74,9 @@
                     <SolidColorBrush x:Key="InputStrokeBrush" Color="#FFBDBDBD"/>
                     <SolidColorBrush x:Key="InputStrokeFocusedBrush" Color="#FFEEEEEE"/>
                     <SolidColorBrush x:Key="PopupBackgroundBrush" Color="#FF707070"/>
+
+                    <!-- Buttons -->
+                    <SolidColorBrush x:Key="SecondaryOutlineBrush" Color="{DynamicResource PrimaryLightColor}"/>
                     
                     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="#FF616161"/>
                     <SolidColorBrush x:Key="BadgeForegroundBrush" Color="#FFEEEEEE"/>

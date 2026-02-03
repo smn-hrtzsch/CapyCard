@@ -55,8 +55,8 @@
     <!-- Secondary/Action Button (Outlined with bright teal border and text) -->
     <Style Selector="Button.secondary">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SecondaryOutlineBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryOutlineBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="25"/>
         <Setter Property="Padding" Value="16,8"/>
@@ -64,21 +64,21 @@
     
     <Style Selector="Button.secondary /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SecondaryOutlineBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryOutlineBrush}"/>
     </Style>
     
     <Style Selector="Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#15808080"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SecondaryOutlineBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryOutlineBrush}"/>
     </Style>
     
     <Style Selector="Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#25808080"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryLightBrush}"/>
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryLightBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource SecondaryOutlineBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource SecondaryOutlineBrush}"/>
     </Style>
 
     <!-- Floating TextBox -->
