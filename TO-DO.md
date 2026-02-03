@@ -38,6 +38,7 @@
 - [x] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen. (Persistent via Einstellungen speicherbar)
 
 ## Bugs
+
 - [ ] Beim Starten der App wird sie immer im Standard Modus dargestellt, obwohl ich den Zen Modus aktiviert und gespeichert habe. Erst nach dem erneuten aktivieren zur Laufzeit der App wird alles korrekt im Zen Modus dargestellt. Der Zen Modus sollte direkt beim Start der App geladen und angewendet werden, solange er in den Einstellungen aktiviert ist.
 - [ ] Die Farben für die Auswahl des Farbschemas im Settings Dialog sollten übereinstimmen mit den tatsächlich verwendeten Farben in der App. Passe die Farbcodes für die Vorschau an, sodass sie gleich ist oder einfach direkt die Farben aus den Theme Dateien laden.
 - [ ] Wenn der Zen Modus aktiviert ist, gibt es ein Problem mit dem Kompakt Modus. Dadurch, dass die Icons für Buttons ausgeblendet werden, ist im Kompaktmodus dann in dem Button gar nichts mehr sichtbar, da der Text auch ausgeblendet wird. In diesem Fall, sollte dann im Kompaktmodus die Icons auch im Zen Modus sichtbar bleiben, damit die Buttons nicht leer sind.
