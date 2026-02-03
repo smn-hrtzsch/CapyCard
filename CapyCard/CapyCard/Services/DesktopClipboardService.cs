@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 
 namespace CapyCard.Services
 {
@@ -14,7 +16,7 @@ namespace CapyCard.Services
     /// </summary>
     public class DesktopClipboardService : IClipboardService
     {
-        private object? GetClipboard()
+        private IClipboard? GetClipboard()
         {
             // Fallback to Lifetime MainWindow
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
@@ -35,21 +37,17 @@ namespace CapyCard.Services
 
         public async Task<bool> HasImageAsync()
         {
-            var clipboard = GetClipboard();
+            var clipboard = await Dispatcher.UIThread.InvokeAsync(GetClipboard);
             if (clipboard == null) return false;
 
             try
             {
-                var method = clipboard.GetType().GetMethod("GetFormatsAsync");
-                if (method != null)
-                {
-                    var task = (Task<string[]>)method.Invoke(clipboard, null)!;
-                    var formats = await task;
-                    return formats.Any(f => f.Contains("image", StringComparison.OrdinalIgnoreCase) || 
-                                           f.Equals("png", StringComparison.OrdinalIgnoreCase) || 
-                                           f.Equals("bitmap", StringComparison.OrdinalIgnoreCase));
-                }
-                return false;
+#pragma warning disable CS0618 // Obsolete API - GetFormatsAsync
+                var formats = await clipboard.GetFormatsAsync();
+#pragma warning restore CS0618
+                return formats.Any(f => f.Contains("image", StringComparison.OrdinalIgnoreCase) || 
+                                       f.Equals("png", StringComparison.OrdinalIgnoreCase) || 
+                                       f.Equals("bitmap", StringComparison.OrdinalIgnoreCase));
             }
             catch
             {
@@ -59,20 +57,15 @@ namespace CapyCard.Services
 
         public async Task SetTextAsync(string text)
         {
-            var clipboard = GetClipboard();
+            var clipboard = await Dispatcher.UIThread.InvokeAsync(GetClipboard);
             bool success = false;
 
             if (clipboard != null)
             {
                 try
                 {
-                    var method = clipboard.GetType().GetMethod("SetTextAsync", new[] { typeof(string) });
-                    if (method != null)
-                    {
-                        var task = (Task)method.Invoke(clipboard, new object[] { text })!;
-                        await task;
-                        success = true;
-                    }
+                    await clipboard.SetTextAsync(text);
+                    success = true;
                 }
                 catch
                 {
