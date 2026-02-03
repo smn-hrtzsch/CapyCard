@@ -50,17 +50,17 @@ public partial class App : Application
             CapyCard.Services.ClipboardService.Current = new CapyCard.Services.DesktopClipboardService();
         }
 
-        // 5. Load and Apply User Settings
+        // 5. Load User Settings (apply after main view exists)
+        UserSettings settings;
         try 
         {
             var userSettingsService = new UserSettingsService();
-            var themeService = new ThemeService();
-            var settings = userSettingsService.LoadSettingsAsync().GetAwaiter().GetResult();
-            themeService.ApplyTheme(settings.ThemeColor, settings.ThemeMode, settings.IsZenMode);
+            settings = userSettingsService.LoadSettingsAsync().GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[App] Failed to load/apply settings: {ex.Message}");
+            Console.WriteLine($"[App] Failed to load settings: {ex.Message}");
+            settings = new UserSettings();
         }
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -77,6 +77,17 @@ public partial class App : Application
             {
                 DataContext = new MainViewModel()
             };
+        }
+
+        // 6. Apply Theme + Zen Mode after window/view is created
+        try
+        {
+            var themeService = new ThemeService();
+            themeService.ApplyTheme(settings.ThemeColor, settings.ThemeMode, settings.IsZenMode);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[App] Failed to apply settings: {ex.Message}");
         }
 
         base.OnFrameworkInitializationCompleted();
