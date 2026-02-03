@@ -3,84 +3,233 @@
         xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
     
     <!-- Zen Mode Overrides: Make buttons less distracting (Outline instead of Filled) -->
-    
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <!-- Zen needs high contrast: Dark mode uses a lighter accent, Light mode uses a darker accent -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="ZenAccentBrush" Color="{DynamicResource PrimaryHoverColor}" />
+                    <SolidColorBrush x:Key="ZenAccentBorderBrush" Color="{DynamicResource PrimaryHoverColor}" Opacity="0.65" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="ZenAccentBrush" Color="{DynamicResource PrimaryLightColor}" />
+                    <SolidColorBrush x:Key="ZenAccentBorderBrush" Color="{DynamicResource PrimaryLightColor}" Opacity="0.7" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <SolidColorBrush x:Key="ZenErrorBorderBrush" Color="#FFB71C1C" Opacity="0.65" />
+        </ResourceDictionary>
+    </Styles.Resources>
+     
     <!-- Primary Buttons -> Outline Style -->
-    <Style Selector="Button.primary">
+    <Style Selector=".zen Button.primary">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
         <Setter Property="BorderThickness" Value="1.5" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
-    <Style Selector="Button.primary:pointerover">
-        <Setter Property="Background" Value="#15808080" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryHoverBrush}" />
+    <Style Selector=".zen Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+  
+    <Style Selector=".zen Button.primary:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
-    <Style Selector="Button.primary:pressed">
-        <Setter Property="Background" Value="#25808080" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    <Style Selector=".zen Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+  
+    <Style Selector=".zen Button.primary:pressed">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
     <!-- Destructive Buttons -> Outline Style -->
-    <Style Selector="Button.destructive">
+    <Style Selector=".zen Button.destructive">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ZenErrorBorderBrush}" />
         <Setter Property="BorderThickness" Value="1.5" />
         <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
     </Style>
 
-    <Style Selector="Button.destructive:pointerover">
-        <Setter Property="Background" Value="#15808080" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+    <Style Selector=".zen Button.destructive /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
-        <Setter Property="Opacity" Value="0.85"/>
+    </Style>
+ 
+    <Style Selector=".zen Button.destructive:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.destructive:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.destructive:pressed">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ErrorBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.destructive:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
     </Style>
 
     <!-- FABs -> Outline Style -->
-    <Style Selector="Button.fab">
+    <Style Selector=".zen Button.fab">
         <Setter Property="Background" Value="Transparent" /> 
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
         <Setter Property="BorderThickness" Value="1.5" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
-    <Style Selector="Button.fab:pointerover">
-        <Setter Property="Background" Value="#15808080" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHoverBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryHoverBrush}" />
+    <Style Selector=".zen Button.fab /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+  
+    <Style Selector=".zen Button.fab:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
-    <Style Selector="Button.fab:pressed">
-        <Setter Property="Background" Value="#25808080" />
-        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    <Style Selector=".zen Button.fab:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+  
+    <Style Selector=".zen Button.fab:pressed">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.fab:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
     <!-- CheckBox -> Dezenter (Outline) -->
-    <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+    <Style Selector=".zen CheckBox:checked /template/ Border#NormalRectangle">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="1.5"/>
     </Style>
-    <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
+    <Style Selector=".zen CheckBox:checked /template/ Path#CheckGlyph">
         <Setter Property="Fill" Value="{DynamicResource PrimaryBrush}"/>
     </Style>
 
     <!-- RadioButton -> Dezenter -->
-    <Style Selector="RadioButton:checked /template/ Ellipse#CheckGlyph">
+    <Style Selector=".zen RadioButton:checked /template/ Ellipse#CheckGlyph">
         <Setter Property="Opacity" Value="0.8"/>
     </Style>
 
-    <!-- Secondary Buttons -> More muted -->
-    <Style Selector="Button.secondary">
-        <Setter Property="Opacity" Value="0.6" />
+    <!-- Secondary Buttons -> Muted but readable (neutral text + subtle accent border) -->
+    <Style Selector=".zen Button.secondary">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary:pointerover">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary:pressed">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ZenAccentBrush}" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="Foreground" Value="{DynamicResource TextControlForeground}" />
+    </Style>
+
+    <!-- Zen: Hide icons inside text+icon button layouts -->
+    <Style Selector=".zen Panel.zen-hide-icon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.primary StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.primary Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.secondary Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.fab StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector=".zen Button.fab Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="False" />
     </Style>
     
     <!-- Floating Inputs -> Less colorful focus -->
-    <Style Selector="TextBox.floating:focus /template/ Border#PART_BorderElement">
+    <Style Selector=".zen TextBox.floating:focus /template/ Border#PART_BorderElement">
         <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
     </Style>

@@ -4,7 +4,7 @@
         <ResourceDictionary x:Key="Light">
             <Color x:Key="PrimaryColor">#FFFF9800</Color>
             <Color x:Key="PrimaryLightColor">#FFFFB74D</Color>
-            <Color x:Key="PrimaryHoverColor">#FFF57C00</Color>
+            <Color x:Key="PrimaryHoverColor">#FFEF6C00</Color>
             <Color x:Key="SecondaryColor">#FF00BCD4</Color>
             <Color x:Key="TextOnPrimaryColor">#FF212121</Color>
 

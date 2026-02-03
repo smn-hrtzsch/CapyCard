@@ -1,8 +1,8 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Styling;
 using System;
-using System.Linq;
 
 namespace CapyCard.Services
 {
@@ -51,30 +51,20 @@ namespace CapyCard.Services
                     app.Resources.MergedDictionaries.Add(newTheme);
                 }
 
-                // 3. Zen Mode - Apply or Remove Overrides via Application Styles
-                var zenUri = "avares://CapyCard/Styles/Themes/ZenMode.axaml";
-                
-                // Robust removal: find any StyleInclude that points to ZenMode.axaml
-                // We compare the Source.ToString()
-                for (int i = app.Styles.Count - 1; i >= 0; i--)
+                // 3. Zen Mode - styles are always loaded; toggle via a class
+                // Adding/removing StyleIncludes at runtime can leave already-templated controls in a stale visual state.
+                if (app.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop2)
                 {
-                    if (app.Styles[i] is StyleInclude include && include.Source != null && 
-                        (include.Source.ToString().Contains("ZenMode.axaml") || include.Source.ToString().EndsWith("ZenMode.axaml")))
+                    foreach (Window window in desktop2.Windows)
                     {
-                        app.Styles.RemoveAt(i);
+                        window.Classes.Set("zen", isZen);
                     }
                 }
 
-                if (isZen)
+                if (app.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime single &&
+                    single.MainView is StyledElement main)
                 {
-                    // Create a fresh instance to be safe
-                    var zenStyle = new StyleInclude(new Uri("avares://CapyCard/App.axaml"))
-                    {
-                        Source = new Uri(zenUri)
-                    };
-                    
-                    // Add to the end for highest priority
-                    app.Styles.Add(zenStyle);
+                    main.Classes.Set("zen", isZen);
                 }
             }
             catch (Exception ex)

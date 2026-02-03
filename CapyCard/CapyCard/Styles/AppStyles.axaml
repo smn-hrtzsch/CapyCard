@@ -14,16 +14,17 @@
     <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
     </Style>
-    
+     
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
+        <Setter Property="Opacity" Value="0.85"/>
     </Style>
-    
+     
     <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource ButtonForegroundBrush}"/>
-        <Setter Property="Opacity" Value="0.9"/>
+        <Setter Property="Opacity" Value="0.7"/>
     </Style>
 
     <!-- Destructive Button (Delete/Remove actions - Red with light text) -->

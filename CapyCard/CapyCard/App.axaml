@@ -23,6 +23,7 @@
         
         <!-- Custom App Styles -->
         <StyleInclude Source="/Styles/AppStyles.axaml" />
+        <StyleInclude Source="/Styles/Themes/ZenMode.axaml" />
     </Application.Styles>
     
     <Application.Resources>
