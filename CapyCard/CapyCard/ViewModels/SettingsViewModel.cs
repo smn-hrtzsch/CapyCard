@@ -72,11 +72,11 @@ namespace CapyCard.ViewModels
             new() { Name = "Teal", Color = "#00897B" },
             new() { Name = "Blue", Color = "#1E88E5" },
             new() { Name = "Green", Color = "#43A047" },
-            new() { Name = "Monochrome", Color = "#757575" },
+            new() { Name = "Monochrome", Color = "#616161" },
             new() { Name = "Pink", Color = "#D81B60" },
-            new() { Name = "Purple", Color = "#8E24AA" },
+            new() { Name = "Purple", Color = "#9C27B0" },
             new() { Name = "Red", Color = "#D32F2F" },
-            new() { Name = "Orange", Color = "#FF9800" }
+            new() { Name = "Orange", Color = "#EF6C00" }
         };
         
         public ObservableCollection<string> AvailableModes { get; } = new()
