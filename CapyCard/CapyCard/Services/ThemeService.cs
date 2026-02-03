@@ -29,6 +29,11 @@ namespace CapyCard.Services
                 {
                     window.RequestedThemeVariant = themeVariant;
                 }
+
+                if (desktop.MainWindow != null)
+                {
+                    desktop.MainWindow.RequestedThemeVariant = themeVariant;
+                }
             }
 
             // 2. Determine Color Palette Source
@@ -58,6 +63,11 @@ namespace CapyCard.Services
                     foreach (Window window in desktop2.Windows)
                     {
                         window.Classes.Set("zen", isZen);
+                    }
+
+                    if (desktop2.MainWindow != null)
+                    {
+                        desktop2.MainWindow.Classes.Set("zen", isZen);
                     }
                 }
 
