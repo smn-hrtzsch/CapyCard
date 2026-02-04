@@ -560,8 +560,8 @@
                                                         
                                                         <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
                                                             <local:FormattedTextBlock Grid.Row="0"
-                                                                                     FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                     ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
                                                                                      TextWrapping="Wrap" MaxLines="3"
                                                                                      FontSize="14" Foreground="{DynamicResource TextControlForeground}"
                                                                                      VerticalAlignment="Top"/>
@@ -569,8 +569,8 @@
                                                             <Separator Grid.Row="1" Margin="0,6" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
                                                             
                                                             <local:FormattedTextBlock Grid.Row="2"
-                                                                                     FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                     ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                                     FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                     ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
                                                                                      TextWrapping="Wrap" MaxLines="3"
                                                                                      FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
                                                                                      VerticalAlignment="Top"/>
@@ -618,8 +618,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                             ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
                                                                                              Margin="12,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -639,8 +639,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                             ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
                                                                                              Margin="12,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -725,8 +725,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Card.Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
+                                                                                             ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
                                                                                              Margin="8,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -746,8 +746,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Card.Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Card.Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
+                                                                                             ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
                                                                                              Margin="8,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
