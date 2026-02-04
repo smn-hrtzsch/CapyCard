@@ -38,9 +38,7 @@
 - [x] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen. (Persistent via Einstellungen speicherbar)
 
 ## Bugs
-- [ ] Der Ausklapp Button für die Themen überlagert die anderen Buttons im Card Detail View, wenn der Bildschirm zu wenig vertikalen Platz hat. Im Standard Modus ist es okay, da er dort filled ist, aber im Zen Modus kommt es zum Problem, da er nur Outlined ist und sich dann mit den Darunterliegenden Buttons vermischt. Besser wäre es im Zen Modus den Hintergrund oder die Füllfarbe für den Button nicht transparent zu machen, sondern einfach auf die Hintergrund Farbe des DeckDetailViews zu setzen, sodass er gefüllt ist und die anderen Buttons nicht durchscheinen, aber er trotzdem dezent wirkt. Siehe Screenshot, wie es momentan aussieht: 
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
-- [x] Zen Mode deaktivieren aktualisiert Primary Buttons nicht sofort (bleibt bis View/App-Neustart)
 
 ## Mobile Bugs
 
@@ -50,6 +48,8 @@
 
 ## Fixed Bugs
 
+- [x] Der Ausklapp Button für die Themen überlagert die anderen Buttons im Card Detail View, wenn der Bildschirm zu wenig vertikalen Platz hat. Im Standard Modus ist es okay, da er dort filled ist, aber im Zen Modus kommt es zum Problem, da er nur Outlined ist und sich dann mit den Darunterliegenden Buttons vermischt. Besser wäre es im Zen Modus den Hintergrund oder die Füllfarbe für den Button nicht transparent zu machen, sondern einfach auf die Hintergrund Farbe des DeckDetailViews zu setzen, sodass er gefüllt ist und die anderen Buttons nicht durchscheinen, aber er trotzdem dezent wirkt. Siehe Screenshot, wie es momentan aussieht: 
+- [x] Zen Mode deaktivieren aktualisiert Primary Buttons nicht sofort (bleibt bis View/App-Neustart)
 - [x] Wenn der Zen Modus aktiviert ist, gibt es ein Problem mit dem Kompakt Modus. Dadurch, dass die Icons für Buttons ausgeblendet werden, ist im Kompaktmodus dann in dem Button gar nichts mehr sichtbar, da der Text auch ausgeblendet wird. In diesem Fall, sollte dann im Kompaktmodus die Icons auch im Zen Modus sichtbar bleiben, damit die Buttons nicht leer sind.
 - [x] Die Farben für die Auswahl des Farbschemas im Settings Dialog sollten übereinstimmen mit den tatsächlich verwendeten Farben in der App. Passe die Farbcodes für die Vorschau an, sodass sie gleich ist oder einfach direkt die Farben aus den Theme Dateien laden.
 - [x] Beim Starten der App wird sie immer im Standard Modus dargestellt, obwohl ich den Zen Modus aktiviert und gespeichert habe. Erst nach dem erneuten aktivieren zur Laufzeit der App wird alles korrekt im Zen Modus dargestellt. Der Zen Modus sollte direkt beim Start der App geladen und angewendet werden, solange er in den Einstellungen aktiviert ist.
