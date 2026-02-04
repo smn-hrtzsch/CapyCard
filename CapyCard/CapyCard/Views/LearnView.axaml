@@ -29,6 +29,110 @@
              <Setter Property="Background" Value="#64B5F6"/>
              <Setter Property="TextElement.Foreground" Value="#000000"/>
          </Style>
+         <Style Selector="ScrollViewer.image-preview-scroll">
+             <Setter Property="Padding" Value="40"/>
+         </Style>
+         <Style Selector=".compact ScrollViewer.image-preview-scroll">
+             <Setter Property="Padding" Value="16"/>
+         </Style>
+         <Style Selector="Border.image-preview-controls">
+             <Setter Property="Margin" Value="32,0,32,48"/>
+             <Setter Property="Padding" Value="24,12"/>
+             <Setter Property="MaxWidth" Value="640"/>
+             <Setter Property="HorizontalAlignment" Value="Center"/>
+         </Style>
+         <Style Selector=".compact Border.image-preview-controls">
+             <Setter Property="Margin" Value="16,0,16,24"/>
+             <Setter Property="Padding" Value="12,8"/>
+             <Setter Property="MaxWidth" Value="10000"/>
+             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+         </Style>
+         <Style Selector="Grid.image-preview-controls-grid">
+             <Setter Property="ColumnSpacing" Value="20"/>
+         </Style>
+         <Style Selector=".compact Grid.image-preview-controls-grid">
+             <Setter Property="ColumnSpacing" Value="10"/>
+         </Style>
+         <Style Selector="Button.image-preview-control-button">
+             <Setter Property="Width" Value="40"/>
+             <Setter Property="Height" Value="40"/>
+             <Setter Property="CornerRadius" Value="20"/>
+             <Setter Property="Padding" Value="8"/>
+         </Style>
+         <Style Selector=".compact Button.image-preview-control-button">
+             <Setter Property="Width" Value="32"/>
+             <Setter Property="Height" Value="32"/>
+             <Setter Property="CornerRadius" Value="16"/>
+             <Setter Property="Padding" Value="6"/>
+         </Style>
+         <Style Selector="Grid.image-preview-zoom-grid">
+             <Setter Property="ColumnSpacing" Value="12"/>
+         </Style>
+         <Style Selector=".compact Grid.image-preview-zoom-grid">
+             <Setter Property="ColumnSpacing" Value="6"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider">
+             <Setter Property="MinWidth" Value="80"/>
+             <Setter Property="MaxWidth" Value="160"/>
+             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="HorizontalAlignment" Value="Stretch"/>
+         </Style>
+         <Style Selector=".compact Slider.image-preview-zoom-slider">
+             <Setter Property="MinWidth" Value="80"/>
+             <Setter Property="MaxWidth" Value="10000"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider:pointerover">
+             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider:pressed">
+             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ Thumb">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ Thumb:pointerover">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ Thumb:pressed">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_DecreaseButton">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_DecreaseButton:pointerover">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_DecreaseButton:pressed">
+             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_IncreaseButton">
+             <Setter Property="Background" Value="{DynamicResource SurfaceBorderBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_IncreaseButton:pointerover">
+             <Setter Property="Background" Value="{DynamicResource SurfaceBorderBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+         </Style>
+         <Style Selector="Slider.image-preview-zoom-slider /template/ RepeatButton#PART_IncreaseButton:pressed">
+             <Setter Property="Background" Value="{DynamicResource SurfaceBorderBrush}"/>
+             <Setter Property="BorderBrush" Value="{DynamicResource SurfaceBorderBrush}"/>
+         </Style>
+         <Style Selector="TextBlock.image-preview-zoom-text">
+             <Setter Property="Width" Value="50"/>
+             <Setter Property="FontSize" Value="16"/>
+         </Style>
+         <Style Selector=".compact TextBlock.image-preview-zoom-text">
+             <Setter Property="Width" Value="36"/>
+             <Setter Property="FontSize" Value="14"/>
+         </Style>
      </UserControl.Styles>
 
      <UserControl.KeyBindings>
@@ -326,8 +430,8 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                               VerticalScrollBarVisibility="Auto"
                               AllowAutoHide="False"
-                              Padding="40"
-                              x:Name="ImageScrollViewer">
+                              x:Name="ImageScrollViewer"
+                              Classes="image-preview-scroll">
                     <ScrollViewer.GestureRecognizers>
                         <PinchGestureRecognizer />
                     </ScrollViewer.GestureRecognizers>
@@ -355,56 +459,88 @@
                 </Button>
 
                 <!-- Zoom Controls -->
-                <Border HorizontalAlignment="Center" 
-                        VerticalAlignment="Bottom" 
-                        Margin="0,0,0,48"
+                <Border VerticalAlignment="Bottom" 
                         CornerRadius="28"
                         Background="#CC202020"
                         BorderBrush="#44FFFFFF"
                         BorderThickness="1"
-                        Padding="24,12"
-                        BoxShadow="0 4 16 0 #80000000">
-                    <StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
-                        
-                        <Button Command="{Binding ResetZoomCommand}" 
-                                Width="40" Height="40"
-                                CornerRadius="20"
-                                Background="#33FFFFFF" 
-                                Padding="8"
-                                ToolTip.Tip="Zoom zurücksetzen">
-                             <materialIcons:MaterialIcon Kind="MagnifyScan" Width="20" Height="20" Foreground="White"/>
-                        </Button>
-                        
-                        <Button Command="{Binding ZoomOutCommand}" 
-                                Width="40" Height="40"
-                                CornerRadius="20"
-                                Background="#33FFFFFF" 
-                                Padding="8">
-                            <materialIcons:MaterialIcon Kind="Minus" Width="20" Height="20" Foreground="White"/>
-                        </Button>
-                        
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                            <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" 
-                                    Width="160"
-                                    VerticalAlignment="Center"/>
+                        BoxShadow="0 4 16 0 #80000000"
+                        Classes="image-preview-controls">
+                    <Grid>
+                        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" VerticalAlignment="Center" Classes="image-preview-controls-grid" IsVisible="{Binding !#Root.IsCompactMode}">
+                            <Button Command="{Binding ResetZoomCommand}" 
+                                    Background="#33FFFFFF" 
+                                    ToolTip.Tip="Zoom zurücksetzen"
+                                    Classes="image-preview-control-button">
+                                 <materialIcons:MaterialIcon Kind="MagnifyScan" Width="20" Height="20" Foreground="White"/>
+                            </Button>
                             
-                            <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
-                                       Foreground="White" 
-                                       Width="50" 
-                                       VerticalAlignment="Center"
-                                       TextAlignment="Center"
-                                       FontSize="16"
-                                       FontWeight="Medium"/>
-                        </StackPanel>
+                            <Button Command="{Binding ZoomOutCommand}" 
+                                    Background="#33FFFFFF" 
+                                    Classes="image-preview-control-button"
+                                    Grid.Column="1">
+                                <materialIcons:MaterialIcon Kind="Minus" Width="20" Height="20" Foreground="White"/>
+                            </Button>
+                            
+                            <Grid ColumnDefinitions="Auto,Auto" VerticalAlignment="Center" Classes="image-preview-zoom-grid" Grid.Column="2">
+                                <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" 
+                                        VerticalAlignment="Center"
+                                        Classes="image-preview-zoom-slider"
+                                        Width="160"/>
+                                
+                                <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
+                                           Foreground="White" 
+                                           VerticalAlignment="Center"
+                                           TextAlignment="Center"
+                                           FontWeight="Medium"
+                                           Classes="image-preview-zoom-text"
+                                           Grid.Column="1"/>
+                            </Grid>
 
-                        <Button Command="{Binding ZoomInCommand}" 
-                                Width="40" Height="40"
-                                CornerRadius="20"
-                                Background="#33FFFFFF" 
-                                Padding="8">
-                             <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="White"/>
-                        </Button>
-                    </StackPanel>
+                            <Button Command="{Binding ZoomInCommand}" 
+                                    Background="#33FFFFFF" 
+                                    Classes="image-preview-control-button"
+                                    Grid.Column="3">
+                                 <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="White"/>
+                            </Button>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto" VerticalAlignment="Center" Classes="image-preview-controls-grid" IsVisible="{Binding #Root.IsCompactMode}">
+                            <Button Command="{Binding ResetZoomCommand}" 
+                                    Background="#33FFFFFF" 
+                                    ToolTip.Tip="Zoom zurücksetzen"
+                                    Classes="image-preview-control-button">
+                                 <materialIcons:MaterialIcon Kind="MagnifyScan" Width="20" Height="20" Foreground="White"/>
+                            </Button>
+                            
+                            <Button Command="{Binding ZoomOutCommand}" 
+                                    Background="#33FFFFFF" 
+                                    Classes="image-preview-control-button"
+                                    Grid.Column="1">
+                                <materialIcons:MaterialIcon Kind="Minus" Width="20" Height="20" Foreground="White"/>
+                            </Button>
+                            
+                            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center" Classes="image-preview-zoom-grid" Grid.Column="2">
+                                <Slider Minimum="0.1" Maximum="5.0" Value="{Binding ImageZoomLevel}" 
+                                        VerticalAlignment="Center"
+                                        Classes="image-preview-zoom-slider"/>
+                                
+                                <TextBlock Text="{Binding ImageZoomLevel, StringFormat='{}{0:0.0}x'}" 
+                                           Foreground="White" 
+                                           VerticalAlignment="Center"
+                                           TextAlignment="Center"
+                                           FontWeight="Medium"
+                                           Classes="image-preview-zoom-text"
+                                           Grid.Column="1"/>
+                            </Grid>
+
+                            <Button Command="{Binding ZoomInCommand}" 
+                                    Background="#33FFFFFF" 
+                                    Classes="image-preview-control-button"
+                                    Grid.Column="3">
+                                 <materialIcons:MaterialIcon Kind="Plus" Width="20" Height="20" Foreground="White"/>
+                            </Button>
+                        </Grid>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>
