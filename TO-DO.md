@@ -27,13 +27,12 @@
 
 
 ## Mobile Bugs
-
-- [ ] Auf Mobile sollte in der Tabelle die Spalte für die Checkboxen schmaler sein und der Quick Button für die Vorschau nicht in jeder Zeile einzeln, sondern oben über der Tabelle rechtsbündig auf Höhe des Titels. Dann kann die letzte Spalte für das 3 Punkte Menü auch noch schmaler sein und wir haben mehr Platz für die Karteninhalte.
 - [ ] Vorschau Dialog für Karten im Card List View auf Mobile muss noch responsiv optimiert werden. Die Buttons zum wechseln rechts und links sind zu breit und nehmen zu viel Platz ein. Vielleicht können wir die Buttons etwas kleiner machen oder den Abstand zur Karte verringern, um mehr Platz für die Karte zu haben. Außerdem sollte auf Mobile die Wischgesten nach rechts und links auf dem Touch Screen unterstützt werden, um zur nächsten oder vorherigen Karte zu wechseln. Auch bei schmalen Desktop Fenstern ist die Vorschau nicht optimal dargestellt, hier sollten wir auch die Buttons und Abstände anpassen, damit die Karte mehr Platz hat.
 - [ ] Elemente der Image Preview auf Mobile Geräten sieht man teilweise nicht mehr, weil sie nach rechts oder links außerhalb des Bildschirms verschwinden. Prüfe das Verhalten auf verschiedenen Bildschirmgrößen.
 
 ## Fixed Bugs
 
+- [x] Auf Mobile sollte in der Tabelle die Spalte für die Checkboxen schmaler sein und der Quick Button für die Vorschau nicht in jeder Zeile einzeln, sondern oben über der Tabelle rechtsbündig auf Höhe des Titels. Dann kann die letzte Spalte für das 3 Punkte Menü auch noch schmaler sein und wir haben mehr Platz für die Karteninhalte.
 - [x] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 - [x] Der Ausklapp Button für die Themen überlagert die anderen Buttons im Card Detail View, wenn der Bildschirm zu wenig vertikalen Platz hat. Im Standard Modus ist es okay, da er dort filled ist, aber im Zen Modus kommt es zum Problem, da er nur Outlined ist und sich dann mit den Darunterliegenden Buttons vermischt. Besser wäre es im Zen Modus den Hintergrund oder die Füllfarbe für den Button nicht transparent zu machen, sondern einfach auf die Hintergrund Farbe des DeckDetailViews zu setzen, sodass er gefüllt ist und die anderen Buttons nicht durchscheinen, aber er trotzdem dezent wirkt. Siehe Screenshot, wie es momentan aussieht: 
 - [x] Zen Mode deaktivieren aktualisiert Primary Buttons nicht sofort (bleibt bis View/App-Neustart)
