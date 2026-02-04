@@ -19,14 +19,23 @@ namespace CapyCard.ViewModels
     public partial class DeckDetailViewModel : ObservableObject
     {
         private readonly IUserSettingsService _userSettingsService;
+        private readonly ICardDraftService _cardDraftService;
         private Deck? _currentDeck;
         private Card? _cardToEdit;
+        private bool _suppressDraftSave;
+        private int? _draftDeckId;
+        private string _draftFront = string.Empty;
+        private string _draftBack = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasDraft))]
         private string _newCardFront = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasDraft))]
         private string _newCardBack = string.Empty;
+
+        public bool HasDraft => !string.IsNullOrWhiteSpace(NewCardFront) || !string.IsNullOrWhiteSpace(NewCardBack);
 
         [ObservableProperty]
         private string _deckName = "Fach laden...";
@@ -96,9 +105,10 @@ namespace CapyCard.ViewModels
         [ObservableProperty]
         private bool _isEditorToolbarVisible = true;
 
-        public DeckDetailViewModel(IUserSettingsService userSettingsService)
+        public DeckDetailViewModel(IUserSettingsService userSettingsService, ICardDraftService cardDraftService)
         {
             _userSettingsService = userSettingsService;
+            _cardDraftService = cardDraftService;
             // _dbContext removed. We use short-lived contexts now.
             ExportViewModel = new ExportViewModel();
             
@@ -107,7 +117,17 @@ namespace CapyCard.ViewModels
                 await (OnRequestFileSave?.Invoke(name, ext) ?? Task.FromResult<IStorageFile?>(null));
         }
 
-        public DeckDetailViewModel() : this(new UserSettingsService()) { }
+        public DeckDetailViewModel() : this(new UserSettingsService(), new CardDraftService()) { }
+
+        partial void OnNewCardFrontChanged(string value)
+        {
+            _ = SaveDraftIfNeededAsync();
+        }
+
+        partial void OnNewCardBackChanged(string value)
+        {
+            _ = SaveDraftIfNeededAsync();
+        }
 
         private async void LoadToolbarSettings()
         {
@@ -135,8 +155,9 @@ namespace CapyCard.ViewModels
                     BackButtonText = "Zurück zur Fächerliste";
                 }
             }
-            
-            ResetToAddingMode(); 
+
+            await LoadDraftForCurrentDeckAsync();
+            ResetToAddingMode(restoreDraft: true);
             await RefreshCardDataAsync();
         }
         
@@ -145,6 +166,8 @@ namespace CapyCard.ViewModels
             LoadToolbarSettings();
             _currentDeck = deck;
             _cardToEdit = card;
+
+            await SaveDraftIfNeededAsync();
             
             using (var context = new FlashcardDbContext())
             {
@@ -162,8 +185,7 @@ namespace CapyCard.ViewModels
                 }
             }
 
-            NewCardFront = card.Front;
-            NewCardBack = card.Back;
+            SetEditorValues(card.Front, card.Back);
             
             SaveButtonText = "Änderungen speichern";
             IsEditing = true;
@@ -347,7 +369,7 @@ namespace CapyCard.ViewModels
                     }
                     
                     OnNavigateToCardList?.Invoke(_currentDeck);
-                    ResetToAddingMode();
+                    ResetToAddingMode(restoreDraft: true);
                 }
                 else
                 {
@@ -398,14 +420,10 @@ namespace CapyCard.ViewModels
                     context.Cards.Add(newCard);
                     await context.SaveChangesAsync();
                     await RefreshCardDataAsync(); 
+                    await ClearDraftAsync();
+                    ResetToAddingMode(restoreDraft: false);
                     RequestFrontFocus?.Invoke();
                 }
-            }
-
-            if(_cardToEdit == null) 
-            {
-                NewCardFront = string.Empty;
-                NewCardBack = string.Empty;
             }
         }
         
@@ -416,7 +434,15 @@ namespace CapyCard.ViewModels
             {
                 OnNavigateToCardList?.Invoke(_currentDeck);
             }
-            ResetToAddingMode();
+            ResetToAddingMode(restoreDraft: true);
+        }
+
+        [RelayCommand]
+        private async Task DiscardDraft()
+        {
+            await ClearDraftAsync();
+            ResetToAddingMode(restoreDraft: false);
+            RequestFrontFocus?.Invoke();
         }
 
         [RelayCommand]
@@ -576,13 +602,86 @@ namespace CapyCard.ViewModels
             }
         }
 
-        private void ResetToAddingMode()
+        private void SetEditorValues(string front, string back)
+        {
+            _suppressDraftSave = true;
+            try
+            {
+                NewCardFront = front;
+                NewCardBack = back;
+            }
+            finally
+            {
+                _suppressDraftSave = false;
+            }
+        }
+
+        private async Task LoadDraftForCurrentDeckAsync()
+        {
+            if (_currentDeck == null)
+            {
+                return;
+            }
+
+            var draft = await _cardDraftService.LoadDraftAsync(_currentDeck.Id);
+            _draftDeckId = _currentDeck.Id;
+            _draftFront = draft?.Front ?? string.Empty;
+            _draftBack = draft?.Back ?? string.Empty;
+        }
+
+        private async Task SaveDraftIfNeededAsync()
+        {
+            if (_suppressDraftSave || IsEditing || _currentDeck == null)
+            {
+                return;
+            }
+
+            _draftDeckId = _currentDeck.Id;
+            _draftFront = NewCardFront;
+            _draftBack = NewCardBack;
+
+            await _cardDraftService.SaveDraftAsync(_currentDeck.Id, _draftFront, _draftBack);
+        }
+
+        private async Task ClearDraftAsync()
+        {
+            if (_currentDeck == null)
+            {
+                return;
+            }
+
+            _draftDeckId = _currentDeck.Id;
+            _draftFront = string.Empty;
+            _draftBack = string.Empty;
+
+            await _cardDraftService.ClearDraftAsync(_currentDeck.Id);
+        }
+
+        private void RestoreDraftToEditors()
+        {
+            if (_currentDeck == null || _draftDeckId != _currentDeck.Id)
+            {
+                SetEditorValues(string.Empty, string.Empty);
+                return;
+            }
+
+            SetEditorValues(_draftFront, _draftBack);
+        }
+
+        private void ResetToAddingMode(bool restoreDraft)
         {
             _cardToEdit = null;
-            NewCardFront = string.Empty;
-            NewCardBack = string.Empty;
             SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
             IsEditing = false;
+
+            if (restoreDraft)
+            {
+                RestoreDraftToEditors();
+            }
+            else
+            {
+                SetEditorValues(string.Empty, string.Empty);
+            }
         }
 
         [RelayCommand]
