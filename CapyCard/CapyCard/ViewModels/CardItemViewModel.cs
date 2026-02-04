@@ -13,6 +13,10 @@ namespace CapyCard.ViewModels
         /// </summary>
         public Card Card { get; }
 
+        public string Front => Card.Front;
+
+        public string Back => Card.Back;
+
         // Diese Eigenschaft wird an die CheckBox gebunden
         [ObservableProperty]
         private bool _isSelected;
@@ -23,6 +27,11 @@ namespace CapyCard.ViewModels
             _isSelected = false; // Standardmäßig nicht ausgewählt
         }
 
-        public void NotifyCardChanged() => OnPropertyChanged(nameof(Card));
+        public void NotifyCardChanged()
+        {
+            OnPropertyChanged(nameof(Card));
+            OnPropertyChanged(nameof(Front));
+            OnPropertyChanged(nameof(Back));
+        }
     }
 }
