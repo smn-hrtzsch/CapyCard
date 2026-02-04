@@ -514,6 +514,16 @@ namespace CapyCard.ViewModels
         }
 
         [RelayCommand]
+        private void ShowSelectedPreview()
+        {
+            var selected = AllCards.FirstOrDefault(c => c.IsSelected) ?? AllCards.FirstOrDefault();
+            if (selected != null)
+            {
+                ShowPreview(selected);
+            }
+        }
+
+        [RelayCommand]
         private void GoBack()
         {
             OnNavigateBack?.Invoke();
