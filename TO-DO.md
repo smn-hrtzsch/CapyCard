@@ -27,7 +27,9 @@
 
 
 ## Mobile Bugs
+
 - [ ] Vorschau Dialog für Karten im Card List View auf Mobile muss noch responsiv optimiert werden. Die Buttons zum wechseln rechts und links sind zu breit und nehmen zu viel Platz ein. Vielleicht können wir die Buttons etwas kleiner machen oder den Abstand zur Karte verringern, um mehr Platz für die Karte zu haben. Außerdem sollte auf Mobile die Wischgesten nach rechts und links auf dem Touch Screen unterstützt werden, um zur nächsten oder vorherigen Karte zu wechseln. Auch bei schmalen Desktop Fenstern ist die Vorschau nicht optimal dargestellt, hier sollten wir auch die Buttons und Abstände anpassen, damit die Karte mehr Platz hat.
+- [ ] Lernen Button im Vorschau Dialog auf Mobile hat trotz Zen Modus das Lernen icon sichtbar.
 - [ ] Elemente der Image Preview auf Mobile Geräten sieht man teilweise nicht mehr, weil sie nach rechts oder links außerhalb des Bildschirms verschwinden. Prüfe das Verhalten auf verschiedenen Bildschirmgrößen.
 
 ## Fixed Bugs
