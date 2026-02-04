@@ -26,10 +26,9 @@
 
 ## Bugs
 
-- [ ] Performance beim Ausklappen von Decks im DeckListView oder dem Wechseln von der DeckListView zum CardListView verbessern. Aktuell gibt es da teilweise spürbare Verzögerungen, vor allem bei vielen Decks/Karten.
-
 ## Mobile Bugs
 
 ## Fixed Bugs
 
 - [x] Fenstergröße beim ersten Start der App automatisch an Bildschirmgröße anpassen (z.b. 75% breite, 85% Höhe) (Desktop-Fenster ist auf kleineren Bildschirmen zu groß beim ersten mal starten der App.
+- [x] Performance beim Ausklappen von Decks im DeckListView oder dem Wechseln von der DeckListView zum CardListView verbessern. Aktuell gibt es da teilweise spürbare Verzögerungen, vor allem bei vielen Decks/Karten.

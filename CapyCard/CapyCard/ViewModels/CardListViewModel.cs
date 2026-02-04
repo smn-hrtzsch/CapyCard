@@ -18,9 +18,14 @@ namespace CapyCard.ViewModels
     // Helper class for grouping cards
     public partial class CardGroupViewModel : ObservableObject
     {
+        private readonly Func<CardGroupViewModel, Task> _loadCards;
+        private readonly int _initialCardCount;
+        private Task? _loadTask;
+
         public string Title { get; }
+        public int DeckId { get; }
         public ObservableCollection<CardItemViewModel> Cards { get; } = new();
-        
+
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
         private bool _isExpanded = false;
@@ -29,20 +34,88 @@ namespace CapyCard.ViewModels
         [NotifyPropertyChangedFor(nameof(ShowSelectionIndicator))]
         private bool _hasSelection = false;
 
+        [ObservableProperty]
+        private bool _isLoaded = false;
+
+        [ObservableProperty]
+        private bool _isLoading = false;
+
+        public int CardCount => IsLoaded ? Cards.Count : _initialCardCount;
+
         public bool ShowSelectionIndicator => HasSelection && !IsExpanded;
 
-        public CardGroupViewModel(string title)
+        public CardGroupViewModel(string title, int deckId, int cardCount, Func<CardGroupViewModel, Task> loadCards)
         {
             Title = title;
+            DeckId = deckId;
+            _initialCardCount = cardCount;
+            _loadCards = loadCards;
+
+            Cards.CollectionChanged += (s, e) =>
+            {
+                if (IsLoaded)
+                {
+                    OnPropertyChanged(nameof(CardCount));
+                }
+            };
+        }
+
+        partial void OnIsExpandedChanged(bool value)
+        {
+            if (value)
+            {
+                _ = EnsureCardsLoadedAsync();
+            }
+        }
+
+        partial void OnIsLoadedChanged(bool value)
+        {
+            OnPropertyChanged(nameof(CardCount));
+        }
+
+        private async Task EnsureCardsLoadedAsync()
+        {
+            if (IsLoaded)
+            {
+                return;
+            }
+
+            if (_loadTask != null)
+            {
+                await _loadTask;
+                return;
+            }
+
+            _loadTask = LoadCardsCoreAsync();
+            await _loadTask;
+        }
+
+        private async Task LoadCardsCoreAsync()
+        {
+            try
+            {
+                IsLoading = true;
+                await _loadCards(this);
+                IsLoaded = true;
+            }
+            finally
+            {
+                IsLoading = false;
+                _loadTask = null;
+            }
         }
     }
 
     public partial class CardListViewModel : ObservableObject
     {
         private Deck? _currentDeck;
+        private int _loadSequence;
 
         [ObservableProperty]
         private string _deckName = "Karten";
+
+        [ObservableProperty]
+        private bool _isLoading;
 
         // Changed from flat list to grouped list
         public ObservableCollection<CardGroupViewModel> CardGroups { get; } = new();
@@ -283,103 +356,140 @@ namespace CapyCard.ViewModels
             // _dbContext removed
         }
 
-        public async void LoadDeck(Deck deck)
+        public async Task LoadDeckAsync(Deck deck)
         {
-            // Save state of current deck before switching
-            if (_currentDeck != null)
+            int loadId = ++_loadSequence;
+            IsLoading = true;
+
+            try
             {
-                var expandedTitles = CardGroups.Where(g => g.IsExpanded).Select(g => g.Title).ToHashSet();
-                if (_deckExpansionStates.ContainsKey(_currentDeck.Id))
+                // Save state of current deck before switching
+                if (_currentDeck != null)
                 {
-                    _deckExpansionStates[_currentDeck.Id] = expandedTitles;
-                }
-                else
-                {
-                    _deckExpansionStates.Add(_currentDeck.Id, expandedTitles);
-                }
-            }
-
-            _currentDeck = deck;
-            DeckName = $"Karten für: {deck.Name}";
-            
-            // Set Back Button Text based on context
-            BackButtonText = deck.ParentDeckId != null ? "Zurück zum Thema" : "Zurück zum Fach";
-
-            // Cleanup old handlers
-            foreach (var item in AllCards)
-            {
-                item.PropertyChanged -= CardItem_PropertyChanged;
-            }
-            CardGroups.Clear();
-
-            // Get saved state for new deck
-            HashSet<string> savedState = new();
-            if (_deckExpansionStates.ContainsKey(deck.Id))
-            {
-                savedState = _deckExpansionStates[deck.Id];
-            }
-            
-            using (var context = new FlashcardDbContext())
-            {
-                // Load current deck cards (General)
-                var currentDeckCards = await context.Cards
-                                    .AsNoTracking() 
-                                    .Where(c => c.DeckId == _currentDeck.Id)
-                                    .ToListAsync();
-
-                if (currentDeckCards.Any())
-                {
-                    // If it is a subdeck, use the deck name as group title, otherwise "Allgemein"
-                    string groupTitle = (_currentDeck.ParentDeckId != null) ? _currentDeck.Name : "Allgemein";
-                    var generalGroup = new CardGroupViewModel(groupTitle);
-                    
-                    // Restore expansion state
-                    // Force expansion if it is a subdeck (single group view)
-                    if (_currentDeck.ParentDeckId != null)
+                    var expandedTitles = CardGroups.Where(g => g.IsExpanded).Select(g => g.Title).ToHashSet();
+                    if (_deckExpansionStates.ContainsKey(_currentDeck.Id))
                     {
-                        generalGroup.IsExpanded = true;
+                        _deckExpansionStates[_currentDeck.Id] = expandedTitles;
                     }
                     else
                     {
-                        generalGroup.IsExpanded = savedState.Contains(generalGroup.Title);
+                        _deckExpansionStates.Add(_currentDeck.Id, expandedTitles);
                     }
-                    
-                    foreach (var card in currentDeckCards)
-                    {
-                        var itemVM = new CardItemViewModel(card);
-                        itemVM.PropertyChanged += CardItem_PropertyChanged;
-                        generalGroup.Cards.Add(itemVM);
-                    }
-                    CardGroups.Add(generalGroup);
                 }
 
-                // Load subdecks recursively (flattened for now or grouped by subdeck)
-                // Requirement: "When opening a main deck -> Show 'General Cards' section and then sections for each subdeck."
-                // We need to fetch subdecks.
-                var subDecks = await context.Decks
+                _currentDeck = deck;
+                DeckName = $"Karten für: {deck.Name}";
+
+                // Set Back Button Text based on context
+                BackButtonText = deck.ParentDeckId != null ? "Zurück zum Thema" : "Zurück zum Fach";
+
+                SelectedCardCount = 0;
+                IsPreviewOpen = false;
+                PreviewCard = null;
+                IsEditing = false;
+                IsConfirmingDelete = false;
+
+                // Cleanup old handlers
+                foreach (var item in AllCards)
+                {
+                    item.PropertyChanged -= CardItem_PropertyChanged;
+                }
+                CardGroups.Clear();
+
+                // Get saved state for new deck
+                HashSet<string> savedState = new();
+                if (_deckExpansionStates.ContainsKey(deck.Id))
+                {
+                    savedState = _deckExpansionStates[deck.Id];
+                }
+
+                using (var context = new FlashcardDbContext())
+                {
+                    var subDecks = await context.Decks
+                        .AsNoTracking()
+                        .Where(d => d.ParentDeckId == _currentDeck.Id)
+                        .OrderByDescending(d => d.Name == "Allgemein")
+                        .ThenBy(d => d.Id)
+                        .ToListAsync();
+
+                    if (loadId != _loadSequence)
+                    {
+                        return;
+                    }
+
+                    var deckIds = subDecks.Select(d => d.Id).Append(_currentDeck.Id).ToList();
+
+                    var cardCountByDeckId = await context.Cards
+                        .AsNoTracking()
+                        .Where(c => deckIds.Contains(c.DeckId))
+                        .GroupBy(c => c.DeckId)
+                        .Select(g => new { DeckId = g.Key, Count = g.Count() })
+                        .ToDictionaryAsync(g => g.DeckId, g => g.Count);
+
+                    if (loadId != _loadSequence)
+                    {
+                        return;
+                    }
+
+                    if (cardCountByDeckId.TryGetValue(_currentDeck.Id, out var generalCount) && generalCount > 0)
+                    {
+                        string groupTitle = (_currentDeck.ParentDeckId != null) ? _currentDeck.Name : "Allgemein";
+                        var generalGroup = new CardGroupViewModel(groupTitle, _currentDeck.Id, generalCount, LoadCardsForGroupAsync);
+
+                        if (_currentDeck.ParentDeckId != null)
+                        {
+                            generalGroup.IsExpanded = true;
+                        }
+                        else
+                        {
+                            generalGroup.IsExpanded = savedState.Contains(generalGroup.Title);
+                        }
+
+                        CardGroups.Add(generalGroup);
+                    }
+
+                    foreach (var subDeck in subDecks)
+                    {
+                        if (cardCountByDeckId.TryGetValue(subDeck.Id, out var subCount) && subCount > 0)
+                        {
+                            var subGroup = new CardGroupViewModel(subDeck.Name, subDeck.Id, subCount, LoadCardsForGroupAsync);
+                            subGroup.IsExpanded = savedState.Contains(subGroup.Title);
+                            CardGroups.Add(subGroup);
+                        }
+                    }
+                }
+
+                UpdateSelectedCount();
+            }
+            finally
+            {
+                if (loadId == _loadSequence)
+                {
+                    IsLoading = false;
+                }
+            }
+        }
+
+        private async Task LoadCardsForGroupAsync(CardGroupViewModel group)
+        {
+            int loadId = _loadSequence;
+            using (var context = new FlashcardDbContext())
+            {
+                var cards = await context.Cards
                     .AsNoTracking()
-                    .Include(d => d.Cards)
-                    .Where(d => d.ParentDeckId == _currentDeck.Id)
-                    .OrderByDescending(d => d.Name == "Allgemein") // Allgemein first
-                    .ThenBy(d => d.Id)
+                    .Where(c => c.DeckId == group.DeckId)
                     .ToListAsync();
 
-                foreach (var subDeck in subDecks)
+                if (loadId != _loadSequence)
                 {
-                    if (subDeck.Cards.Any())
-                    {
-                        var subGroup = new CardGroupViewModel(subDeck.Name);
-                        // Restore expansion state
-                        subGroup.IsExpanded = savedState.Contains(subGroup.Title);
+                    return;
+                }
 
-                        foreach (var card in subDeck.Cards)
-                        {
-                            var itemVM = new CardItemViewModel(card);
-                            itemVM.PropertyChanged += CardItem_PropertyChanged;
-                            subGroup.Cards.Add(itemVM);
-                        }
-                        CardGroups.Add(subGroup);
-                    }
+                foreach (var card in cards)
+                {
+                    var itemVM = new CardItemViewModel(card);
+                    itemVM.PropertyChanged += CardItem_PropertyChanged;
+                    group.Cards.Add(itemVM);
                 }
             }
 

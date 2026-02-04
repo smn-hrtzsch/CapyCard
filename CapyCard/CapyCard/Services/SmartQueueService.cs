@@ -52,17 +52,23 @@ namespace CapyCard.Services
 
         public Card? GetNextCard(List<Card> cards, List<CardSmartScore> scores)
         {
+            var scoresById = scores.ToDictionary(s => s.CardId);
+            return GetNextCard(cards, scoresById);
+        }
+
+        public Card? GetNextCard(List<Card> cards, IReadOnlyDictionary<int, CardSmartScore> scoresByCardId)
+        {
             var now = DateTime.Now;
 
             // 1. Kandidaten vorbereiten mit BoxIndex und Zeit
-            var candidates = cards.Select(card => 
+            var candidates = cards.Select(card =>
             {
-                var score = scores.FirstOrDefault(s => s.CardId == card.Id);
-                return new 
-                { 
-                    Card = card, 
+                scoresByCardId.TryGetValue(card.Id, out var score);
+                return new
+                {
+                    Card = card,
                     BoxIndex = score?.BoxIndex ?? 0, // Neue Karten sind Box 0
-                    LastReviewed = score?.LastReviewed ?? DateTime.MinValue 
+                    LastReviewed = score?.LastReviewed ?? DateTime.MinValue
                 };
             }).ToList();
 

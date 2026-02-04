@@ -412,6 +412,21 @@
                 </StackPanel>
             </DockPanel>
         </ScrollViewer>
+
+        <!-- LOADING OVERLAY -->
+        <Grid IsVisible="{Binding IsLoading}" Background="#80000000" ZIndex="200">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="24"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 16 0 #40000000">
+                <StackPanel Spacing="12" HorizontalAlignment="Center">
+                    <TextBlock Text="Lernmodus wird geladen..." FontSize="16" FontWeight="SemiBold" />
+                    <ProgressBar IsIndeterminate="True" Width="180" Height="6" />
+                </StackPanel>
+            </Border>
+        </Grid>
         
         <!-- IMAGE PREVIEW OVERLAY -->
         <Grid IsVisible="{Binding IsImagePreviewOpen}" 
