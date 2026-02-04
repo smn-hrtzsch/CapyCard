@@ -181,7 +181,7 @@ namespace CapyCard.ViewModels
                 _ => ".capycard"
             };
 
-            var suggestedName = $"{_currentDeck.Name}{extension}";
+            var suggestedName = BuildSuggestedFileName(extension);
             var file = await OnRequestFileSave.Invoke(suggestedName, extension);
             if (file == null) return;
 
@@ -260,6 +260,39 @@ namespace CapyCard.ViewModels
             if (ScopeSelectedSubDecksSelected) return ExportScope.SelectedSubDecks;
             if (ScopeSelectedCardsSelected) return ExportScope.SelectedCards;
             return ExportScope.FullDeck;
+        }
+
+        private string BuildSuggestedFileName(string extension)
+        {
+            if (_currentDeck == null)
+                return $"Export{extension}";
+
+            var deckName = SanitizeFileName(_currentDeck.Name);
+            if (string.IsNullOrWhiteSpace(deckName))
+                deckName = "Export";
+
+            if (ScopeSelectedSubDecksSelected)
+            {
+                var selectedNames = SubDecks
+                    .Where(s => s.IsSelected)
+                    .Select(s => SanitizeFileName(s.Name))
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .ToList();
+
+                if (selectedNames.Count == 1)
+                    return $"{selectedNames[0]}{extension}";
+
+                if (selectedNames.Count > 1)
+                    return $"{deckName}-{string.Join("-", selectedNames)}{extension}";
+            }
+
+            return $"{deckName}{extension}";
+        }
+
+        private string SanitizeFileName(string name)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            return string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
         }
 
         partial void OnFormatCapyCardSelectedChanged(bool value)
