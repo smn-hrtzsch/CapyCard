@@ -11,7 +11,6 @@
 ## Features
 
 - [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
-- [ ] Fenstergröße beim ersten Start der App automatisch an Bildschirmgröße anpassen (z.b. 75% breite, 85% Höhe) (Desktop-Fenster ist auf kleineren Bildschirmen zu groß beim ersten mal starten der App.
 - [ ] Textgröße auf Mobile anpassen
 - [ ] Navigation verbessern (evtl Sidebar hinzufügen oder Pfad oben anzeigen, mit Optionen zum Klicken auf vorherige Seiten)
 - [ ] Bei Klick auf Pfeil zwischen Vorder und Rückseite sollte der Modus wechseln, mit der die Karte erstellt wird (Klassisch (Vorder- und Rückseite), Beiseitig (Es werden zwei Karten erstellt - einmal mit der Vorderseite als Vorderseite und einemal mit der Rückseite als Vorderseite))
@@ -27,8 +26,8 @@
 
 ## Bugs
 
+- [ ] Fenstergröße beim ersten Start der App automatisch an Bildschirmgröße anpassen (z.b. 75% breite, 85% Höhe) (Desktop-Fenster ist auf kleineren Bildschirmen zu groß beim ersten mal starten der App.
+
 ## Mobile Bugs
-
-
 
 ## Fixed Bugs
