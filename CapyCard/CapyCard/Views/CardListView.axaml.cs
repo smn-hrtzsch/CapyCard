@@ -21,6 +21,7 @@ namespace CapyCard.Views
         private CardListViewModel? _boundViewModel;
         private TopLevel? _topLevel;
         private CardListViewModel? _subscribedViewModel;
+        private Border? _previewDialogBorder;
         
         // Selection state
         private bool _isPointerSelecting;
@@ -29,13 +30,36 @@ namespace CapyCard.Views
         private List<bool>? _originalSelection;
         private Control? _activeListControl; 
 
+        private Point? _previewSwipeStart;
+        private int? _previewSwipePointerId;
+        private const double PreviewSwipeThreshold = 60;
+        private const double PreviewSwipeDirectionRatio = 1.25;
+
         public static readonly StyledProperty<bool> IsCompactModeProperty =
             AvaloniaProperty.Register<CardListView, bool>(nameof(IsCompactMode));
+
+        public static readonly StyledProperty<bool> IsPreviewActionsMenuCompactProperty =
+            AvaloniaProperty.Register<CardListView, bool>(nameof(IsPreviewActionsMenuCompact));
+
+        public static readonly StyledProperty<bool> IsPreviewActionsIconOnlyProperty =
+            AvaloniaProperty.Register<CardListView, bool>(nameof(IsPreviewActionsIconOnly));
 
         public bool IsCompactMode
         {
             get => GetValue(IsCompactModeProperty);
             set => SetValue(IsCompactModeProperty, value);
+        }
+
+        public bool IsPreviewActionsMenuCompact
+        {
+            get => GetValue(IsPreviewActionsMenuCompactProperty);
+            set => SetValue(IsPreviewActionsMenuCompactProperty, value);
+        }
+
+        public bool IsPreviewActionsIconOnly
+        {
+            get => GetValue(IsPreviewActionsIconOnlyProperty);
+            set => SetValue(IsPreviewActionsIconOnlyProperty, value);
         }
 
         public CardListView()
@@ -50,6 +74,20 @@ namespace CapyCard.Views
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < AppConstants.HeaderThreshold;
+        }
+
+        private void UpdatePreviewActionsCompact(double width)
+        {
+            if (OperatingSystem.IsAndroid() || OperatingSystem.IsIOS())
+            {
+                IsPreviewActionsMenuCompact = true;
+                IsPreviewActionsIconOnly = true;
+                return;
+            }
+
+            if (width <= 0) return;
+            IsPreviewActionsMenuCompact = width < 500;
+            IsPreviewActionsIconOnly = width < 700;
         }
 
         private void UpdateCompactModeClass(bool isCompact)
@@ -76,6 +114,21 @@ namespace CapyCard.Views
                 overlay.AddHandler(PointerReleasedEvent, OnOverlayPointerReleased, RoutingStrategies.Tunnel);
             }
 
+            var previewOverlay = this.FindControl<Border>("PreviewOverlay");
+            if (previewOverlay != null)
+            {
+                previewOverlay.AddHandler(PointerPressedEvent, OnPreviewPointerPressed, RoutingStrategies.Tunnel);
+                previewOverlay.AddHandler(PointerReleasedEvent, OnPreviewPointerReleased, RoutingStrategies.Tunnel);
+                previewOverlay.AddHandler(PointerCaptureLostEvent, OnPreviewPointerCaptureLost, RoutingStrategies.Tunnel);
+            }
+
+            _previewDialogBorder = this.FindControl<Border>("PreviewDialogBorder");
+            if (_previewDialogBorder != null)
+            {
+                _previewDialogBorder.SizeChanged += OnPreviewDialogSizeChanged;
+                UpdatePreviewActionsCompact(_previewDialogBorder.Bounds.Width);
+            }
+
             if (DataContext is CardListViewModel vm)
             {
                 _subscribedViewModel = vm;
@@ -98,6 +151,17 @@ namespace CapyCard.Views
                 _subscribedViewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 _subscribedViewModel = null;
             }
+
+            if (_previewDialogBorder != null)
+            {
+                _previewDialogBorder.SizeChanged -= OnPreviewDialogSizeChanged;
+                _previewDialogBorder = null;
+            }
+        }
+
+        private void OnPreviewDialogSizeChanged(object? sender, SizeChangedEventArgs e)
+        {
+            UpdatePreviewActionsCompact(e.NewSize.Width);
         }
 
         private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -170,6 +234,55 @@ namespace CapyCard.Views
              {
                 vm.CloseImagePreviewCommand.Execute(null);
              }
+        }
+
+        private void OnPreviewPointerPressed(object? sender, PointerPressedEventArgs e)
+        {
+            if (DataContext is not CardListViewModel vm || !vm.IsPreviewOpen || vm.IsEditing) return;
+            if (e.Pointer.Type != PointerType.Touch && e.Pointer.Type != PointerType.Pen) return;
+            if (sender is not Control control) return;
+
+            var point = e.GetCurrentPoint(control);
+            _previewSwipeStart = point.Position;
+            _previewSwipePointerId = e.Pointer.Id;
+        }
+
+        private void OnPreviewPointerReleased(object? sender, PointerReleasedEventArgs e)
+        {
+            if (DataContext is not CardListViewModel vm || !vm.IsPreviewOpen || vm.IsEditing) return;
+            if (_previewSwipeStart == null || _previewSwipePointerId != e.Pointer.Id) return;
+            if (sender is not Control control) return;
+
+            var point = e.GetCurrentPoint(control);
+            var deltaX = point.Position.X - _previewSwipeStart.Value.X;
+            var deltaY = point.Position.Y - _previewSwipeStart.Value.Y;
+
+            _previewSwipeStart = null;
+            _previewSwipePointerId = null;
+
+            var absX = Math.Abs(deltaX);
+            var absY = Math.Abs(deltaY);
+            if (absX < PreviewSwipeThreshold) return;
+            if (absX < absY * PreviewSwipeDirectionRatio) return;
+
+            if (deltaX < 0)
+            {
+                if (vm.NavigateNextPreviewCommand.CanExecute(null))
+                    vm.NavigateNextPreviewCommand.Execute(null);
+            }
+            else
+            {
+                if (vm.NavigatePreviousPreviewCommand.CanExecute(null))
+                    vm.NavigatePreviousPreviewCommand.Execute(null);
+            }
+
+            e.Handled = true;
+        }
+
+        private void OnPreviewPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+        {
+            _previewSwipeStart = null;
+            _previewSwipePointerId = null;
         }
 
         private void TopLevelOnKeyDownTunnel(object? sender, KeyEventArgs e)

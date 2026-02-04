@@ -112,6 +112,9 @@ namespace CapyCard.ViewModels
         [NotifyPropertyChangedFor(nameof(ShowEditButton))]
         private bool _isEditing = false;
 
+        [ObservableProperty]
+        private bool _isPreviewEditorToolbarVisible = true;
+
         public bool CanNavigateNext => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) < AllCards.Count() - 1;
         public bool CanNavigatePrevious => IsPreviewOpen && AllCards.ToList().FindIndex(c => c.Card.Id == PreviewCard?.Id) > 0;
 
