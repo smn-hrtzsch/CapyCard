@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using CapyCard.Models;
 using WeCantSpell.Hunspell;
 
@@ -14,7 +15,7 @@ namespace CapyCard.Services.TextChecking
 {
     public sealed class HunspellSpellCheckService : ITextCheckingService
     {
-        private static readonly Lazy<WordList> SharedWordList = new(LoadDefaultWordList);
+        private static readonly Lazy<Task<WordList>> SharedWordList = new(LoadDefaultWordListAsync);
         private static readonly Regex WordRegex = new(@"\p{L}+", RegexOptions.Compiled);
         private static readonly Regex FullWordRegex = new(@"^\p{L}+$", RegexOptions.Compiled);
         private static readonly Regex ImagePlaceholderRegex = new(@"!\[[^\]]*\]\([^)]*\)", RegexOptions.Compiled);
@@ -24,7 +25,7 @@ namespace CapyCard.Services.TextChecking
             "Spellcheck");
         private const string SupportedLocale = "de-DE";
         private const int MaxSuggestions = 5;
-        private readonly Lazy<WordList> _wordList;
+        private readonly Lazy<Task<WordList>> _wordList;
         private readonly HashSet<string> _userWords = new(StringComparer.OrdinalIgnoreCase);
         private readonly SemaphoreSlim _userWordsLock = new(1, 1);
         private bool _userWordsLoaded;
@@ -34,12 +35,12 @@ namespace CapyCard.Services.TextChecking
         {
         }
 
-        public HunspellSpellCheckService(Func<WordList> wordListFactory)
-            : this(new Lazy<WordList>(wordListFactory))
+        public HunspellSpellCheckService(Func<Task<WordList>> wordListFactory)
+            : this(new Lazy<Task<WordList>>(wordListFactory))
         {
         }
 
-        private HunspellSpellCheckService(Lazy<WordList> wordList)
+        private HunspellSpellCheckService(Lazy<Task<WordList>> wordList)
         {
             _wordList = wordList;
         }
@@ -60,7 +61,7 @@ namespace CapyCard.Services.TextChecking
 
             var ignoredRanges = GetIgnoredRanges(text);
             var issues = new List<TextIssue>();
-            var wordList = _wordList.Value;
+            var wordList = await _wordList.Value.ConfigureAwait(false);
 
             foreach (Match match in WordRegex.Matches(text))
             {
@@ -131,15 +132,32 @@ namespace CapyCard.Services.TextChecking
             }
         }
 
-        private static WordList LoadDefaultWordList()
+        private static async Task<WordList> LoadDefaultWordListAsync()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var affUri = new Uri("avares://CapyCard/Resources/Spellcheck/de_DE.aff");
-            var dicUri = new Uri("avares://CapyCard/Resources/Spellcheck/de_DE.dic");
 
-            using var affStream = AssetLoader.Open(affUri);
-            using var dicStream = AssetLoader.Open(dicUri);
-            return WordList.CreateFromStreams(dicStream, affStream);
+            var (dicBytes, affBytes) = await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var affUri = new Uri("avares://CapyCard/Resources/Spellcheck/de_DE.aff");
+                var dicUri = new Uri("avares://CapyCard/Resources/Spellcheck/de_DE.dic");
+
+                using var affStream = AssetLoader.Open(affUri);
+                using var dicStream = AssetLoader.Open(dicUri);
+                using var affBuffer = new MemoryStream();
+                using var dicBuffer = new MemoryStream();
+                affStream.CopyTo(affBuffer);
+                dicStream.CopyTo(dicBuffer);
+                return (dicBuffer.ToArray(), affBuffer.ToArray());
+            });
+
+            var wordList = await Task.Run(() =>
+            {
+                using var dicStream = new MemoryStream(dicBytes, writable: false);
+                using var affStream = new MemoryStream(affBytes, writable: false);
+                return WordList.CreateFromStreams(dicStream, affStream);
+            }).ConfigureAwait(false);
+
+            return wordList;
         }
 
         private static bool IsSupportedLocale(string locale)

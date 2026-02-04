@@ -386,28 +386,26 @@ namespace CapyCard.Controls
                 return;
             }
 
+            var locale = SpellCheckLocale;
             _spellCheckCts?.Cancel();
             _spellCheckCts?.Dispose();
 
             var cts = new CancellationTokenSource();
             _spellCheckCts = cts;
 
-            _ = RunSpellCheckAsync(text, cts.Token);
+            _ = RunSpellCheckAsync(text, locale, cts.Token);
         }
 
-        private async Task RunSpellCheckAsync(string text, CancellationToken ct)
+        private async Task RunSpellCheckAsync(string text, string locale, CancellationToken ct)
         {
             try
             {
-                await Task.Delay(_spellCheckDelay, ct);
+                await Task.Delay(_spellCheckDelay, ct).ConfigureAwait(false);
 
-                var issues = await SpellCheckService.CheckAsync(text, SpellCheckLocale, ct);
+                var issues = await Task.Run(
+                    () => SpellCheckService.CheckAsync(text, locale, ct).GetAwaiter().GetResult(),
+                    ct).ConfigureAwait(false);
                 if (ct.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                if (!string.Equals(EditorTextBox.Text ?? string.Empty, text, StringComparison.Ordinal))
                 {
                     return;
                 }
@@ -417,8 +415,16 @@ namespace CapyCard.Controls
                     issues = issues.Where(issue => !SharedIgnoredWords.ContainsKey(issue.Word)).ToList();
                 }
 
-                _currentIssues = issues;
-                UpdateSpellcheckOverlay();
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (!string.Equals(EditorTextBox.Text ?? string.Empty, text, StringComparison.Ordinal))
+                    {
+                        return;
+                    }
+
+                    _currentIssues = issues;
+                    UpdateSpellcheckOverlay();
+                }, DispatcherPriority.Background);
             }
             catch (TaskCanceledException)
             {
@@ -457,6 +463,7 @@ namespace CapyCard.Controls
                 SpellcheckOverlay.Inlines.Add(inline);
             }
         }
+
 
         private List<Inline> BuildSpellcheckInlines(string text, IReadOnlyList<TextIssue> issues)
         {
