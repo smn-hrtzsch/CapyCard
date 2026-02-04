@@ -82,14 +82,24 @@
                             Grid.Column="1"
                             Margin="6,0,0,0"/>
                     
+                    <Button Content="Entwurf verwerfen" 
+                            Command="{Binding DiscardDraftCommand}"
+                            Classes="secondary"
+                            IsVisible="{Binding !IsEditing}"
+                            IsEnabled="{Binding HasDraft}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Grid.Column="0"
+                            Margin="0,0,6,0"/>
+                    
                     <Button Content="{Binding SaveButtonText}" 
                             Command="{Binding SaveCardCommand}"
                             Classes="primary"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             IsVisible="{Binding !IsEditing}"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="2"/>
+                            Grid.Column="1"
+                            Margin="6,0,0,0"/>
                 </Grid>
                 
                 <!-- LEARNING BUTTONS -->

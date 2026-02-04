@@ -1,12 +1,15 @@
 # CapyCard To-Do List
 
+## In Progress
+
+- [x] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig. Auch wenn man zurück zum DeckListView wechselt, sollten die Eingaben für die neue Karte gespeichert bleiben. Sie sollten erst gelöscht werden, wenn die Karte tatsächlich hinzugefügt wurde oder der Nutzer explizit den Vorgang abbricht. Auch beim Verlassen der App sollte der Entwurf der neuen Karte gespeichert bleiben, damit der Nutzer später weitermachen kann.
+
 ## Mobile
 
 ### Android
 
 ## Features
 
-- [ ] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig. Auch wenn man zurück zum DeckListView wechselt, sollten die Eingaben für die neue Karte gespeichert bleiben. Sie sollten erst gelöscht werden, wenn die Karte tatsächlich hinzugefügt wurde oder der Nutzer explizit den Vorgang abbricht. Auch beim Verlassen der App sollte der Entwurf der neuen Karte gespeichert bleiben, damit der Nutzer später weitermachen kann.
 - [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
 - [ ] Tippfehler Rot unterstreichen
 - [ ] Fenstergröße automatisch an Bildschirmgröße anpassen (Desktop-Fenster ist auf kleineren Bildschirmen zu groß)
@@ -23,6 +26,8 @@
 - [ ] Die Farbe für die Hervorhebungen auf den Karten sollte an das Farbschema der App angepasst werden. Es sollte dann die Farbe für die Primary Buttons als Hervorherbungsfarbe genutzt werdenu und die Textfarbe der Primary Buttons für die Schriftfarbe der Hervorhebung. So passt es besser zum Design der App.
 
 ## Bugs
+
+- [ ] Wenn man im CardListView eine Karte bearbeitet, dann wird das Update der Karte nicht im Grid oder der Liste angezeigt, bis man den View neu lädt. Es sollte direkt nach dem Speichern der Karte im CardDetailView das Update in der Liste oder dem Grid angezeigt werden, ohne dass der Nutzer den View neu laden muss.
 
 ## Mobile Bugs
 
