@@ -257,6 +257,35 @@
     <Style Selector=".zen Button.fab Panel materialIcons|MaterialIcon">
         <Setter Property="IsVisible" Value="False" />
     </Style>
+
+    <!-- Zen + Compact: keep icons visible to avoid empty buttons -->
+    <Style Selector=".zen .compact Panel.zen-hide-icon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.primary StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.secondary StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.primary Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.secondary Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.fab StackPanel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector=".zen .compact Button.fab Panel materialIcons|MaterialIcon">
+        <Setter Property="IsVisible" Value="True" />
+    </Style>
     
     <!-- Floating Inputs -> Less colorful focus -->
     <Style Selector=".zen TextBox.floating:focus /template/ Border#PART_BorderElement">

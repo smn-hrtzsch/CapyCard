@@ -35,6 +35,7 @@ namespace CapyCard.Views
             SizeChanged += OnSizeChanged;
             
             IsCompactModeProperty.Changed.AddClassHandler<DeckEditorControl>((x, e) => x.UpdateLayout((bool)e.NewValue!));
+            IsCompactModeProperty.Changed.AddClassHandler<DeckEditorControl>((x, e) => x.UpdateCompactModeClass((bool)e.NewValue!));
 
             if (OperatingSystem.IsIOS() || OperatingSystem.IsAndroid())
             {
@@ -94,6 +95,11 @@ namespace CapyCard.Views
                 ArrowIcon.RenderTransform = null;
                 ArrowIcon.Margin = new Thickness(12, 0);
             }
+        }
+
+        private void UpdateCompactModeClass(bool isCompact)
+        {
+            Classes.Set("compact", isCompact);
         }
 
         private void OnDataContextChanged(object? sender, EventArgs e)
