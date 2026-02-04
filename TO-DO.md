@@ -11,7 +11,7 @@
 ## Features
 
 - [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
-- [ ] Tippfehler Rot unterstreichen
+- [ ] Beim hinzufügen und bearbeiten von Karten sollte es eine live Überprüfung von Rechtschreibung und Grammaitik geben (ähnlich wie bei Google Docs oder Microsoft Word). Fehler sollten unterstrichen werden und es sollte eine Option geben, Korrekturvorschläge anzuzeigen und anzuwenden. Plane alle dafür notwendigen Schritte und was wir mit in unser Projekt einbinden müssten (z.B. Bibliotheken oder APIs) um dies zu ermöglichen. Ist es möglich dies offline in unserer App zu machen? Für den Anfang brauchen wir auch nur Deutsch (Deutschland) als Sprache.
 - [ ] Fenstergröße automatisch an Bildschirmgröße anpassen (Desktop-Fenster ist auf kleineren Bildschirmen zu groß)
 - [ ] Textgröße auf Mobile anpassen
 - [ ] Navigation verbessern (evtl Sidebar hinzufügen oder Pfad oben anzeigen, mit Optionen zum Klicken auf vorherige Seiten)
