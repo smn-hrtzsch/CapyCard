@@ -2,16 +2,10 @@
 
 ## Mobile
 
-- [x] Die Steuerungselemente der Image Preview sind auf mobile Geräten sehr eng aneinander und das sieht nicht schön aus. Auf Desktop passt es so.
-
 ### Android
-
-- [x] Zurück-Taste auf Android funktioniert im Learning Mode nicht.
 
 ## Features
 
-- [x] Das Hinzufügen, Löschen und Bearbeiten von Themen sollte auch im DeckListView möglich sein. Aktuell ist das nur im CardDetailView möglich. Dazu sollte ein Eingabefeld für das Thema und einen Button zum Hinzufügen geben, das sollte aber dezenter sein, als die Eingabefelder für Fächer im DeckListView. Vielleicht am Anfang der Themen-Liste, wenn man ein Fach ausgeklappt hat.
-- [x] Datei-Import sollte auch .txt oder .json Dateien im bereits unterstützem Format (KI/Text-Import Format) möglich sein.
 - [ ] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig.
 - [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
 - [ ] Tippfehler Rot unterstreichen
@@ -19,25 +13,17 @@
 - [ ] Textgröße auf Mobile anpassen
 - [ ] Navigation verbessern (evtl Sidebar hinzufügen oder Pfad oben anzeigen, mit Optionen zum Klicken auf vorherige Seiten)
 - [ ] Bei Klick auf Pfeil zwischen Vorder und Rückseite sollte der Modus wechseln, mit der die Karte erstellt wird (Klassisch (Vorder- und Rückseite), Beiseitig (Es werden zwei Karten erstellt - einmal mit der Vorderseite als Vorderseite und einemal mit der Rückseite als Vorderseite))
-- [ ] Import/Export von Kartenstapeln (evtl. Anbindung an Anki): Es soll möglich sein bestehenden Kartenstapel zu importieren (aus den gängigen Formaten von Anki/RemNote etc.) und auch Kartenstapel zu exportieren. Es soll auch ein eigenes Import und Export Format geben (z.B. JSON oder CSV). Es müssen auch Bilder und die Formatierung der Karten unterstützt werden. Außerdem soll es einen klaren info-Button geben, der erklärt, wie der Import/Export funktioniert und welche Formate unterstützt werden.
-- [x] Es sollte möglich sein sich mit LLMs (z.B. im Web) Karteikarten zu generieren. Meine Idee: Der Nutzer kann ein Thema angeben oder Material (z.B. Text, PDF, Webseite) hochladen und dann werden automatisch Karteikarten generiert. Dafür brauchen wir ein geignetes Format, welches von unserer App als Import akzeptiert wird. Was ist dafür am besten geeignet? Könnten wir z.B. JSON nutzen und dann nicht als Datei Importieren, sondern direkt als Text? Oder beides Anbieten? Können wir einen Button "Prompt erzeugen" Button hinzufügen, der beim Klicken einen vordefinierten Prompt in die Zwischenablage kopiert, den der Nutzer dann in ein LLM seiner Wahl einfügen kann? Der Prompt sollte so gestaltet sein, dass er dem LLM erklärt, wie die Karteikarten formatiert sein sollen, damit sie von unserer App importiert werden können. Für Bilder sollte im Prompt erklärt werden, dass sie entweder direkt als Base64 eingebunden werden können oder ein Verweis auf das Material (z.B. Webseite oder PDF Seite) gegeben werden soll, damit der Nutzer die Bilder manuell hinzufügen kann.
+
+## UI-Overhaul
+
+## Editor
+
 - [ ] Markdown Support im Rich-Text Editor sollte noch erweitert werden. Es sollten noch mehr markdown Features unterstützt werden, wie z.B. Tabellen, Checklisten, Zitate etc. Außerdem sollte es möglich sein, Markdown direkt in den Editor einzufügen und es sollte automatisch formatiert werden. Auch Formeln (LaTeX) sollten unterstützt werden.
 - [ ] Sofort-Vorschau im Rich-Text Editor: Während der Nutzer den Text für die Vorder- oder Rückseite eingibt, sollte eine Live-Vorschau angezeigt werden, die zeigt, wie die Karte später aussehen wird. Es sollte sich so anfühlen, als ob man direkt in der Karte schreibt und sieht, wie sie formatiert wird. Momentan muss man erst die Eingabe beenden oder den Fokus wechseln, damit der Editor die Formatierung anzeigt. Das sollte sofort beim Tippen passieren.
 - [ ] Die Farbe für die Hervorhebungen auf den Karten sollte an das Farbschema der App angepasst werden. Es sollte dann die Farbe für die Primary Buttons als Hervorherbungsfarbe genutzt werdenu und die Textfarbe der Primary Buttons für die Schriftfarbe der Hervorhebung. So passt es besser zum Design der App.
 
-## UI-Overhaul
-
-- [x] User mehr optionen zur Farbgebung geben (nicht nur Teal sondern z.B. auch Blau, Grün, Rot etc.). Auf ausreichend kontrast muss geachtet werden und dass die App trotzdem ein einheitliches Design hat. Die Position der Einstellungen muss gut gewählt werden (ggf. in der DeckListView in der Titelzeile oben rechts als settings Icon?)
-- [x] Unterschiedliche Modi (Light/Dark/Auto) für die App hinzufügen
-- [x] Zen Mode für Ablenkungsfreies Lernen (Buttons dezenter und weniger Ablenkung durch Farben)
-- [x] Farbauswahl in den Einstellungen nach Farbaehnlichkeit sortieren
-- [x] Settings-Dialog responsiv machen (schmale Fenster)
-
-## Editor
-
-- [x] Optionen des Rich-Text Editors sollte man ausblenden können. Auge Icon zum ein- und ausblenden der Optionen. (Persistent via Einstellungen speicherbar)
-
 ## Bugs
+
 - [ ] Wenn der User nur ein Thema auswählt zum Exportieren, sollte auch der Name der Export Datei automatisch auf den Namen des Themas gesetzt werden. Wenn mehrere Themen ausgewählt sind, dann sollte der Deck Name + die ausgwählten Themen im Dateinamen stehen.
 
 ## Mobile Bugs
