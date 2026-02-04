@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
 using CapyCard.ViewModels;
 using System;
 using System.IO;
@@ -11,6 +12,7 @@ namespace CapyCard.Views;
 public partial class MainWindow : Window
 {
     private static readonly string SettingsPath = GetSettingsPath();
+    private bool _usedFallbackSize;
     
     public MainWindow()
     {
@@ -44,31 +46,47 @@ public partial class MainWindow : Window
         }
         else
         {
-            // Default to 75% of primary screen
-            SetDefaultSize();
+            _usedFallbackSize = !TrySetDefaultSize();
         }
     }
 
-    private void SetDefaultSize()
+    private bool TrySetDefaultSize()
     {
         // Get primary screen size - this works before the window is shown
-        var screens = Screens;
-        if (screens?.Primary != null)
+        var screen = Screens?.Primary;
+        if (screen != null)
         {
-            var screen = screens.Primary;
-            var workingArea = screen.WorkingArea;
-            var scaling = screen.Scaling;
-            
-            // Calculate 75% of screen size (accounting for DPI scaling)
-            Width = (workingArea.Width / scaling) * 0.75;
-            Height = (workingArea.Height / scaling) * 0.75;
+            SetDefaultSizeFromScreen(screen);
+            return true;
         }
-        else
-        {
-            // Fallback if screens not available yet
-            Width = 1000;
-            Height = 800;
-        }
+
+        // Fallback if screens not available yet
+        Width = 1000;
+        Height = 800;
+        return false;
+    }
+
+    private void SetDefaultSizeFromScreen(Screen screen)
+    {
+        var workingArea = screen.WorkingArea;
+        var scaling = screen.Scaling;
+
+        // Calculate 75% width and 85% height (accounting for DPI scaling)
+        Width = (workingArea.Width / scaling) * 0.75;
+        Height = (workingArea.Height / scaling) * 0.85;
+    }
+
+    private void CenterWindowOnScreen(Screen screen)
+    {
+        var workingArea = screen.WorkingArea;
+        var scaling = screen.Scaling;
+        var widthPx = Width * scaling;
+        var heightPx = Height * scaling;
+        var x = workingArea.X + (workingArea.Width - widthPx) / 2;
+        var y = workingArea.Y + (workingArea.Height - heightPx) / 2;
+
+        Position = new PixelPoint((int)Math.Round(x), (int)Math.Round(y));
+        WindowStartupLocation = WindowStartupLocation.Manual;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -89,6 +107,16 @@ public partial class MainWindow : Window
                 WindowStartupLocation = WindowStartupLocation.Manual;
             }
             // else: keep CenterScreen from XAML
+        }
+        else if (_usedFallbackSize)
+        {
+            var screen = Screens?.Primary;
+            if (screen != null)
+            {
+                SetDefaultSizeFromScreen(screen);
+                CenterWindowOnScreen(screen);
+                _usedFallbackSize = false;
+            }
         }
     }
 
