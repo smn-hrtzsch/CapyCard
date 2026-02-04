@@ -64,6 +64,31 @@
         <Setter Property="Foreground" Value="{DynamicResource ZenAccentBrush}" />
     </Style>
 
+    <!-- Zen: Keep SubDeck toggle filled to prevent overlap bleed-through -->
+    <Style Selector=".zen Button.primary.subdeck-toggle">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary.subdeck-toggle /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary.subdeck-toggle:pointerover">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary.subdeck-toggle:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary.subdeck-toggle:pressed">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
+    <Style Selector=".zen Button.primary.subdeck-toggle:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
+    </Style>
+
     <Style Selector=".zen Button.primary:disabled">
         <Setter Property="Background" Value="{DynamicResource ButtonBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="Transparent" />
