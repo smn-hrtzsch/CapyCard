@@ -29,6 +29,7 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             SizeChanged += OnSizeChanged;
+            IsCompactModeProperty.Changed.AddClassHandler<DeckListView>((x, e) => x.UpdateCompactModeClass((bool)e.NewValue!));
 
             // Focus management
             this.DataContextChanged += (s, e) =>
@@ -71,6 +72,11 @@ namespace CapyCard.Views
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < AppConstants.DefaultThreshold;
+        }
+
+        private void UpdateCompactModeClass(bool isCompact)
+        {
+            Classes.Set("compact", isCompact);
         }
 
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

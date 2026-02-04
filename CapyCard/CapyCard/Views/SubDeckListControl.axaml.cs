@@ -38,6 +38,7 @@ namespace CapyCard.Views
             InitializeComponent();
             DataContextChanged += OnDataContextChanged;
             SizeChanged += OnSizeChanged;
+            IsCompactModeProperty.Changed.AddClassHandler<SubDeckListControl>((x, e) => x.UpdateCompactModeClass((bool)e.NewValue!));
             
             ToggleContainer.SizeChanged += OnFooterElementSizeChanged;
             InputContainer.SizeChanged += OnFooterElementSizeChanged;
@@ -46,6 +47,11 @@ namespace CapyCard.Views
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < AppConstants.StackingThreshold;
+        }
+
+        private void UpdateCompactModeClass(bool isCompact)
+        {
+            Classes.Set("compact", isCompact);
         }
 
         private void OnFooterElementSizeChanged(object? sender, SizeChangedEventArgs e)

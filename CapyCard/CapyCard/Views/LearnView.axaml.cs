@@ -32,11 +32,17 @@ namespace CapyCard.Views
         {
             InitializeComponent();
             this.SizeChanged += OnSizeChanged;
+            IsCompactModeProperty.Changed.AddClassHandler<LearnView>((x, e) => x.UpdateCompactModeClass((bool)e.NewValue!));
         }
 
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < AppConstants.DefaultThreshold;
+        }
+
+        private void UpdateCompactModeClass(bool isCompact)
+        {
+            Classes.Set("compact", isCompact);
         }
         
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
