@@ -1,12 +1,20 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
+using Avalonia.Threading;
+using CapyCard.Models;
+using CapyCard.Services.TextChecking;
 using Material.Icons;
 using Material.Icons.Avalonia;
 
@@ -56,6 +64,15 @@ namespace CapyCard.Controls
         
         // Speichere die Original-Foreground-Farbe
         private IBrush? _originalForeground;
+
+        private static readonly ITextCheckingService SpellCheckService = new HunspellSpellCheckService();
+        private static readonly ConcurrentDictionary<string, byte> SharedIgnoredWords =
+            new(StringComparer.OrdinalIgnoreCase);
+        private static event Action? SharedIgnoreListChanged;
+        private IReadOnlyList<TextIssue> _currentIssues = Array.Empty<TextIssue>();
+        private CancellationTokenSource? _spellCheckCts;
+        private readonly TimeSpan _spellCheckDelay = TimeSpan.FromMilliseconds(350);
+        private readonly ContextMenu _spellcheckMenu = new();
         
         #endregion
 
@@ -69,6 +86,12 @@ namespace CapyCard.Controls
             
         public static readonly StyledProperty<bool> IsToolbarVisibleProperty =
             AvaloniaProperty.Register<WysiwygEditor, bool>(nameof(IsToolbarVisible), true);
+
+        public static readonly StyledProperty<bool> SpellCheckEnabledProperty =
+            AvaloniaProperty.Register<WysiwygEditor, bool>(nameof(SpellCheckEnabled), false);
+
+        public static readonly StyledProperty<string> SpellCheckLocaleProperty =
+            AvaloniaProperty.Register<WysiwygEditor, string>(nameof(SpellCheckLocale), "de-DE");
 
         /// <summary>
         /// Der Text im Editor (mit Markdown-Formatierung).
@@ -94,6 +117,18 @@ namespace CapyCard.Controls
             set => SetValue(IsToolbarVisibleProperty, value);
         }
 
+        public bool SpellCheckEnabled
+        {
+            get => GetValue(SpellCheckEnabledProperty);
+            set => SetValue(SpellCheckEnabledProperty, value);
+        }
+
+        public string SpellCheckLocale
+        {
+            get => GetValue(SpellCheckLocaleProperty);
+            set => SetValue(SpellCheckLocaleProperty, value);
+        }
+
         #endregion
 
         #region Constructor
@@ -104,6 +139,7 @@ namespace CapyCard.Controls
             
             // Initialisiere Inlines für FormattedDisplay
             FormattedDisplay.Inlines = new InlineCollection();
+            SpellcheckOverlay.Inlines = new InlineCollection();
             
             // Speichere Selektion bei jeder Änderung
             EditorTextBox.AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel);
@@ -122,6 +158,21 @@ namespace CapyCard.Controls
             
             // Tooltips je nach Betriebssystem anpassen
             UpdateToolbarTooltips();
+
+            EditorTextBox.ContextMenu = _spellcheckMenu;
+            _spellcheckMenu.Opened += OnSpellcheckMenuOpened;
+        }
+
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnAttachedToVisualTree(e);
+            SharedIgnoreListChanged += OnSharedIgnoreListChanged;
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            SharedIgnoreListChanged -= OnSharedIgnoreListChanged;
+            base.OnDetachedFromVisualTree(e);
         }
 
         #endregion
@@ -153,12 +204,19 @@ namespace CapyCard.Controls
             UpdateFormattedDisplay();
             FormattedDisplay.IsVisible = !isEmpty;
             WatermarkDisplay.IsVisible = isEmpty;
+            UpdateSpellcheckOverlay();
+            UpdateSpellcheckVisibility();
             
             // TextBox-Text initial unsichtbar (bis fokussiert)
             EditorTextBox.Foreground = Brushes.Transparent;
             
             // Initiale Toolbar-Sichtbarkeit basierend auf Property
             UpdateToolbarVisibility(IsToolbarVisible);
+
+            if (SpellCheckEnabled)
+            {
+                ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+            }
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -192,6 +250,25 @@ namespace CapyCard.Controls
                     UpdateToolbarVisibility(visible);
                 }
             }
+            else if (change.Property == SpellCheckEnabledProperty)
+            {
+                UpdateSpellcheckVisibility();
+                if (SpellCheckEnabled)
+                {
+                    ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+                }
+                else
+                {
+                    ClearSpellcheckIssues();
+                }
+            }
+            else if (change.Property == SpellCheckLocaleProperty)
+            {
+                if (SpellCheckEnabled)
+                {
+                    ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+                }
+            }
         }
 
         #endregion
@@ -223,13 +300,27 @@ namespace CapyCard.Controls
         /// </summary>
         private void OnTextChanged(object? sender, TextChangedEventArgs e)
         {
-            if (_isUpdating) return;
+            if (_isUpdating)
+            {
+                if (SpellCheckEnabled)
+                {
+                    ClearSpellcheckIssues();
+                    ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+                }
+                return;
+            }
             
             _isUpdating = true;
             try
             {
                 Text = ConvertPlaceholdersToBase64(EditorTextBox.Text ?? string.Empty);
                 UpdateFormattedDisplay();
+
+                if (SpellCheckEnabled)
+                {
+                    ClearSpellcheckIssues();
+                    ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+                }
             }
             finally
             {
@@ -251,6 +342,9 @@ namespace CapyCard.Controls
             {
                 EditorTextBox.Foreground = _originalForeground;
             }
+
+            UpdateSpellcheckOverlay();
+            UpdateSpellcheckVisibility();
         }
 
         /// <summary>
@@ -264,9 +358,11 @@ namespace CapyCard.Controls
             var isEmpty = string.IsNullOrEmpty(EditorTextBox.Text);
             FormattedDisplay.IsVisible = !isEmpty;
             WatermarkDisplay.IsVisible = isEmpty;
-            
+
             // TextBox-Text unsichtbar machen (FormattedDisplay übernimmt)
             EditorTextBox.Foreground = Brushes.Transparent;
+
+            UpdateSpellcheckVisibility();
         }
 
         /// <summary>
@@ -277,6 +373,391 @@ namespace CapyCard.Controls
             var isEmpty = string.IsNullOrEmpty(EditorTextBox.Text);
             var hasFocus = EditorTextBox.IsFocused;
             WatermarkDisplay.IsVisible = isEmpty && !hasFocus;
+        }
+
+        #endregion
+
+        #region Spellcheck
+
+        private void ScheduleSpellCheck(string text)
+        {
+            if (!SpellCheckEnabled)
+            {
+                return;
+            }
+
+            _spellCheckCts?.Cancel();
+            _spellCheckCts?.Dispose();
+
+            var cts = new CancellationTokenSource();
+            _spellCheckCts = cts;
+
+            _ = RunSpellCheckAsync(text, cts.Token);
+        }
+
+        private async Task RunSpellCheckAsync(string text, CancellationToken ct)
+        {
+            try
+            {
+                await Task.Delay(_spellCheckDelay, ct);
+
+                var issues = await SpellCheckService.CheckAsync(text, SpellCheckLocale, ct);
+                if (ct.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                if (!string.Equals(EditorTextBox.Text ?? string.Empty, text, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                if (!SharedIgnoredWords.IsEmpty)
+                {
+                    issues = issues.Where(issue => !SharedIgnoredWords.ContainsKey(issue.Word)).ToList();
+                }
+
+                _currentIssues = issues;
+                UpdateSpellcheckOverlay();
+            }
+            catch (TaskCanceledException)
+            {
+            }
+        }
+
+        private void ClearSpellcheckIssues()
+        {
+            _currentIssues = Array.Empty<TextIssue>();
+            UpdateSpellcheckOverlay();
+        }
+
+        private void UpdateSpellcheckOverlay()
+        {
+            if (SpellcheckOverlay.Inlines == null)
+            {
+                SpellcheckOverlay.Inlines = new InlineCollection();
+            }
+
+            SpellcheckOverlay.Inlines.Clear();
+
+            if (!SpellCheckEnabled)
+            {
+                return;
+            }
+
+            var text = EditorTextBox.Text ?? string.Empty;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            var inlines = BuildSpellcheckInlines(text, _currentIssues);
+            foreach (var inline in inlines)
+            {
+                SpellcheckOverlay.Inlines.Add(inline);
+            }
+        }
+
+        private List<Inline> BuildSpellcheckInlines(string text, IReadOnlyList<TextIssue> issues)
+        {
+            var inlines = new List<Inline>();
+            if (string.IsNullOrEmpty(text))
+            {
+                return inlines;
+            }
+
+            if (issues.Count == 0)
+            {
+                inlines.Add(new Run(text));
+                return inlines;
+            }
+
+            var orderedIssues = issues.OrderBy(issue => issue.Start).ToList();
+            var decorations = CreateSpellingDecorations();
+            var cursor = 0;
+
+            foreach (var issue in orderedIssues)
+            {
+                if (issue.Start < cursor)
+                {
+                    continue;
+                }
+
+                if (issue.Start > text.Length)
+                {
+                    break;
+                }
+
+                if (issue.Start > cursor)
+                {
+                    inlines.Add(new Run(text.Substring(cursor, issue.Start - cursor)));
+                }
+
+                var length = Math.Min(issue.Length, text.Length - issue.Start);
+                if (length > 0)
+                {
+                    var run = new Run(text.Substring(issue.Start, length))
+                    {
+                        TextDecorations = decorations
+                    };
+                    inlines.Add(run);
+                }
+
+                cursor = issue.Start + length;
+            }
+
+            if (cursor < text.Length)
+            {
+                inlines.Add(new Run(text.Substring(cursor)));
+            }
+
+            return inlines;
+        }
+
+        private TextDecorationCollection CreateSpellingDecorations()
+        {
+            var brush = ResolveUnderlineBrush();
+
+            var decoration = new TextDecoration
+            {
+                Location = TextDecorationLocation.Underline,
+                Stroke = brush,
+                StrokeThickness = 1
+            };
+
+            return new TextDecorationCollection { decoration };
+        }
+
+        private static IImmutableSolidColorBrush ResolveUnderlineBrush()
+        {
+            var theme = Application.Current?.ActualThemeVariant;
+            if (Application.Current?.Resources.TryGetResource("SpellingUnderlineBrush", theme, out var resource) == true)
+            {
+                if (resource is IImmutableSolidColorBrush immutableBrush)
+                {
+                    return immutableBrush;
+                }
+
+                if (resource is ISolidColorBrush solidBrush)
+                {
+                    return new ImmutableSolidColorBrush(solidBrush.Color);
+                }
+            }
+
+            return Brushes.Red;
+        }
+
+        private void UpdateSpellcheckVisibility()
+        {
+            SpellcheckOverlay.IsVisible = SpellCheckEnabled && EditorTextBox.IsFocused;
+        }
+
+        private void OnSpellcheckMenuOpened(object? sender, EventArgs e)
+        {
+            var items = new List<object>();
+
+            if (!SpellCheckEnabled)
+            {
+                items.Add(new MenuItem { Header = "Rechtschreibpruefung deaktiviert", IsEnabled = false });
+                ReplaceSpellcheckMenuItems(items);
+                return;
+            }
+
+            var issue = GetIssueAtCaret();
+            if (issue == null)
+            {
+                items.Add(new MenuItem { Header = "Keine Vorschlaege", IsEnabled = false });
+                ReplaceSpellcheckMenuItems(items);
+                return;
+            }
+
+            if (issue.Suggestions.Count > 0)
+            {
+                foreach (var suggestion in issue.Suggestions)
+                {
+                    var suggestionText = suggestion;
+                    var suggestionItem = new MenuItem { Header = suggestionText };
+                    suggestionItem.Click += (_, __) => ApplySuggestion(issue, suggestionText);
+                    items.Add(suggestionItem);
+                }
+            }
+            else
+            {
+                items.Add(new MenuItem { Header = "Keine Vorschlaege", IsEnabled = false });
+            }
+
+            items.Add(new Separator());
+
+            var addItem = new MenuItem { Header = "Zum Wörterbuch hinzufügen" };
+            addItem.Click += async (_, __) => await AddWordToDictionaryAsync(issue);
+            items.Add(addItem);
+
+            items.Add(new Separator());
+
+            var ignoreItem = new MenuItem { Header = "Ignorieren" };
+            ignoreItem.Click += (_, __) => IgnoreWord(issue.Word);
+            items.Add(ignoreItem);
+
+            ReplaceSpellcheckMenuItems(items);
+        }
+
+        private void ReplaceSpellcheckMenuItems(IEnumerable<object> items)
+        {
+            _spellcheckMenu.Items.Clear();
+            foreach (var item in items)
+            {
+                _spellcheckMenu.Items.Add(item);
+            }
+        }
+
+        private TextIssue? GetIssueAtCaret()
+        {
+            var text = EditorTextBox.Text ?? string.Empty;
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
+
+            var caretIndex = Math.Clamp(EditorTextBox.SelectionStart, 0, text.Length);
+            if (caretIndex == text.Length && caretIndex > 0)
+            {
+                caretIndex--;
+            }
+
+            var wordRange = GetWordRangeAtIndex(text, caretIndex);
+            if (wordRange == null)
+            {
+                return null;
+            }
+
+            var (start, length) = wordRange.Value;
+            return _currentIssues.FirstOrDefault(issue => issue.Start == start && issue.Length == length);
+        }
+
+        private static (int Start, int Length)? GetWordRangeAtIndex(string text, int index)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
+
+            if (index < 0 || index >= text.Length)
+            {
+                return null;
+            }
+
+            if (!char.IsLetter(text[index]))
+            {
+                if (index > 0 && char.IsLetter(text[index - 1]))
+                {
+                    index--;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            var start = index;
+            while (start > 0 && char.IsLetter(text[start - 1]))
+            {
+                start--;
+            }
+
+            var end = index;
+            while (end < text.Length && char.IsLetter(text[end]))
+            {
+                end++;
+            }
+
+            return (start, end - start);
+        }
+
+        private void ApplySuggestion(TextIssue issue, string suggestion)
+        {
+            var text = EditorTextBox.Text ?? string.Empty;
+            if (issue.Start < 0 || issue.Start + issue.Length > text.Length)
+            {
+                return;
+            }
+
+            var updatedText = text.Remove(issue.Start, issue.Length)
+                .Insert(issue.Start, suggestion);
+
+            _isUpdating = true;
+            EditorTextBox.Text = updatedText;
+            Text = ConvertPlaceholdersToBase64(updatedText);
+            _isUpdating = false;
+
+            UpdateFormattedDisplay();
+            ClearSpellcheckIssues();
+
+            var newCaret = issue.Start + suggestion.Length;
+            Dispatcher.UIThread.Post(() =>
+            {
+                EditorTextBox.SelectionStart = newCaret;
+                EditorTextBox.SelectionEnd = newCaret;
+                CacheSelection();
+                EditorTextBox.Focus();
+            }, DispatcherPriority.Background);
+
+            ScheduleSpellCheck(updatedText);
+        }
+
+        private void IgnoreWord(string word)
+        {
+            if (string.IsNullOrWhiteSpace(word))
+            {
+                return;
+            }
+
+            if (SharedIgnoredWords.TryAdd(word, 0))
+            {
+                SharedIgnoreListChanged?.Invoke();
+            }
+            ScheduleSpellCheck(EditorTextBox.Text ?? string.Empty);
+        }
+
+        private async Task AddWordToDictionaryAsync(TextIssue issue)
+        {
+            if (issue == null)
+            {
+                return;
+            }
+
+            var text = EditorTextBox.Text ?? string.Empty;
+            await SpellCheckService.AddWordAsync(issue.Word, SpellCheckLocale, CancellationToken.None);
+            if (SharedIgnoredWords.TryRemove(issue.Word, out _))
+            {
+                SharedIgnoreListChanged?.Invoke();
+            }
+            ClearSpellcheckIssues();
+            ScheduleSpellCheck(text);
+        }
+
+        private void OnSharedIgnoreListChanged()
+        {
+            if (!SpellCheckEnabled)
+            {
+                return;
+            }
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!SpellCheckEnabled)
+                {
+                    return;
+                }
+
+                var text = EditorTextBox.Text ?? string.Empty;
+                if (string.IsNullOrEmpty(text))
+                {
+                    ClearSpellcheckIssues();
+                    return;
+                }
+
+                ScheduleSpellCheck(text);
+            }, DispatcherPriority.Background);
         }
 
         #endregion

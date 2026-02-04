@@ -237,22 +237,36 @@
                                    IsHitTestVisible="False"
                                    IsVisible="True"/>
                         
-                        <!-- TextBox für Eingabe - immer vorhanden, Text-Farbe wechselt -->
-                        <TextBox x:Name="EditorTextBox"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 Background="Transparent"
-                                 BorderThickness="0"
-                                 Padding="12,10,12,10"
-                                 Margin="0"
-                                 VerticalAlignment="Stretch"
-                                 HorizontalAlignment="Stretch"
-                                 KeyDown="OnEditorKeyDown"
-                                 TextChanged="OnTextChanged"
-                                 GotFocus="OnEditorGotFocus"
-                                 LostFocus="OnEditorLostFocus"/>
-                    </Grid>
-                </ScrollViewer>
+                         <!-- TextBox für Eingabe - immer vorhanden, Text-Farbe wechselt -->
+                         <TextBox x:Name="EditorTextBox"
+                                  AcceptsReturn="True"
+                                  TextWrapping="Wrap"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  Padding="12,10,12,10"
+                                  Margin="0"
+                                  VerticalAlignment="Stretch"
+                                  HorizontalAlignment="Stretch"
+                                  KeyDown="OnEditorKeyDown"
+                                  TextChanged="OnTextChanged"
+                                  GotFocus="OnEditorGotFocus"
+                                  LostFocus="OnEditorLostFocus"/>
+
+                        <!-- Overlay fuer Rechtschreib-Unterstreichungen im Edit-Modus -->
+                        <TextBlock x:Name="SpellcheckOverlay"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Top"
+                                   Margin="{Binding Padding, ElementName=EditorTextBox}"
+                                   Foreground="Transparent"
+                                   IsHitTestVisible="False"
+                                   IsVisible="False"
+                                   ZIndex="5"
+                                   FontFamily="{Binding FontFamily, ElementName=EditorTextBox}"
+                                   FontSize="{Binding FontSize, ElementName=EditorTextBox}"
+                                   FontStyle="{Binding FontStyle, ElementName=EditorTextBox}"
+                                   FontWeight="{Binding FontWeight, ElementName=EditorTextBox}"/>
+                     </Grid>
+                 </ScrollViewer>
             </Grid>
             
             <!-- Floating Toggle Button (outside the Grid, always visible) -->

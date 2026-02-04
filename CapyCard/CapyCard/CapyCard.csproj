@@ -8,6 +8,7 @@
   
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="Resources\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +30,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="QuestPDF" />
+    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <PackageReference Include="WeCantSpell.Hunspell" />
     <PackageReference Include="ZstdSharp.Port" />
   </ItemGroup>
 </Project>

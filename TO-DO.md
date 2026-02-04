@@ -12,10 +12,12 @@
 
 - [ ] Sitzungsbezogenen Lernfortschritt (sortierter/Zufallsmodus) in Export/Import für .capycard integrieren.
 - [ ] Beim hinzufügen und bearbeiten von Karten sollte es eine live Überprüfung von Rechtschreibung und Grammaitik geben (ähnlich wie bei Google Docs oder Microsoft Word). Fehler sollten unterstrichen werden und es sollte eine Option geben, Korrekturvorschläge anzuzeigen und anzuwenden. Plane alle dafür notwendigen Schritte und was wir mit in unser Projekt einbinden müssten (z.B. Bibliotheken oder APIs) um dies zu ermöglichen. Ist es möglich dies offline in unserer App zu machen? Für den Anfang brauchen wir auch nur Deutsch (Deutschland) als Sprache.
+  - Plan: plans/2026-02-04-live-rechtschreibung.md
 - [ ] Fenstergröße automatisch an Bildschirmgröße anpassen (Desktop-Fenster ist auf kleineren Bildschirmen zu groß)
 - [ ] Textgröße auf Mobile anpassen
 - [ ] Navigation verbessern (evtl Sidebar hinzufügen oder Pfad oben anzeigen, mit Optionen zum Klicken auf vorherige Seiten)
 - [ ] Bei Klick auf Pfeil zwischen Vorder und Rückseite sollte der Modus wechseln, mit der die Karte erstellt wird (Klassisch (Vorder- und Rückseite), Beiseitig (Es werden zwei Karten erstellt - einmal mit der Vorderseite als Vorderseite und einemal mit der Rückseite als Vorderseite))
+- [ ] Beim Installieren der App auf den Geräten wird ja korrekt die neue Version über die alte drüber installiert. Auch die Datenbank wird dabei korrekt übernommen. Ich möchte aber gerne als Sicherheitsfeature, dass bei der Installation vor dem Überschreiben der alten Version ein Backup der alten Datenbank erstellt wird. Sodass der Nutzer im Notfall auf die alte Version zurückgehen kann, falls bei der neuen Version etwas schiefgeht. Das Backup sollte in einem speziellen Ordner gespeichert werden, der nur von der App genutzt wird, und sollte mit Datum und Uhrzeit versehen sein, damit der Nutzer weiß, wann das Backup erstellt wurde. Es sollte auch eine Option in den Einstellungen geben, um alte Backups zu löschen, um Speicherplatz zu sparen und um manuell Backups zu erstellen oder anzuwenden.
 
 ## UI-Overhaul
 
@@ -32,4 +34,3 @@
 
 
 ## Fixed Bugs
-
