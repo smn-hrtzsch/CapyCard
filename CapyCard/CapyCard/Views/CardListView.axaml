@@ -906,7 +906,7 @@
                                         <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Front}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
                                     </Border>
                                     <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="0" CornerRadius="20" HorizontalAlignment="Stretch" IsVisible="{Binding IsEditing}">
-                                        <local:WysiwygEditor Classes="flat" Text="{Binding EditFrontText, Mode=TwoWay}" Watermark="Vorderseite..." MinHeight="200" IsToolbarVisible="{Binding IsPreviewEditorToolbarVisible, Mode=TwoWay}"/>
+                                        <local:WysiwygEditor Classes="flat" Text="{Binding EditFrontText, Mode=TwoWay}" Watermark="Vorderseite..." MinHeight="200" IsToolbarVisible="{Binding IsPreviewEditorToolbarVisible, Mode=TwoWay}" SpellCheckEnabled="True" SpellCheckLocale="de-DE"/>
                                     </Border>
                                 </StackPanel>
                                 
@@ -917,7 +917,7 @@
                                         <local:FormattedTextBlock FormattedText="{Binding PreviewCard.Back}" ImageClickCommand="{Binding OpenImagePreviewCommand}" TextWrapping="Wrap" MaxLines="0" TextTrimming="None"/>
                                     </Border>
                                     <Border Background="Transparent" BorderBrush="{DynamicResource SurfaceBorderBrush}" BorderThickness="1.5" Padding="0" CornerRadius="20" HorizontalAlignment="Stretch" IsVisible="{Binding IsEditing}">
-                                        <local:WysiwygEditor Classes="flat" Text="{Binding EditBackText, Mode=TwoWay}" Watermark="Rückseite..." MinHeight="200" IsToolbarVisible="{Binding IsPreviewEditorToolbarVisible, Mode=TwoWay}"/>
+                                        <local:WysiwygEditor Classes="flat" Text="{Binding EditBackText, Mode=TwoWay}" Watermark="Rückseite..." MinHeight="200" IsToolbarVisible="{Binding IsPreviewEditorToolbarVisible, Mode=TwoWay}" SpellCheckEnabled="True" SpellCheckLocale="de-DE"/>
                                     </Border>
                                 </StackPanel>
                             </StackPanel>

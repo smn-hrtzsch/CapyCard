@@ -38,6 +38,7 @@
                     <SolidColorBrush x:Key="SurfaceBrush" Color="#FFCACACA"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FFBDBDBD"/>
                     <SolidColorBrush x:Key="ErrorBrush" Color="#FFB71C1C"/>
+                    <SolidColorBrush x:Key="SpellingUnderlineBrush" Color="#FFB71C1C"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FF333333"/>
@@ -64,6 +65,7 @@
                     <SolidColorBrush x:Key="SurfaceBrush" Color="#FF505050"/>
                     <SolidColorBrush x:Key="SurfaceBorderBrush" Color="#FF616161"/>
                     <SolidColorBrush x:Key="ErrorBrush" Color="#FFE57373"/>
+                    <SolidColorBrush x:Key="SpellingUnderlineBrush" Color="#FFE57373"/>
                     
                     <!-- Text -->
                     <SolidColorBrush x:Key="TextControlForeground" Color="#FFDDDDDD"/>

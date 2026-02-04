@@ -236,6 +236,8 @@
                             <controls:WysiwygEditor Text="{Binding EditFrontText, Mode=TwoWay}"
                                                     IsVisible="{Binding IsEditing}"
                                                     Watermark="Vorderseite..."
+                                                    SpellCheckEnabled="True"
+                                                    SpellCheckLocale="de-DE"
                                                     MinHeight="150"
                                                     VerticalAlignment="Stretch"/>
                         </Grid>
@@ -265,6 +267,8 @@
                             <controls:WysiwygEditor Text="{Binding EditBackText, Mode=TwoWay}"
                                                     IsVisible="{Binding IsEditing}"
                                                     Watermark="Rückseite..."
+                                                    SpellCheckEnabled="True"
+                                                    SpellCheckLocale="de-DE"
                                                     MinHeight="150"
                                                     VerticalAlignment="Stretch"/>
                         </Grid>

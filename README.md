@@ -20,3 +20,7 @@ Eine native Desktop-Karteikarten-App, entwickelt mit Avalonia und .NET.
 - [ ] **Synchronisation:** Cloud-Synchronisation, um Decks über mehrere Geräte hinweg aktuell zu halten.
 - [ ] **Themen/Skins:** Verschiedene visuelle Themen zur Anpassung der App-Oberfläche anbieten.
 - [ ] **Benutzerkonten:** Möglichkeit zur Erstellung von Benutzerkonten für personalisierte Einstellungen und Decks.
+
+## Lizenz
+
+Dieses Projekt steht unter der GNU General Public License v3.0. Siehe `LICENSE`.
