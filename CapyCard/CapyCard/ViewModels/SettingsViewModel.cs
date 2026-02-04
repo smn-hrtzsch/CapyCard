@@ -1,9 +1,15 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Avalonia.Styling;
 using CapyCard.Models;
 using CapyCard.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CapyCard.ViewModels
@@ -11,16 +17,28 @@ namespace CapyCard.ViewModels
     public partial class ColorOption : ObservableObject
     {
         public required string Name { get; set; }
-        public required string Color { get; set; }
+        
+        [ObservableProperty]
+        private IBrush _previewBrush = Brushes.Transparent;
 
         [ObservableProperty]
         private bool _isSelected;
-        
-        public IBrush PreviewBrush => Brush.Parse(Color);
     }
 
     public partial class SettingsViewModel : ViewModelBase
     {
+        private static readonly IReadOnlyDictionary<string, string> FallbackPreviewColors = new Dictionary<string, string>
+        {
+            ["Teal"] = "#00897B",
+            ["Blue"] = "#1E88E5",
+            ["Green"] = "#43A047",
+            ["Monochrome"] = "#616161",
+            ["Pink"] = "#D81B60",
+            ["Purple"] = "#9C27B0",
+            ["Red"] = "#D32F2F",
+            ["Orange"] = "#EF6C00"
+        };
+
         private readonly IUserSettingsService _settingsService;
         private readonly ThemeService _themeService;
         private UserSettings? _originalSettings;
@@ -67,17 +85,7 @@ namespace CapyCard.ViewModels
         }
 
         // Available Options
-        public ObservableCollection<ColorOption> ColorOptions { get; } = new()
-        {
-            new() { Name = "Teal", Color = "#00897B" },
-            new() { Name = "Blue", Color = "#1E88E5" },
-            new() { Name = "Green", Color = "#43A047" },
-            new() { Name = "Monochrome", Color = "#757575" },
-            new() { Name = "Pink", Color = "#D81B60" },
-            new() { Name = "Purple", Color = "#8E24AA" },
-            new() { Name = "Red", Color = "#D32F2F" },
-            new() { Name = "Orange", Color = "#FF9800" }
-        };
+        public ObservableCollection<ColorOption> ColorOptions { get; } = BuildColorOptions();
         
         public ObservableCollection<string> AvailableModes { get; } = new()
         {
@@ -96,6 +104,76 @@ namespace CapyCard.ViewModels
             _showEditorToolbar = true;
             
             UpdateColorSelection();
+            UpdateColorPreviews(GetPreviewVariant());
+        }
+
+        private static ObservableCollection<ColorOption> BuildColorOptions()
+        {
+            var options = new ObservableCollection<ColorOption>();
+            foreach (var (name, fallbackHex) in FallbackPreviewColors)
+            {
+                options.Add(new ColorOption
+                {
+                    Name = name,
+                    PreviewBrush = Brush.Parse(fallbackHex)
+                });
+            }
+
+            return options;
+        }
+
+        private void UpdateColorPreviews(ThemeVariant variant)
+        {
+            foreach (var option in ColorOptions)
+            {
+                option.PreviewBrush = LoadThemePreviewBrush(option.Name, variant);
+            }
+        }
+
+        private ThemeVariant GetPreviewVariant()
+        {
+            return SelectedMode switch
+            {
+                "Light" => ThemeVariant.Light,
+                "Dark" => ThemeVariant.Dark,
+                _ => Application.Current?.ActualThemeVariant ?? ThemeVariant.Light
+            };
+        }
+
+        private static IBrush LoadThemePreviewBrush(string colorName, ThemeVariant variant)
+        {
+            var colorUri = new Uri($"avares://CapyCard/Styles/Themes/Colors/{colorName}.axaml");
+            try
+            {
+                var dictionary = (ResourceDictionary)AvaloniaXamlLoader.Load(colorUri);
+
+                if (dictionary.ThemeDictionaries.TryGetValue(variant, out var themeResources) &&
+                    themeResources is ResourceDictionary variantDictionary)
+                {
+                    if (variantDictionary.TryGetResource("PrimaryColor", null, out var primaryColor) &&
+                        primaryColor is Color resolvedColor)
+                    {
+                        return new SolidColorBrush(resolvedColor);
+                    }
+
+                    if (variantDictionary.TryGetResource("PrimaryBrush", null, out var primaryBrush) &&
+                        primaryBrush is IBrush resolvedBrush)
+                    {
+                        return resolvedBrush;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load preview color for theme '{colorName}': {ex.Message}");
+            }
+
+            if (FallbackPreviewColors.TryGetValue(colorName, out var fallbackHex))
+            {
+                return Brush.Parse(fallbackHex);
+            }
+
+            return Brushes.Transparent;
         }
 
         public async Task InitializeAsync()
@@ -122,6 +200,7 @@ namespace CapyCard.ViewModels
             OnPropertyChanged(nameof(IsModeLight));
             OnPropertyChanged(nameof(IsModeDark));
             OnPropertyChanged(nameof(HideEditorToolbar));
+            UpdateColorPreviews(GetPreviewVariant());
         }
 
         partial void OnSelectedColorChanged(string value)
@@ -143,6 +222,7 @@ namespace CapyCard.ViewModels
             OnPropertyChanged(nameof(IsModeSystem));
             OnPropertyChanged(nameof(IsModeLight));
             OnPropertyChanged(nameof(IsModeDark));
+            UpdateColorPreviews(GetPreviewVariant());
             ApplyTheme();
         }
 
