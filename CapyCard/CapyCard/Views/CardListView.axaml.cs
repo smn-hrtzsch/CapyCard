@@ -74,6 +74,10 @@ namespace CapyCard.Views
         private void OnSizeChanged(object? sender, SizeChangedEventArgs e)
         {
             IsCompactMode = e.NewSize.Width < AppConstants.HeaderThreshold;
+            if (DataContext is CardListViewModel vm && vm.IsImagePreviewOpen)
+            {
+                UpdateDefaultZoomOnResize(vm);
+            }
         }
 
         private void UpdatePreviewActionsCompact(double width)
@@ -185,23 +189,43 @@ namespace CapyCard.Views
 
         private void CalculateInitialZoom(CardListViewModel vm)
         {
-            if (vm.PreviewImageSource is Bitmap bitmap && _topLevel != null)
+            if (!TryGetFitZoom(vm, out var zoom)) return;
+            vm.ImageZoomLevel = zoom;
+            vm.DefaultZoomLevel = zoom;
+        }
+
+        private void UpdateDefaultZoomOnResize(CardListViewModel vm)
+        {
+            if (!TryGetFitZoom(vm, out var zoom)) return;
+            var isAtDefault = Math.Abs(vm.ImageZoomLevel - vm.DefaultZoomLevel) < 0.001;
+            vm.DefaultZoomLevel = zoom;
+            if (isAtDefault)
             {
-                var containerWidth = this.Bounds.Width;
-                var containerHeight = this.Bounds.Height;
-                if (containerWidth <= 0 || containerHeight <= 0) return;
-
-                var targetWidth = containerWidth * 0.85;
-                var targetHeight = containerHeight * 0.85;
-
-                var imgWidth = bitmap.Size.Width;
-                var imgHeight = bitmap.Size.Height;
-                if (imgWidth <= 0 || imgHeight <= 0) return;
-
-                var zoom = Math.Min(targetWidth / imgWidth, targetHeight / imgHeight);
                 vm.ImageZoomLevel = zoom;
-                vm.DefaultZoomLevel = zoom;
             }
+        }
+
+        private bool TryGetFitZoom(CardListViewModel vm, out double zoom)
+        {
+            zoom = 1.0;
+            if (vm.PreviewImageSource is not Bitmap bitmap || _topLevel == null)
+            {
+                return false;
+            }
+
+            var containerWidth = this.Bounds.Width;
+            var containerHeight = this.Bounds.Height;
+            if (containerWidth <= 0 || containerHeight <= 0) return false;
+
+            var targetWidth = containerWidth * 0.85;
+            var targetHeight = containerHeight * 0.85;
+
+            var imgWidth = bitmap.Size.Width;
+            var imgHeight = bitmap.Size.Height;
+            if (imgWidth <= 0 || imgHeight <= 0) return false;
+
+            zoom = Math.Min(targetWidth / imgWidth, targetHeight / imgHeight);
+            return zoom > 0;
         }
 
         private void OnOverlayPointerWheelChanged(object? sender, PointerWheelEventArgs e)
