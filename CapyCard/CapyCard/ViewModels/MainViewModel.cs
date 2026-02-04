@@ -73,40 +73,39 @@ namespace CapyCard.ViewModels
         {
             if (_navigationStack.TryPop(out var previous))
             {
-                await ActivateViewModelAsync(previous);
                 CurrentViewModel = previous;
+                await ActivateViewModelAsync(previous);
                 return;
             }
 
             // Fallback: if stack is empty, go to root.
             if (CurrentViewModel != _deckListViewModel)
             {
-                _deckListViewModel.RefreshDecks();
                 CurrentViewModel = _deckListViewModel;
+                _deckListViewModel.RefreshDecks();
             }
         }
 
         private async void NavigateToDeckDetail(Deck selectedDeck)
         {
-            await _deckDetailViewModel.LoadDeck(selectedDeck); 
             NavigateTo(_deckDetailViewModel, pushCurrent: CurrentViewModel != _deckDetailViewModel);
+            await _deckDetailViewModel.LoadDeckAsync(selectedDeck);
         }
         
-        private void NavigateToCardList(Deck deck)
+        private async void NavigateToCardList(Deck deck)
         {
-            _cardListViewModel.LoadDeck(deck);
-
             // If we're leaving DeckDetail while editing (CancelEdit path), treat it like a back-navigation.
             bool isCancelEditPath = CurrentViewModel is DeckDetailViewModel detail && detail.IsEditing;
             NavigateTo(_cardListViewModel, pushCurrent: !isCancelEditPath);
+            await _cardListViewModel.LoadDeckAsync(deck);
         }
         
         private async void NavigateToLearn(Deck deck, LearningMode mode, List<int>? selectedIds)
         {
             try
             {
-                await _learnViewModel.LoadSession(deck, mode, selectedIds);
                 NavigateTo(_learnViewModel, pushCurrent: CurrentViewModel != _learnViewModel);
+                await _learnViewModel.LoadSessionAsync(deck, mode, selectedIds);
             }
             catch (System.Exception)
             {
@@ -130,7 +129,7 @@ namespace CapyCard.ViewModels
         {
             // Ruft die neue Methode auf, die wir in Teil 1 erstellt haben
             // KORREKTUR: 'await' hinzugefügt
-            await _deckDetailViewModel.LoadCardForEditing(deck, card);
+            await _deckDetailViewModel.LoadCardForEditingAsync(deck, card);
             
             // Zeigt die Detail-Ansicht an (jetzt im "Bearbeiten"-Modus)
             NavigateTo(_deckDetailViewModel, pushCurrent: CurrentViewModel != _deckDetailViewModel);

@@ -22,6 +22,9 @@ namespace CapyCard.Controls
     {
         private static readonly Regex UnorderedListRegex = new(@"^(\s*)- (.*)$", RegexOptions.Compiled);
         private static readonly Regex OrderedListRegex = new(@"^(\s*)(\d+)\. (.*)$", RegexOptions.Compiled);
+        private static readonly Dictionary<string, List<TextSegment>> SegmentCache = new();
+        private static readonly object SegmentCacheLock = new();
+        private const int SegmentCacheMax = 500;
 
         public static readonly StyledProperty<string> FormattedTextProperty =
             AvaloniaProperty.Register<FormattedTextBlock, string>(nameof(FormattedText), string.Empty);
@@ -286,6 +289,19 @@ namespace CapyCard.Controls
 
         private static List<TextSegment> ParseToSegments(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return new List<TextSegment>();
+            }
+
+            lock (SegmentCacheLock)
+            {
+                if (SegmentCache.TryGetValue(text, out var cached))
+                {
+                    return cached;
+                }
+            }
+
             var segments = new List<TextSegment>();
             var currentIndex = 0;
 
@@ -366,9 +382,18 @@ namespace CapyCard.Controls
             }
 
             // Falls keine Segmente, den ganzen Text hinzufügen
-            if (segments.Count == 0 && !string.IsNullOrEmpty(text))
+            if (segments.Count == 0)
             {
                 segments.Add(new TextSegment { Text = text });
+            }
+
+            lock (SegmentCacheLock)
+            {
+                if (SegmentCache.Count >= SegmentCacheMax)
+                {
+                    SegmentCache.Clear();
+                }
+                SegmentCache[text] = segments;
             }
 
             return segments;

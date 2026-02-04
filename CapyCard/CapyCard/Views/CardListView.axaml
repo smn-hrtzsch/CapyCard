@@ -18,8 +18,6 @@
         <conv:GridViewToIconConverter x:Key="GridViewToIconConverter"/>
         <conv:GridViewToTextConverter x:Key="GridViewToTextConverter"/>
         <conv:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
-        <conv:PlainTextConverter x:Key="PlainTextConverter"/>
-        <conv:CardHasImagesConverter x:Key="CardHasImagesConverter"/>
     </UserControl.Resources>
 
     <UserControl.Styles>
@@ -453,10 +451,10 @@
                                                          Padding="10,2"
                                                          CornerRadius="12"
                                                          VerticalAlignment="Center">
-                                                     <TextBlock Text="{Binding Cards.Count}" 
-                                                                FontSize="12"
-                                                                FontWeight="Bold"
-                                                                VerticalAlignment="Center"/>
+                                                      <TextBlock Text="{Binding CardCount}" 
+                                                                 FontSize="12"
+                                                                 FontWeight="Bold"
+                                                                 VerticalAlignment="Center"/>
                                                  </Border>
                                             <materialIcons:MaterialIcon Kind="CheckboxMultipleMarked"
                                                                       Width="20" Height="20"
@@ -465,7 +463,8 @@
                                                                       ToolTip.Tip="Enthält ausgewählte Karten"/>
                                         </StackPanel>
 
-                                            <Panel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                <ProgressBar IsIndeterminate="True" Width="56" Height="4" IsVisible="{Binding IsLoading}"/>
                                                 <Button
                                                         Command="{Binding $parent[UserControl].DataContext.ShowSelectedPreviewCommand}"
                                                         Classes="icon"
@@ -475,7 +474,7 @@
                                                         CornerRadius="18">
                                                     <materialIcons:MaterialIcon Kind="Eye" Width="18" Height="18" Foreground="{DynamicResource TextMutedBrush}"/>
                                                 </Button>
-                                            </Panel>
+                                            </StackPanel>
                                         </Grid>
                                     </ToggleButton>
 
@@ -560,20 +559,20 @@
                                                         
                                                         <Grid Grid.Row="1" RowDefinitions="*,Auto,*" Margin="16,0,16,12">
                                                             <local:FormattedTextBlock Grid.Row="0"
-                                                                                     FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                     ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
-                                                                                     TextWrapping="Wrap" MaxLines="3"
-                                                                                     FontSize="14" Foreground="{DynamicResource TextControlForeground}"
-                                                                                     VerticalAlignment="Top"/>
+                                                                                      FormattedText="{Binding FrontPlain}" 
+                                                                                      ShowImageHint="{Binding FrontHasImages}"
+                                                                                      TextWrapping="Wrap" MaxLines="3"
+                                                                                      FontSize="14" Foreground="{DynamicResource TextControlForeground}"
+                                                                                      VerticalAlignment="Top"/>
                                                             
                                                             <Separator Grid.Row="1" Margin="0,6" Background="{DynamicResource SurfaceBorderBrush}" Height="1.5" Opacity="0.6"/>
                                                             
                                                             <local:FormattedTextBlock Grid.Row="2"
-                                                                                     FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                     ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
-                                                                                     TextWrapping="Wrap" MaxLines="3"
-                                                                                     FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
-                                                                                     VerticalAlignment="Top"/>
+                                                                                      FormattedText="{Binding BackPlain}" 
+                                                                                      ShowImageHint="{Binding BackHasImages}"
+                                                                                      TextWrapping="Wrap" MaxLines="3"
+                                                                                      FontSize="14" Foreground="{DynamicResource TextMutedBrush}"
+                                                                                      VerticalAlignment="Top"/>
                                                         </Grid>
                                                     </Grid>
                                                 </Border>
@@ -618,8 +617,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding FrontPlain}" 
+                                                                                             ShowImageHint="{Binding FrontHasImages}"
                                                                                              Margin="12,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -639,8 +638,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding BackPlain}" 
+                                                                                             ShowImageHint="{Binding BackHasImages}"
                                                                                              Margin="12,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -725,8 +724,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Front, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Front, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding FrontPlain}" 
+                                                                                             ShowImageHint="{Binding FrontHasImages}"
                                                                                              Margin="8,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -746,8 +745,8 @@
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate x:DataType="vm:CardItemViewModel">
                                                                 <Panel>
-                                                                    <local:FormattedTextBlock FormattedText="{Binding Back, Converter={StaticResource PlainTextConverter}}" 
-                                                                                             ShowImageHint="{Binding Back, Converter={StaticResource CardHasImagesConverter}}"
+                                                                    <local:FormattedTextBlock FormattedText="{Binding BackPlain}" 
+                                                                                             ShowImageHint="{Binding BackHasImages}"
                                                                                              Margin="8,12"
                                                                                              VerticalAlignment="Center" 
                                                                                              MaxLines="3"
@@ -804,6 +803,21 @@
                 </ItemsControl>
             </DockPanel>
         </ScrollViewer>
+
+        <!-- LOADING OVERLAY -->
+        <Grid IsVisible="{Binding IsLoading}" Background="#80000000" ZIndex="200">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="24"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 16 0 #40000000">
+                <StackPanel Spacing="12" HorizontalAlignment="Center">
+                    <TextBlock Text="Karten werden geladen..." FontSize="16" FontWeight="SemiBold" />
+                    <ProgressBar IsIndeterminate="True" Width="160" Height="6" />
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <!-- Preview Overlay -->
         <Border x:Name="PreviewOverlay" Background="#CC000000" IsVisible="{Binding IsPreviewOpen}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

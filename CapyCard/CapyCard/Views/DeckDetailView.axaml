@@ -194,6 +194,21 @@
                 </StackPanel>
             </Border>
         </Grid>
+
+        <!-- LOADING OVERLAY -->
+        <Grid IsVisible="{Binding IsLoading}" Background="#80000000" ZIndex="250">
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    CornerRadius="24"
+                    Padding="24"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 16 0 #40000000">
+                <StackPanel Spacing="12" HorizontalAlignment="Center">
+                    <TextBlock Text="Lade Daten..." FontSize="16" FontWeight="SemiBold" />
+                    <ProgressBar IsIndeterminate="True" Width="140" Height="6" />
+                </StackPanel>
+            </Border>
+        </Grid>
         
         <!-- Export Dialog Overlay -->
         <views:ExportDialog x:Name="ExportDialog" DataContext="{Binding ExportViewModel}"/>

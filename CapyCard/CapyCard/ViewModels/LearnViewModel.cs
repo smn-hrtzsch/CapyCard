@@ -18,9 +18,11 @@ namespace CapyCard.ViewModels
     {
         private readonly FlashcardDbContext _dbContext;
         private readonly SmartQueueService _smartQueueService;
-        private Deck? _deck;
         private LearningSession? _currentSession;
         private List<Card> _allCards = new();
+        private readonly Dictionary<int, CardSmartScore> _smartScoresByCardId = new();
+        private bool _smartScoresLoaded;
+        private int _loadSequence;
 
         [ObservableProperty] private string _currentCardFront = string.Empty;
         [ObservableProperty] private string _currentCardBack = string.Empty;
@@ -69,6 +71,7 @@ namespace CapyCard.ViewModels
         [ObservableProperty] [NotifyPropertyChangedFor(nameof(ProgressText))] private int _totalCount;
         [ObservableProperty] private string _progressModeLabel = string.Empty;
         [ObservableProperty] private string _deckName = string.Empty;
+        [ObservableProperty] private bool _isLoading;
         [ObservableProperty] private string _backButtonText = "Zurück zum Fach";
         private LearningOrderMode _currentCardFromStrategy;
 
@@ -134,96 +137,197 @@ namespace CapyCard.ViewModels
              ImageZoomLevel = DefaultZoomLevel;
         }
 
-        public async Task LoadSession(Deck deck, LearningMode scope, List<int>? selectedIds)
+        public async Task LoadSessionAsync(Deck deck, LearningMode scope, List<int>? selectedIds)
         {
-            var trackedDeck = _dbContext.Decks.Local.FirstOrDefault(d => d.Id == deck.Id);
-            if (trackedDeck != null) _dbContext.Entry(trackedDeck).State = EntityState.Detached;
+            int loadId = ++_loadSequence;
+            IsLoading = true;
 
-            _deck = await _dbContext.Decks
-                .Include(d => d.Cards)
-                .Include(d => d.SubDecks)
-                .ThenInclude(sd => sd.Cards)
-                .FirstOrDefaultAsync(d => d.Id == deck.Id);
-
-            if (_deck == null) return;
-
-            DeckName = _deck.Name;
-            BackButtonText = _deck.ParentDeckId.HasValue ? "Zurück zum Thema" : "Zurück zum Fach";
-
-            // Find or create session
-            string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";
-            
-            _currentSession = await _dbContext.LearningSessions
-                .FirstOrDefaultAsync(s => s.DeckId == _deck.Id && s.Scope == scope && s.SelectedDeckIdsJson == selectedIdsJson);
-
-            if (_currentSession == null)
+            try
             {
-                _currentSession = new LearningSession
+                _smartScoresLoaded = false;
+                _smartScoresByCardId.Clear();
+                _allCards.Clear();
+                CurrentCard = null;
+                CurrentCardFront = string.Empty;
+                CurrentCardBack = string.Empty;
+                IsDeckFinished = false;
+                IsBackVisible = false;
+                ShowShowBackButton = false;
+                ShowNextCardButton = false;
+                ShowReshuffleButton = false;
+
+                var deckInfo = await _dbContext.Decks
+                    .AsNoTracking()
+                    .Where(d => d.Id == deck.Id)
+                    .Select(d => new { d.Id, d.Name, d.ParentDeckId })
+                    .FirstOrDefaultAsync();
+
+                if (deckInfo == null)
                 {
-                    DeckId = _deck.Id,
-                    Scope = scope,
-                    SelectedDeckIdsJson = selectedIdsJson,
-                    LastLearnedIndex = 0,
-                    LearnedCardIdsJson = "[]",
-                    Strategy = LearningOrderMode.Sequential,
-                    LastAccessed = DateTime.Now
-                };
-                _dbContext.LearningSessions.Add(_currentSession);
+                    return;
+                }
+
+                if (loadId != _loadSequence)
+                {
+                    return;
+                }
+
+                DeckName = deckInfo.Name;
+                BackButtonText = deckInfo.ParentDeckId.HasValue ? "Zurück zum Thema" : "Zurück zum Fach";
+
+                // Find or create session
+                string selectedIdsJson = selectedIds != null ? JsonSerializer.Serialize(selectedIds.OrderBy(x => x).ToList()) : "[]";
+
+                _currentSession = await _dbContext.LearningSessions
+                    .FirstOrDefaultAsync(s => s.DeckId == deckInfo.Id && s.Scope == scope && s.SelectedDeckIdsJson == selectedIdsJson);
+
+                if (_currentSession == null)
+                {
+                    _currentSession = new LearningSession
+                    {
+                        DeckId = deckInfo.Id,
+                        Scope = scope,
+                        SelectedDeckIdsJson = selectedIdsJson,
+                        LastLearnedIndex = 0,
+                        LearnedCardIdsJson = "[]",
+                        Strategy = LearningOrderMode.Sequential,
+                        LastAccessed = DateTime.Now
+                    };
+                    _dbContext.LearningSessions.Add(_currentSession);
+                }
+                else
+                {
+                    _currentSession.LastAccessed = DateTime.Now;
+                }
+                await _dbContext.SaveChangesAsync();
+
+                Strategy = _currentSession.Strategy;
+
+                var deckIds = await ResolveDeckIdsAsync(deckInfo.Id, scope, selectedIds);
+                if (loadId != _loadSequence)
+                {
+                    return;
+                }
+
+                if (deckIds.Count > 0)
+                {
+                    _allCards = await _dbContext.Cards
+                        .AsNoTracking()
+                        .Where(c => deckIds.Contains(c.DeckId))
+                        .ToListAsync();
+                }
+                else
+                {
+                    _allCards.Clear();
+                }
+
+                if (loadId != _loadSequence)
+                {
+                    return;
+                }
+
+                if (Strategy == LearningOrderMode.Smart)
+                {
+                    await EnsureSmartScoresLoadedAsync(loadId);
+                }
+
+                UpdateProgressState();
+                ShowCardAtCurrentProgress();
             }
-            else
+            finally
             {
-                _currentSession.LastAccessed = DateTime.Now;
+                if (loadId == _loadSequence)
+                {
+                    IsLoading = false;
+                }
             }
-            await _dbContext.SaveChangesAsync();
+        }
 
-            Strategy = _currentSession.Strategy;
+        public Task LoadSession(Deck deck, LearningMode scope, List<int>? selectedIds) =>
+            LoadSessionAsync(deck, scope, selectedIds);
 
-            // Load cards based on mode
-            _allCards.Clear();
+        private async Task<List<int>> ResolveDeckIdsAsync(int deckId, LearningMode scope, List<int>? selectedIds)
+        {
             if (scope == LearningMode.MainOnly)
             {
-                _allCards.AddRange(_deck.Cards);
+                return new List<int> { deckId };
             }
-            else if (scope == LearningMode.AllRecursive)
+
+            if (scope == LearningMode.CustomSelection && (selectedIds == null || selectedIds.Count == 0))
             {
-                _allCards.AddRange(GetAllCards(_deck));
+                return new List<int>();
             }
-            else if (scope == LearningMode.CustomSelection && selectedIds != null)
+
+            var deckRelations = await _dbContext.Decks
+                .AsNoTracking()
+                .Select(d => new { d.Id, d.ParentDeckId })
+                .ToListAsync();
+
+            var childrenByParent = deckRelations
+                .Where(d => d.ParentDeckId.HasValue)
+                .GroupBy(d => d.ParentDeckId!.Value)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToList());
+
+            var result = new HashSet<int>();
+
+            void AddWithDescendants(int id)
             {
-                // Add main deck if selected
-                if (selectedIds.Contains(_deck.Id))
+                if (!result.Add(id)) return;
+                if (childrenByParent.TryGetValue(id, out var children))
                 {
-                    _allCards.AddRange(_deck.Cards);
-                }
-                
-                // Add subdecks
-                // Note: This only works for 1 level deep as loaded. For deeper, we need recursive loading logic in DB query or here.
-                // Assuming 1 level for now as per previous implementation.
-                foreach (var subDeck in _deck.SubDecks)
-                {
-                    if (selectedIds.Contains(subDeck.Id))
+                    foreach (var childId in children)
                     {
-                        _allCards.AddRange(GetAllCards(subDeck));
+                        AddWithDescendants(childId);
                     }
                 }
             }
 
-            // Pre-load scores for all cards to ensure local context is complete for mastery calculation
-            var allCardIds = _allCards.Select(c => c.Id).ToList();
-            await _dbContext.CardSmartScores.Where(s => allCardIds.Contains(s.CardId)).LoadAsync();
+            if (scope == LearningMode.AllRecursive)
+            {
+                AddWithDescendants(deckId);
+            }
+            else if (scope == LearningMode.CustomSelection && selectedIds != null)
+            {
+                foreach (var selectedId in selectedIds)
+                {
+                    AddWithDescendants(selectedId);
+                }
+            }
 
-            UpdateProgressState();
-            ShowCardAtCurrentProgress();
+            return result.ToList();
         }
 
-        private List<Card> GetAllCards(Deck deck)
+        private async Task EnsureSmartScoresLoadedAsync(int? loadId = null)
         {
-            var cards = deck.Cards.ToList();
-            foreach (var subDeck in deck.SubDecks)
+            if (_smartScoresLoaded)
             {
-                cards.AddRange(GetAllCards(subDeck));
+                return;
             }
-            return cards;
+
+            var cardIds = _allCards.Select(c => c.Id).ToList();
+            if (cardIds.Count == 0)
+            {
+                _smartScoresByCardId.Clear();
+                _smartScoresLoaded = true;
+                return;
+            }
+
+            var scores = await _dbContext.CardSmartScores
+                .AsNoTracking()
+                .Where(s => cardIds.Contains(s.CardId))
+                .ToListAsync();
+
+            if (loadId != null && loadId != _loadSequence)
+            {
+                return;
+            }
+
+            _smartScoresByCardId.Clear();
+            foreach (var score in scores)
+            {
+                _smartScoresByCardId[score.CardId] = score;
+            }
+            _smartScoresLoaded = true;
         }
 
         private void UpdateProgressState()
@@ -248,20 +352,21 @@ namespace CapyCard.ViewModels
                 case LearningOrderMode.Smart:
                     TotalCount = 100;
                     ProgressModeLabel = "Smart";
-                    // Calculate mastery percentage
-                    // We need to fetch scores for all cards in _allCards
-                    var cardIds = _allCards.Select(c => c.Id).ToList();
-                    // Use Local to get the most up-to-date state including recent changes in this session
-                    var scores = _dbContext.CardSmartScores.Local.Where(s => cardIds.Contains(s.CardId)).ToList();
-                    
                     if (!_allCards.Any())
                     {
                         LearnedCount = 0;
                     }
                     else
                     {
-                        double totalBoxIndex = scores.Sum(s => s.BoxIndex);
-                        // Max possible score is 5 * count
+                        double totalBoxIndex = 0;
+                        foreach (var card in _allCards)
+                        {
+                            if (_smartScoresByCardId.TryGetValue(card.Id, out var score))
+                            {
+                                totalBoxIndex += score.BoxIndex;
+                            }
+                        }
+
                         double maxScore = _allCards.Count * 5;
                         LearnedCount = (int)((totalBoxIndex / maxScore) * 100);
                     }
@@ -317,9 +422,7 @@ namespace CapyCard.ViewModels
             }
             else if (Strategy == LearningOrderMode.Smart)
             {
-                var cardIds = _allCards.Select(c => c.Id).ToList();
-                var scores = _dbContext.CardSmartScores.Where(s => cardIds.Contains(s.CardId)).ToList();
-                cardToShow = _smartQueueService.GetNextCard(_allCards, scores);
+                cardToShow = _smartQueueService.GetNextCard(_allCards, _smartScoresByCardId);
                 
                 if (cardToShow == null)
                 {
@@ -423,6 +526,11 @@ namespace CapyCard.ViewModels
             _currentSession.Strategy = Strategy;
             await _dbContext.SaveChangesAsync();
 
+            if (Strategy == LearningOrderMode.Smart)
+            {
+                await EnsureSmartScoresLoadedAsync();
+            }
+
             // If we are currently viewing a card back
             if (CurrentCard != null && IsBackVisible)
             {
@@ -463,6 +571,9 @@ namespace CapyCard.ViewModels
             _smartQueueService.CalculateNewScore(score, rating);
             await _dbContext.SaveChangesAsync();
 
+            _smartScoresByCardId[score.CardId] = score;
+            _smartScoresLoaded = true;
+
             await AdvanceAndShowNextCard();
         }
 
@@ -498,6 +609,13 @@ namespace CapyCard.ViewModels
                     score.BoxIndex = 0;
                     score.LastReviewed = DateTime.MinValue;
                 }
+
+                _smartScoresByCardId.Clear();
+                foreach (var score in scores)
+                {
+                    _smartScoresByCardId[score.CardId] = score;
+                }
+                _smartScoresLoaded = true;
             }
             
             await _dbContext.SaveChangesAsync();

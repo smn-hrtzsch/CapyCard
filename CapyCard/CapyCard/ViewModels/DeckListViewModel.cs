@@ -5,6 +5,7 @@ using CapyCard.Models;
 using CapyCard.Services.ImportExport.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -62,7 +63,7 @@ namespace CapyCard.ViewModels
             ImportViewModel.OnRequestFileOpen += async () => await (OnRequestFileOpen?.Invoke() ?? Task.FromResult<IStorageFile?>(null));
             ImportViewModel.OnImportCompleted += OnImportCompleted;
             ImportViewModel.RequestShowFormatInfo += () => ImportHelpViewModel.Show();
-            LoadDecks();
+            _ = LoadDecksAsync();
         }
         
         public DeckListViewModel() : this(new UserSettingsService(), new ThemeService()) 
@@ -78,15 +79,15 @@ namespace CapyCard.ViewModels
 
         private void OnImportCompleted(ImportResult result)
         {
-            LoadDecks();
+            _ = LoadDecksAsync();
         }
 
         public void RefreshDecks()
         {
-            LoadDecks();
+            _ = LoadDecksAsync();
         }
 
-        private async void LoadDecks()
+        private async Task LoadDecksAsync()
         {
             Decks.Clear();
             
@@ -94,51 +95,73 @@ namespace CapyCard.ViewModels
             {
                 var allDecks = await context.Decks
                     .AsNoTracking()
-                    .Include(d => d.Cards)
                     .ToListAsync();
 
-                var rootDecks = allDecks.Where(d => d.ParentDeckId == null).ToList();
+                var cardCountByDeckId = await context.Cards
+                    .AsNoTracking()
+                    .GroupBy(c => c.DeckId)
+                    .Select(g => new { DeckId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(g => g.DeckId, g => g.Count);
+
+                var rootDecks = allDecks
+                    .Where(d => d.ParentDeckId == null)
+                    .ToList();
+
+                var decksByParentId = allDecks
+                    .Where(d => d.ParentDeckId != null)
+                    .GroupBy(d => d.ParentDeckId!.Value)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var totalCardCountByDeckId = new Dictionary<int, int>();
+
+                int GetTotalCards(Deck deck)
+                {
+                    if (totalCardCountByDeckId.TryGetValue(deck.Id, out var total))
+                    {
+                        return total;
+                    }
+
+                    total = cardCountByDeckId.TryGetValue(deck.Id, out var ownCount) ? ownCount : 0;
+                    if (decksByParentId.TryGetValue(deck.Id, out var children))
+                    {
+                        foreach (var child in children)
+                        {
+                            total += GetTotalCards(child);
+                        }
+                    }
+
+                    totalCardCountByDeckId[deck.Id] = total;
+                    return total;
+                }
 
                 foreach (var deck in rootDecks)
                 {
-                    var vm = CreateDeckItemViewModel(deck, allDecks);
+                    var vm = CreateDeckItemViewModel(deck, decksByParentId, GetTotalCards);
                     Decks.Add(vm);
                 }
             }
         }
 
-        private DeckItemViewModel CreateDeckItemViewModel(Deck deck, System.Collections.Generic.List<Deck> allDecks)
+        private DeckItemViewModel CreateDeckItemViewModel(
+            Deck deck,
+            IReadOnlyDictionary<int, List<Deck>> decksByParentId,
+            Func<Deck, int> totalCardCountProvider)
         {
-            int totalCards = CalculateTotalCards(deck, allDecks);
+            int totalCards = totalCardCountProvider(deck);
             var vm = new DeckItemViewModel(deck, totalCards);
             
-            var subDecks = allDecks
-                .Where(d => d.ParentDeckId == deck.Id)
-                .OrderByDescending(d => d.Name == "Allgemein") 
-                .ThenBy(d => d.Id)
-                .ToList();
-
-            if (subDecks.Any())
+            if (decksByParentId.TryGetValue(deck.Id, out var subDecks) && subDecks.Count > 0)
             {
                 vm.HasSubDecks = true;
-                foreach (var subDeck in subDecks)
+                foreach (var subDeck in subDecks
+                    .OrderByDescending(d => d.Name == "Allgemein")
+                    .ThenBy(d => d.Id))
                 {
-                    vm.SubDecks.Add(CreateDeckItemViewModel(subDeck, allDecks));
+                    vm.SubDecks.Add(CreateDeckItemViewModel(subDeck, decksByParentId, totalCardCountProvider));
                 }
             }
             
             return vm;
-        }
-
-        private int CalculateTotalCards(Deck deck, System.Collections.Generic.List<Deck> allDecks)
-        {
-            int count = deck.Cards.Count;
-            var subDecks = allDecks.Where(d => d.ParentDeckId == deck.Id);
-            foreach (var sub in subDecks)
-            {
-                count += CalculateTotalCards(sub, allDecks);
-            }
-            return count;
         }
 
         public void UpdateDeckCardCount(int deckId, int cardCount)

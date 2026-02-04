@@ -22,6 +22,7 @@ namespace CapyCard.ViewModels
         private readonly ICardDraftService _cardDraftService;
         private Deck? _currentDeck;
         private Card? _cardToEdit;
+        private int _loadSequence;
         private bool _suppressDraftSave;
         private int? _draftDeckId;
         private string _draftFront = string.Empty;
@@ -39,6 +40,9 @@ namespace CapyCard.ViewModels
 
         [ObservableProperty]
         private string _deckName = "Fach laden...";
+
+        [ObservableProperty]
+        private bool _isLoading;
 
         [ObservableProperty]
         private string _backButtonText = "Zurück zur Fächerliste";
@@ -135,119 +139,204 @@ namespace CapyCard.ViewModels
              IsEditorToolbarVisible = settings.ShowEditorToolbar;
         }
 
-        public async Task LoadDeck(Deck deck)
+        public async Task LoadDeckAsync(Deck deck)
         {
-            LoadToolbarSettings();
-            _currentDeck = deck;
-            
-            using (var context = new FlashcardDbContext())
+            int loadId = ++_loadSequence;
+            IsLoading = true;
+
+            try
             {
-                // Set Title and Back Button based on context
-                if (deck.ParentDeckId != null)
+                LoadToolbarSettings();
+                _currentDeck = deck;
+                _cardToEdit = null;
+
+                IsEditing = false;
+                IsRootDeck = deck.ParentDeckId == null;
+                CanAddSubDecks = IsRootDeck;
+                IsSubDeckSelectionVisible = false;
+                IsConfirmingDeleteSubDeck = false;
+                IsSubDeckListOpen = false;
+                IsSubDeckSelectionVisible = false;
+                IsConfirmingDeleteSubDeck = false;
+                IsSubDeckListOpen = false;
+
+                DeckName = deck.Name;
+                BackButtonText = deck.ParentDeckId != null ? "Zurück zum Hauptfach" : "Zurück zur Fächerliste";
+
+                Cards.Clear();
+                SubDecks.Clear();
+                UpdateCardCount(0);
+
+                var headerTask = UpdateDeckHeaderAsync(loadId, deck);
+                var draftTask = LoadDraftForCurrentDeckAsync();
+                var dataTask = RefreshCardDataAsync(loadId);
+
+                await Task.WhenAll(headerTask, draftTask, dataTask);
+
+                if (loadId != _loadSequence)
                 {
-                    var parent = await context.Decks.FindAsync(deck.ParentDeckId);
-                    DeckName = parent != null ? $"{parent.Name} > {deck.Name}" : deck.Name;
-                    BackButtonText = "Zurück zum Hauptfach";
+                    return;
                 }
-                else
+
+                ResetToAddingMode(restoreDraft: true);
+            }
+            finally
+            {
+                if (loadId == _loadSequence)
                 {
-                    DeckName = deck.Name;
-                    BackButtonText = "Zurück zur Fächerliste";
+                    IsLoading = false;
                 }
             }
+        }
 
-            await LoadDraftForCurrentDeckAsync();
-            ResetToAddingMode(restoreDraft: true);
-            await RefreshCardDataAsync();
+        public Task LoadDeck(Deck deck) => LoadDeckAsync(deck);
+
+        private async Task UpdateDeckHeaderAsync(int loadId, Deck deck)
+        {
+            if (deck.ParentDeckId == null)
+            {
+                return;
+            }
+
+            using (var context = new FlashcardDbContext())
+            {
+                var parentName = await context.Decks
+                    .AsNoTracking()
+                    .Where(d => d.Id == deck.ParentDeckId)
+                    .Select(d => d.Name)
+                    .FirstOrDefaultAsync();
+
+                if (loadId != _loadSequence)
+                {
+                    return;
+                }
+
+                if (!string.IsNullOrWhiteSpace(parentName))
+                {
+                    DeckName = $"{parentName} > {deck.Name}";
+                }
+            }
         }
         
-        public async Task LoadCardForEditing(Deck deck, Card card)
+        public async Task LoadCardForEditingAsync(Deck deck, Card card)
         {
-            LoadToolbarSettings();
-            _currentDeck = deck;
-            _cardToEdit = card;
+            int loadId = ++_loadSequence;
+            IsLoading = true;
 
-            await SaveDraftIfNeededAsync();
-            
-            using (var context = new FlashcardDbContext())
+            try
             {
-                // Set Title based on context (same logic)
-                if (deck.ParentDeckId != null)
+                LoadToolbarSettings();
+                _currentDeck = deck;
+                _cardToEdit = card;
+
+                await SaveDraftIfNeededAsync();
+
+                IsRootDeck = deck.ParentDeckId == null;
+                CanAddSubDecks = IsRootDeck;
+
+                DeckName = deck.Name;
+                BackButtonText = deck.ParentDeckId != null ? "Zurück zum Hauptfach" : "Zurück zur Fächerliste";
+
+                var headerTask = UpdateDeckHeaderAsync(loadId, deck);
+                var dataTask = RefreshCardDataAsync(loadId);
+
+                SetEditorValues(card.Front, card.Back);
+
+                SaveButtonText = "Änderungen speichern";
+                IsEditing = true;
+
+                await Task.WhenAll(headerTask, dataTask);
+            }
+            finally
+            {
+                if (loadId == _loadSequence)
                 {
-                    var parent = await context.Decks.FindAsync(deck.ParentDeckId);
-                    DeckName = parent != null ? $"{parent.Name} > {deck.Name}" : deck.Name;
-                    BackButtonText = "Zurück zum Hauptfach";
-                }
-                else
-                {
-                    DeckName = deck.Name;
-                    BackButtonText = "Zurück zur Fächerliste";
+                    IsLoading = false;
                 }
             }
-
-            SetEditorValues(card.Front, card.Back);
-            
-            SaveButtonText = "Änderungen speichern";
-            IsEditing = true;
-            
-            await RefreshCardDataAsync();
         }
 
-        public async Task RefreshCardDataAsync()
+        public Task LoadCardForEditing(Deck deck, Card card) => LoadCardForEditingAsync(deck, card);
+
+        public async Task RefreshCardDataAsync(int? loadIdOverride = null)
         {
             if (_currentDeck == null) return;
-            
+
+            int loadId = loadIdOverride ?? _loadSequence;
+
             using (var context = new FlashcardDbContext())
             {
-                var deckFromDb = await context.Decks
-                                     .AsNoTracking() 
-                                     .Include(d => d.Cards)
-                                     .Include(d => d.SubDecks)
-                                     .ThenInclude(sd => sd.Cards) // Include cards of subdecks for count
-                                     .FirstOrDefaultAsync(d => d.Id == _currentDeck.Id);
-                
-                if (deckFromDb == null) 
+                var subDecks = await context.Decks
+                    .AsNoTracking()
+                    .Where(d => d.ParentDeckId == _currentDeck.Id)
+                    .OrderByDescending(d => d.IsDefault)
+                    .ThenByDescending(d => d.Name == "Allgemein")
+                    .ThenBy(d => d.Id)
+                    .Select(d => new { d.Id, d.Name, d.IsDefault })
+                    .ToListAsync();
+
+                if (loadId != _loadSequence)
                 {
-                    GoBack();
-                    return; 
+                    return;
                 }
-                
-                _currentDeck = deckFromDb; 
-                CanAddSubDecks = _currentDeck.ParentDeckId == null;
-                IsRootDeck = _currentDeck.ParentDeckId == null;
-                
+
+                var deckIds = subDecks.Select(d => d.Id).Append(_currentDeck.Id).ToList();
+
+                var cardCounts = await context.Cards
+                    .AsNoTracking()
+                    .Where(c => deckIds.Contains(c.DeckId))
+                    .GroupBy(c => c.DeckId)
+                    .Select(g => new { DeckId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(g => g.DeckId, g => g.Count);
+
+                if (loadId != _loadSequence)
+                {
+                    return;
+                }
+
                 if (!IsEditing)
                 {
                     SaveButtonText = IsRootDeck ? "Allgemeine Karte hinzufügen" : "Karte zu Thema hinzufügen";
                 }
 
                 Cards.Clear();
-                foreach (var card in deckFromDb.Cards.OrderBy(c => c.Id))
-                {
-                    Cards.Add(card);
-                }
-
                 SubDecks.Clear();
-                var sortedSubDecks = deckFromDb.SubDecks
-                    .OrderByDescending(d => d.IsDefault)
-                    .ThenByDescending(d => d.Name == "Allgemein") 
-                    .ThenBy(d => d.Id);
 
-                foreach (var subDeck in sortedSubDecks)
+                foreach (var subDeck in subDecks)
                 {
-                    // Wrap in ViewModel
-                    var vm = new DeckItemViewModel(subDeck, subDeck.Cards.Count);
-                    
-                    // "Allgemein" oder Default-Decks dürfen nicht bearbeitet/gelöscht werden
+                    var deckModel = new Deck
+                    {
+                        Id = subDeck.Id,
+                        Name = subDeck.Name,
+                        ParentDeckId = _currentDeck.Id,
+                        IsDefault = subDeck.IsDefault
+                    };
+
+                    var subDeckCount = cardCounts.TryGetValue(subDeck.Id, out var count) ? count : 0;
+                    var vm = new DeckItemViewModel(deckModel, subDeckCount);
+
                     if (subDeck.IsDefault || subDeck.Name == "Allgemein")
                     {
                         vm.IsStatic = true;
                     }
-                    
+
                     SubDecks.Add(vm);
                 }
-                
-                int totalCards = Cards.Count + SubDecks.Sum(sd => sd.Deck.Cards.Count);
+
+                int totalCards = 0;
+                if (cardCounts.TryGetValue(_currentDeck.Id, out var ownCount))
+                {
+                    totalCards += ownCount;
+                }
+
+                foreach (var subDeck in subDecks)
+                {
+                    if (cardCounts.TryGetValue(subDeck.Id, out var count))
+                    {
+                        totalCards += count;
+                    }
+                }
+
                 UpdateCardCount(totalCards);
             }
         }
