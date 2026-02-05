@@ -2,6 +2,11 @@ name: Build macOS App
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g. 1.0.0)'
+        required: false
+        type: string
   workflow_call:
     inputs:
       version:
@@ -32,7 +37,7 @@ jobs:
 
       - name: Install DMG tooling
         run: |
-          brew install --quiet imagemagick create-dmg
+          brew install --quiet imagemagick ghostscript create-dmg
 
       - name: Calculate version
         id: version
@@ -142,9 +147,9 @@ jobs:
           # Using a more prominent style for the command
           magick -size 600x450 xc:white \
             -fill "#f0f0f0" -draw "rectangle 0,320 600,450" \
-            -font "Helvetica-Bold" -pointsize 18 -fill "#333333" \
+            -pointsize 18 -fill "#333333" \
             -gravity North -annotate +0+340 "$HINT_TEXT" \
-            -font "Menlo" -pointsize 14 -fill "#d32f2f" \
+            -pointsize 14 -fill "#d32f2f" \
             -gravity North -annotate +0+380 "$COMMAND_TEXT" \
             "$BACKGROUND_IMG"
 
@@ -163,8 +168,15 @@ jobs:
           rm -rf "$WORK_DIR"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.AppBundleSlug }}-macos
+          path: ${{ steps.dmg.outputs.dmgPath }}
+
       - name: Upload to Release
+        if: github.event_name == 'workflow_call' || (github.event_name == 'workflow_dispatch' && github.event.inputs.version != '')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload v${{ inputs.version }} "${{ steps.dmg.outputs.dmgPath }}" --clobber
+          gh release upload v${{ inputs.version || github.event.inputs.version }} "${{ steps.dmg.outputs.dmgPath }}" --clobber
