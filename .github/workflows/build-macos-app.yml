@@ -148,14 +148,15 @@ jobs:
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
           # Drawing layout:
-          # Icons: App (140, 150), Arrow (center), Applications (460, 150)
-          # Text File: (300, 280)
+          # Icons: App (140, 110), Arrow (center y=110), Applications (460, 110)
+          # Text File: (300, 230)
+          # Background box starts at y=300 (pixel 600)
           
           magick -size 1200x800 xc:white -density 144 -units PixelsPerInch \
             -fill "#f8f9fa" -draw "rectangle 0,600 1200,800" \
             -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 4 \
-            -draw "line 360,300 840,300" \
-            -draw "path 'M 840,300 L 780,270 L 780,330 Z'" \
+            -draw "line 360,220 840,220" \
+            -draw "path 'M 840,220 L 780,190 L 780,250 Z'" \
             -stroke none -fill "#495057" \
             -pointsize 32 -gravity North -annotate +0+650 "1. Drag CapyCard to Applications" \
             -pointsize 28 -gravity North -annotate +0+710 "2. Issues? Open ANLEITUNG.txt" \
@@ -169,9 +170,9 @@ jobs:
             --window-size 600 400 \
             --icon-size 100 \
             --background "$BACKGROUND_IMG" \
-            --app-drop-link 460 150 \
-            --icon "${{ env.AppBundleName }}.app" 140 150 \
-            --icon "ANLEITUNG.txt" 300 280 \
+            --app-drop-link 460 110 \
+            --icon "${{ env.AppBundleName }}.app" 140 110 \
+            --icon "ANLEITUNG.txt" 300 230 \
             --hide-extension "${{ env.AppBundleName }}.app" \
             "$DMG_PATH" "$WORK_DIR"
 
