@@ -123,56 +123,57 @@ jobs:
           DMG_PATH="$PUBLISH_DIR/$DMG_NAME"
           rm -f "$DMG_PATH"
 
+          # Prepare staging directory
           WORK_DIR="$(mktemp -d)"
           cp -R "$APP_PATH" "$WORK_DIR/${{ env.AppBundleName }}.app"
-
+          
           APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
           COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\ }"
           
           # Create a text file for copy-pasting
-          echo "CapyCard Installation für macOS" > "$WORK_DIR/BITTE_LESEN.txt"
-          echo "===============================" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "Da CapyCard ein Open-Source-Projekt ist, das nicht von Apple signiert wurde," >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "muss nach der Installation ein Befehl im Terminal ausgeführt werden." >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "Schritte:" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "1. Ziehe CapyCard in den Applications-Ordner (wie im Fenster zu sehen)." >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "2. Öffne das Programm \"Terminal\" (über Spotlight oder Programme > Dienstprogramme)." >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "3. Kopiere den folgenden Befehl und drücke Enter:" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "$COMMAND_TEXT" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
-          echo "Viel Spaß beim Lernen!" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "CapyCard Installation für macOS" > "$WORK_DIR/ANLEITUNG.txt"
+          echo "===============================" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "1. Ziehe CapyCard in den Applications-Ordner." >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "2. Falls die App nicht startet, öffne das Terminal." >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "3. Kopiere diesen Befehl und drücke Enter:" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "$COMMAND_TEXT" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "" >> "$WORK_DIR/ANLEITUNG.txt"
+          echo "Viel Spaß!" >> "$WORK_DIR/ANLEITUNG.txt"
 
-          # Create a high-resolution background image (2x for Retina)
+          # Create a background image
+          # Logical size 600x400
           BACKGROUND_DIR="$(mktemp -d)"
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
-          # 1200x800 (which is 600x400 at 2x)
-          magick -size 1200x800 xc:white \
-            -fill "#f8f9fa" -draw "rectangle 0,600 1200,800" \
-            -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 4 \
-            -draw "line 400,300 800,300" \
-            -draw "path 'M 800,300 L 760,270 L 760,330 Z'" \
+          magick -size 600x400 xc:white \
+            -fill "#f8f9fa" -draw "rectangle 0,300 600,400" \
+            -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 2 \
+            -draw "line 220,140 380,140" \
+            -draw "path 'M 380,140 L 360,130 L 360,150 Z'" \
             -stroke none -fill "#495057" \
-            -pointsize 32 -gravity North -annotate +0+640 "1. Drag CapyCard to Applications" \
-            -pointsize 28 -gravity North -annotate +0+700 "2. If it won't open, read BITTE_LESEN.txt" \
+            -pointsize 14 -gravity North -annotate +0+320 "1. Drag CapyCard to Applications" \
+            -pointsize 14 -gravity North -annotate +0+350 "2. Issues? Open ANLEITUNG.txt" \
             "$BACKGROUND_IMG"
 
+          # create-dmg execution
+          # Note: we use --icon-size 80 to fit better
+          # Positions are in logical points
           create-dmg \
             --volname "CapyCard" \
             --window-pos 200 120 \
             --window-size 600 400 \
-            --icon-size 100 \
+            --icon-size 80 \
             --background "$BACKGROUND_IMG" \
-            --app-drop-link 450 150 \
-            --icon "CapyCard.app" 150 150 \
-            --icon "BITTE_LESEN.txt" 300 150 \
-            --hide-extension "CapyCard.app" \
+            --app-drop-link 480 140 \
+            --icon "${{ env.AppBundleName }}.app" 120 140 \
+            --icon "ANLEITUNG.txt" 300 140 \
+            --hide-extension "${{ env.AppBundleName }}.app" \
             "$DMG_PATH" "$WORK_DIR"
 
           rm -rf "$WORK_DIR" "$BACKGROUND_DIR"
+          echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifact
