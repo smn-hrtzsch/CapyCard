@@ -145,18 +145,19 @@ jobs:
           echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
           echo "Viel Spaß beim Lernen!" >> "$WORK_DIR/BITTE_LESEN.txt"
 
-          # Create a background image outside the work dir to keep the DMG clean
+          # Create a high-resolution background image (2x for Retina)
           BACKGROUND_DIR="$(mktemp -d)"
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
-          magick -size 600x400 xc:white \
-            -fill "#f1f3f5" -draw "rectangle 0,300 600,400" \
-            -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 2 \
-            -draw "line 200,150 400,150" \
-            -draw "path 'M 400,150 L 380,135 L 380,165 Z'" \
+          # 1200x800 (which is 600x400 at 2x)
+          magick -size 1200x800 xc:white \
+            -fill "#f8f9fa" -draw "rectangle 0,600 1200,800" \
+            -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 4 \
+            -draw "line 400,300 800,300" \
+            -draw "path 'M 800,300 L 760,270 L 760,330 Z'" \
             -stroke none -fill "#495057" \
-            -gravity North -annotate +0+330 "1. Drag CapyCard to Applications" \
-            -gravity North -annotate +0+360 "2. If it won't open, read BITTE_LESEN.txt" \
+            -pointsize 32 -gravity North -annotate +0+640 "1. Drag CapyCard to Applications" \
+            -pointsize 28 -gravity North -annotate +0+700 "2. If it won't open, read BITTE_LESEN.txt" \
             "$BACKGROUND_IMG"
 
           create-dmg \
@@ -167,7 +168,7 @@ jobs:
             --background "$BACKGROUND_IMG" \
             --app-drop-link 450 150 \
             --icon "CapyCard.app" 150 150 \
-            --icon "BITTE_LESEN.txt" 300 240 \
+            --icon "BITTE_LESEN.txt" 300 150 \
             --hide-extension "CapyCard.app" \
             "$DMG_PATH" "$WORK_DIR"
 
