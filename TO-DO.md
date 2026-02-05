@@ -2,6 +2,7 @@
 
 ## In Progress
 
+- [x] Lokales .NET SDK (9.0.310) + Android/iOS Workloads fuer VS Code/Builds eingerichtet.
 - [x] Beim Hinzufügen oder Bearbeiten einer Karte sollten die Eingaben für Vorder und Rückseite immer gespeichert werden, auch wenn man die Activity wechselt. Vor allem für den Fall, dass man eine Karte bearbeitet, während die neue Karte noch nicht hinzugefügt wurde. Aktuell gehen die Eingaben verloren, wenn man zum Beispiel, wenn man zum CardListView wechselt und dort eine bestehende Karte bearbeitet und dann wieder zurück zur neuen Karte wechselt. Das ist bei der Bearbeitung nervig. Auch wenn man zurück zum DeckListView wechselt, sollten die Eingaben für die neue Karte gespeichert bleiben. Sie sollten erst gelöscht werden, wenn die Karte tatsächlich hinzugefügt wurde oder der Nutzer explizit den Vorgang abbricht. Auch beim Verlassen der App sollte der Entwurf der neuen Karte gespeichert bleiben, damit der Nutzer später weitermachen kann.
 
 ## Mobile
