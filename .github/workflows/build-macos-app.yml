@@ -181,8 +181,9 @@ jobs:
         if: ${{ inputs.upload_artifact == true || inputs.upload_artifact == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.AppBundleSlug }}-macos
+          name: ${{ steps.paths.outputs.dmgName }}
           path: ${{ steps.dmg.outputs.dmgPath }}
+          if-no-files-found: error
 
       - name: Upload to Release
         if: github.event_name == 'workflow_call' || (github.event_name == 'workflow_dispatch' && github.event.inputs.version != '')
