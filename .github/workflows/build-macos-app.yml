@@ -112,31 +112,51 @@ jobs:
           WORK_DIR="$(mktemp -d)"
           cp -R "$APP_PATH" "$WORK_DIR/${{ env.AppBundleName }}.app"
 
+          APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
+          COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\ }"
+          
+          # Create a text file for copy-pasting
+          echo "CapyCard Installation für macOS" > "$WORK_DIR/BITTE_LESEN.txt"
+          echo "===============================" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "Da CapyCard ein Open-Source-Projekt ist, das nicht von Apple signiert wurde," >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "muss nach der Installation ein Befehl im Terminal ausgeführt werden." >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "Schritte:" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "1. Ziehe CapyCard in den Applications-Ordner (wie im Fenster zu sehen)." >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "2. Öffne das Programm \"Terminal\" (über Spotlight oder Programme > Dienstprogramme)." >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "3. Kopiere den folgenden Befehl und drücke Enter:" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "$COMMAND_TEXT" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
+          echo "Viel Spaß beim Lernen!" >> "$WORK_DIR/BITTE_LESEN.txt"
+
           # Create a background image with instructions
           BACKGROUND_DIR="$WORK_DIR/.background"
           mkdir -p "$BACKGROUND_DIR"
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
-          APP_BUNDLE_DISPLAY="${{ env.AppBundleName }}.app"
-          COMMAND_TEXT="xattr -cr /Applications/${APP_BUNDLE_DISPLAY// /\\\ \\ }"
-          HINT_TEXT="Nach dem Verschieben in Applications, bitte im Terminal ausführen:"
-
+          HINT_TEXT="1. In Applications ziehen  2. BITTE_LESEN.txt öffnen"
+          
           # Create a background image with the text at the bottom
-          magick -size 550x420 xc:none \
-            -font "Helvetica" -pointsize 14 -fill "black" \
-            -gravity North -annotate +0+280 "$HINT_TEXT" \
-            -font "Menlo" -pointsize 12 -fill "black" \
-            -gravity North -annotate +0+305 "$COMMAND_TEXT" \
+          # Using a more prominent style for the command
+          magick -size 600x450 xc:white \
+            -fill "#f0f0f0" -draw "rectangle 0,320 600,450" \
+            -font "Helvetica-Bold" -pointsize 18 -fill "#333333" \
+            -gravity North -annotate +0+340 "$HINT_TEXT" \
+            -font "Menlo" -pointsize 14 -fill "#d32f2f" \
+            -gravity North -annotate +0+380 "$COMMAND_TEXT" \
             "$BACKGROUND_IMG"
 
           create-dmg \
             --volname "${{ env.AppBundleName }}" \
             --window-pos 200 120 \
-            --window-size 550 420 \
-            --icon-size 128 \
+            --window-size 600 450 \
+            --icon-size 100 \
             --background "$BACKGROUND_IMG" \
-            --app-drop-link 380 150 \
-            --icon "${{ env.AppBundleName }}.app" 160 150 \
+            --app-drop-link 450 150 \
+            --icon "${{ env.AppBundleName }}.app" 150 150 \
+            --icon "BITTE_LESEN.txt" 300 150 \
             --hide-extension "${{ env.AppBundleName }}.app" \
             "$DMG_PATH" "$WORK_DIR"
 
