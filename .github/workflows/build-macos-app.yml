@@ -7,11 +7,20 @@ on:
         description: 'Version (e.g. 1.0.0)'
         required: false
         type: string
+      upload_artifact:
+        description: 'Upload as workflow artifact'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version:
         required: true
         type: string
+      upload_artifact:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -169,6 +178,7 @@ jobs:
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifact
+        if: ${{ inputs.upload_artifact == true || inputs.upload_artifact == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.AppBundleSlug }}-macos
