@@ -145,33 +145,35 @@ jobs:
           echo "" >> "$WORK_DIR/BITTE_LESEN.txt"
           echo "Viel Spaß beim Lernen!" >> "$WORK_DIR/BITTE_LESEN.txt"
 
-          # Create a background image with instructions
+          # Create a background image with a clear visual instruction (Arrow)
           BACKGROUND_DIR="$WORK_DIR/.background"
           mkdir -p "$BACKGROUND_DIR"
           BACKGROUND_IMG="$BACKGROUND_DIR/background.png"
 
-          HINT_TEXT="1. In Applications ziehen  2. BITTE_LESEN.txt öffnen"
-          
-          # Create a background image with the text at the bottom
-          # Using a more prominent style for the command
-          magick -size 600x450 xc:white \
-            -fill "#f0f0f0" -draw "rectangle 0,320 600,450" \
-            -pointsize 18 -fill "#333333" \
-            -gravity North -annotate +0+340 "$HINT_TEXT" \
-            -pointsize 14 -fill "#d32f2f" \
-            -gravity North -annotate +0+380 "$COMMAND_TEXT" \
+          # Drawing a simple arrow and clear areas for icons
+          # Icons will be at: App (150, 150), BITTE_LESEN (300, 150), Drop (450, 150)
+          magick -size 600x400 xc:white \
+            -fill "#f1f3f5" -draw "rectangle 0,300 600,400" \
+            -fill "#dee2e6" -stroke "#adb5bd" -strokewidth 2 \
+            -draw "line 200,150 400,150" \
+            -draw "path 'M 400,150 L 380,135 L 380,165 Z'" \
+            -stroke none -fill "#495057" -pointsize 14 \
+            -gravity North -annotate +0+330 "1. Drag CapyCard to Applications" \
+            -gravity North -annotate +0+360 "2. If it won't open, read BITTE_LESEN.txt" \
             "$BACKGROUND_IMG"
 
+          # create-dmg will hide the background file itself, 
+          # but we need to ensure the .background folder isn't visible
           create-dmg \
-            --volname "${{ env.AppBundleName }}" \
+            --volname "CapyCard" \
             --window-pos 200 120 \
-            --window-size 600 450 \
+            --window-size 600 400 \
             --icon-size 100 \
             --background "$BACKGROUND_IMG" \
             --app-drop-link 450 150 \
-            --icon "${{ env.AppBundleName }}.app" 150 150 \
-            --icon "BITTE_LESEN.txt" 300 150 \
-            --hide-extension "${{ env.AppBundleName }}.app" \
+            --icon "CapyCard.app" 150 150 \
+            --icon "BITTE_LESEN.txt" 300 240 \
+            --hide-extension "CapyCard.app" \
             "$DMG_PATH" "$WORK_DIR"
 
           rm -rf "$WORK_DIR"
