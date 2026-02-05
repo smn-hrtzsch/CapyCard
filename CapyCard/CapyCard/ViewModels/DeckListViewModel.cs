@@ -29,6 +29,7 @@ namespace CapyCard.ViewModels
         public ImportViewModel ImportViewModel { get; }
         public FormatInfoViewModel FormatInfoViewModel { get; }
         public ImportHelpViewModel ImportHelpViewModel { get; }
+        public LegalViewModel LegalViewModel { get; }
         
         public event Func<Task<IStorageFile?>>? OnRequestFileOpen;
         
@@ -58,6 +59,7 @@ namespace CapyCard.ViewModels
             ImportViewModel = new ImportViewModel();
             FormatInfoViewModel = new FormatInfoViewModel();
             ImportHelpViewModel = new ImportHelpViewModel();
+            LegalViewModel = new LegalViewModel();
             SettingsViewModel = new SettingsViewModel(userSettingsService, themeService);
 
             ImportViewModel.OnRequestFileOpen += async () => await (OnRequestFileOpen?.Invoke() ?? Task.FromResult<IStorageFile?>(null));
@@ -68,6 +70,12 @@ namespace CapyCard.ViewModels
         
         public DeckListViewModel() : this(new UserSettingsService(), new ThemeService()) 
         {
+        }
+
+        [RelayCommand]
+        private void OpenLegal()
+        {
+            LegalViewModel.Show();
         }
 
         [RelayCommand]

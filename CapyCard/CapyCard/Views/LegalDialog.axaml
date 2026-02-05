@@ -1,0 +1,86 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CapyCard.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="300"
+             x:Class="CapyCard.Views.LegalDialog"
+             x:DataType="vm:LegalViewModel"
+             Background="#80000000"
+             Focusable="True"
+             IsVisible="{Binding IsOpen}">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseCommand}"/>
+        <KeyBinding Gesture="Enter" Command="{Binding CloseCommand}"/>
+    </UserControl.KeyBindings>
+
+    <Grid>
+        <Grid HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              MaxWidth="350"
+              Margin="16">
+            
+            <Border Background="{DynamicResource SurfaceBrush}"
+                    Padding="24"
+                    CornerRadius="28"
+                    BoxShadow="0 4 10 0 #40000000">
+                    
+                <StackPanel Spacing="20">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Rechtliches" 
+                                   FontSize="20" FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource TextControlForeground}"/>
+                                    
+                        <Button Grid.Column="1"
+                                Classes="icon"
+                                Command="{Binding CloseCommand}"
+                                ToolTip.Tip="Schließen">
+                            <materialIcons:MaterialIcon Kind="Close" Width="24" Height="24" Foreground="{DynamicResource TextControlForeground}"/>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Text="CapyCard ist ein Open-Source-Projekt. Hier findest du die rechtlichen Dokumente:"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="14"/>
+
+                    <!-- Links -->
+                    <StackPanel Spacing="12">
+                        <Button Command="{Binding OpenUrlCommand}"
+                                CommandParameter="https://github.com/smn-hrtzsch/CapyCard/blob/main/docs/PRIVACY.md"
+                                Classes="secondary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <materialIcons:MaterialIcon Kind="ShieldCheckOutline" Width="20" Height="20"/>
+                                <TextBlock Text="Datenschutzerklärung" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding OpenUrlCommand}"
+                                CommandParameter="https://github.com/smn-hrtzsch/CapyCard/blob/main/docs/IMPRINT.md"
+                                Classes="secondary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <materialIcons:MaterialIcon Kind="FileDocumentOutline" Width="20" Height="20"/>
+                                <TextBlock Text="Impressum" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <Button Content="Verstanden"
+                            Command="{Binding CloseCommand}"
+                            Classes="primary"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

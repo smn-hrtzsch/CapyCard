@@ -268,5 +268,29 @@ namespace CapyCard.ViewModels
             await _settingsService.SaveSettingsAsync(settings);
             IsOpen = false;
         }
+
+        [RelayCommand]
+        private void OpenUrl(string url)
+        {
+            try
+            {
+                if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+                }
+                else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+                {
+                    System.Diagnostics.Process.Start("open", url);
+                }
+                else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+                {
+                    System.Diagnostics.Process.Start("xdg-open", url);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to open URL '{url}': {ex.Message}");
+            }
+        }
     }
 }

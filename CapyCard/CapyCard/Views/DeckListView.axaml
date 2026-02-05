@@ -35,15 +35,24 @@
                                        Foreground="{DynamicResource TextControlForeground}"/>
                         </Border>
                         
-                        <!-- Right Aligned Settings -->
-                        <Button Grid.Column="2"
-                                Classes="icon"
-                                Command="{Binding OpenSettingsCommand}"
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Center"
-                                ToolTip.Tip="Einstellungen">
-                            <materialIcons:MaterialIcon Kind="Cog" Width="24" Height="24" Foreground="{DynamicResource TextMutedBrush}"/>
-                        </Button>
+                        <!-- Right Aligned Actions -->
+                        <StackPanel Grid.Column="2" 
+                                    Orientation="Horizontal" 
+                                    HorizontalAlignment="Right" 
+                                    Spacing="4"
+                                    VerticalAlignment="Center">
+                            <Button Classes="icon"
+                                    Command="{Binding OpenLegalCommand}"
+                                    ToolTip.Tip="Rechtliches">
+                                <materialIcons:MaterialIcon Kind="ShieldCheckOutline" Width="22" Height="22" Foreground="{DynamicResource TextMutedBrush}"/>
+                            </Button>
+                            
+                            <Button Classes="icon"
+                                    Command="{Binding OpenSettingsCommand}"
+                                    ToolTip.Tip="Einstellungen">
+                                <materialIcons:MaterialIcon Kind="Cog" Width="22" Height="22" Foreground="{DynamicResource TextMutedBrush}"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                     
                     <Separator Height="1" Background="{DynamicResource SurfaceBorderBrush}" Opacity="0.5" Margin="0,4"/>
@@ -378,6 +387,9 @@
         
         <!-- Import Help Dialog Overlay -->
         <views:ImportHelpDialog x:Name="ImportHelpDialog" DataContext="{Binding ImportHelpViewModel}"/>
+
+        <!-- Legal Dialog Overlay -->
+        <views:LegalDialog x:Name="LegalDialog" DataContext="{Binding LegalViewModel}"/>
 
         <!-- Settings Dialog Overlay -->
         <views:SettingsDialog IsVisible="{Binding IsOpen, Mode=TwoWay}" DataContext="{Binding SettingsViewModel}"/>

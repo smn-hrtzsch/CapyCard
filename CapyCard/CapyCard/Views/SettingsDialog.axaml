@@ -96,12 +96,12 @@
                                             <Button Command="{Binding $parent[UserControl].DataContext.SetSelectedColorCommand}"
                                                      CommandParameter="{Binding Name}"
                                                      Padding="0"
-                                                    Margin="0"
-                                                     CornerRadius="22"
-                                                     Width="44"
-                                                     Height="44"
-                                                     HorizontalAlignment="Center"
-                                                     Background="Transparent">
+                                                     Margin="0"
+                                                      CornerRadius="22"
+                                                      Width="44"
+                                                      Height="44"
+                                                      HorizontalAlignment="Center"
+                                                      Background="Transparent">
                                                 <Button.Styles>
                                                     <Style Selector="Button:pointerover /template/ ContentPresenter">
                                                         <Setter Property="Background" Value="Transparent"/>
@@ -122,7 +122,7 @@
                                                             
                                                      <!-- Selected Indicator -->
                                                     <materialIcons:MaterialIcon Kind="Check" Width="20" Height="20" Foreground="White"
-                                                                              IsVisible="{Binding IsSelected}"/>
+                                                                               IsVisible="{Binding IsSelected}"/>
                                                 </Panel>
                                             </Button>
                                         </DataTemplate>
