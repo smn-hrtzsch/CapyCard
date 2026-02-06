@@ -109,9 +109,17 @@ jobs:
         working-directory: CapyCard
         run: ./scripts/build-macos.sh
 
+      - name: Verify self-contained runtime in bundle
+        run: |
+          test -f "${{ steps.paths.outputs.appPath }}/Contents/MacOS/libhostfxr.dylib"
+
       - name: Remove extended attributes from bundle
         run: |
           xattr -cr "${{ steps.paths.outputs.appPath }}"
+
+      - name: Ad-hoc sign bundle for reliable local launch
+        run: |
+          codesign --force --deep --sign - "${{ steps.paths.outputs.appPath }}"
 
       - name: Create simple DMG image
         id: dmg

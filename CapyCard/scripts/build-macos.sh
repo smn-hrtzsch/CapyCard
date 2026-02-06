@@ -22,7 +22,7 @@ rm -rf "$PROJECT_DIR/bin" "$PROJECT_DIR/obj"
 
 # 2. Publish to temp dir
 echo "Publishing..."
-dotnet publish "$PROJECT_DIR/$PROJECT_NAME.csproj" -c Release -r osx-arm64 -o "$TEMP_PUBLISH_DIR"
+dotnet publish "$PROJECT_DIR/$PROJECT_NAME.csproj" -c Release -r osx-arm64 --self-contained true -o "$TEMP_PUBLISH_DIR"
 
 # 3. Create .app structure
 echo "Bundling..."

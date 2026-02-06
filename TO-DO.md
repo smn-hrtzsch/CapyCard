@@ -31,5 +31,7 @@
 
 ## Fixed Bugs
 
+- [x] macOS-DMG Build auf self-contained Publish umgestellt, damit CapyCard ohne lokal installiertes .NET startet (inkl. Runtime-Check und Signierung im Workflow).
+- [x] Manual-Release Workflow erweitert: Dropdown-Strategie fuer Asset-Builds (`missing_only`, `rebuild_selected`, `rebuild_all`) plus gezielte Auswahl einzelner Plattform-Assets.
 - [x] Fenstergröße beim ersten Start der App automatisch an Bildschirmgröße anpassen (z.b. 75% breite, 85% Höhe) (Desktop-Fenster ist auf kleineren Bildschirmen zu groß beim ersten mal starten der App.
 - [x] Performance beim Ausklappen von Decks im DeckListView oder dem Wechseln von der DeckListView zum CardListView verbessern. Aktuell gibt es da teilweise spürbare Verzögerungen, vor allem bei vielen Decks/Karten.
