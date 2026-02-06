@@ -16,6 +16,10 @@ on:
         description: "Release Title (optional)"
         required: false
         type: string
+      version_override:
+        description: "Existing version to reuse (optional, e.g. 2.6.0)"
+        required: false
+        type: string
 
 jobs:
   bump-version:
@@ -38,26 +42,33 @@ jobs:
           [xml]$xml = Get-Content $propsPath
           $version = [version]$xml.Project.PropertyGroup.Version
 
-          $major = $version.Major
-          $minor = $version.Minor
-          $build = $version.Build
-
-          $type = "${{ inputs.release_type }}"
-
-          if ($type -eq "major") {
-              $major++
-              $minor = 0
-              $build = 0
-          }
-          elseif ($type -eq "minor") {
-              $minor++
-              $build = 0
+          $versionOverride = "${{ inputs.version_override }}"
+          if ($versionOverride) {
+              $newVersion = $versionOverride
+              Write-Host "Using overridden version: $newVersion"
           }
           else {
-              $build++
-          }
+              $major = $version.Major
+              $minor = $version.Minor
+              $build = $version.Build
 
-          $newVersion = "$major.$minor.$build"
+              $type = "${{ inputs.release_type }}"
+
+              if ($type -eq "major") {
+                  $major++
+                  $minor = 0
+                  $build = 0
+              }
+              elseif ($type -eq "minor") {
+                  $minor++
+                  $build = 0
+              }
+              else {
+                  $build++
+              }
+
+              $newVersion = "$major.$minor.$build"
+          }
           $xml.Project.PropertyGroup.Version = $newVersion
           $xml.Save($propsPath)
 
