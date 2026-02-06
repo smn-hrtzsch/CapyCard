@@ -18,6 +18,14 @@ namespace CapyCard;
 
 public partial class App : Application
 {
+    private const string AppDisplayName = "CapyCard";
+
+    public App()
+    {
+        // Ensure macOS application menu uses the real app name instead of Avalonia default.
+        Name = AppDisplayName;
+    }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
