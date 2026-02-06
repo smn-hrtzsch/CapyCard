@@ -20,6 +20,30 @@ on:
         description: "Existing version to reuse (optional, e.g. 2.6.0)"
         required: false
         type: string
+      asset_build_mode:
+        description: "Asset build mode"
+        required: true
+        default: "missing_only"
+        type: choice
+        options:
+          - missing_only
+          - rebuild_selected
+          - rebuild_all
+      rebuild_android:
+        description: "Rebuild Android asset (used in rebuild_selected mode)"
+        required: false
+        default: false
+        type: boolean
+      rebuild_windows:
+        description: "Rebuild Windows asset (used in rebuild_selected mode)"
+        required: false
+        default: false
+        type: boolean
+      rebuild_macos:
+        description: "Rebuild macOS asset (used in rebuild_selected mode)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   bump-version:
@@ -173,6 +197,7 @@ jobs:
 
           version="${{ needs.bump-version.outputs.new_version }}"
           tag="v${version}"
+          mode="${{ inputs.asset_build_mode }}"
 
           android_asset="CapyCard-android-${version}.apk"
           windows_asset="CapyCard-windows-${version}.msi"
@@ -188,11 +213,42 @@ jobs:
           if echo "$assets" | grep -Fxq "$windows_asset"; then has_windows=true; fi
           if echo "$assets" | grep -Fxq "$macos_asset"; then has_macos=true; fi
 
-          echo "build_android=$([ "$has_android" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
-          echo "build_windows=$([ "$has_windows" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
-          echo "build_macos=$([ "$has_macos" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          build_android=false
+          build_windows=false
+          build_macos=false
+
+          if [ "$mode" = "rebuild_all" ]; then
+            build_android=true
+            build_windows=true
+            build_macos=true
+          elif [ "$mode" = "rebuild_selected" ]; then
+            if [ "${{ inputs.rebuild_android }}" = "true" ]; then build_android=true; fi
+            if [ "${{ inputs.rebuild_windows }}" = "true" ]; then build_windows=true; fi
+            if [ "${{ inputs.rebuild_macos }}" = "true" ]; then build_macos=true; fi
+            if [ "$build_android" = false ] && [ "$build_windows" = false ] && [ "$build_macos" = false ]; then
+              echo "Mode rebuild_selected requires at least one asset selection." >&2
+              exit 1
+            fi
+          else
+            build_android=$([ "$has_android" = true ] && echo false || echo true)
+            build_windows=$([ "$has_windows" = true ] && echo false || echo true)
+            build_macos=$([ "$has_macos" = true ] && echo false || echo true)
+          fi
+
+          echo "build_android=$build_android" >> "$GITHUB_OUTPUT"
+          echo "build_windows=$build_windows" >> "$GITHUB_OUTPUT"
+          echo "build_macos=$build_macos" >> "$GITHUB_OUTPUT"
 
           echo "Detected assets:"
           echo "- Android ($android_asset): $has_android"
           echo "- Windows ($windows_asset): $has_windows"
           echo "- macOS ($macos_asset): $has_macos"
+          echo "Selection:"
+          echo "- Mode: $mode"
+          echo "- Rebuild Android: ${{ inputs.rebuild_android }}"
+          echo "- Rebuild Windows: ${{ inputs.rebuild_windows }}"
+          echo "- Rebuild macOS: ${{ inputs.rebuild_macos }}"
+          echo "Build decision:"
+          echo "- Android: $build_android"
+          echo "- Windows: $build_windows"
+          echo "- macOS: $build_macos"
