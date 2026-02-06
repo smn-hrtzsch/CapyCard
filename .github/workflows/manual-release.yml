@@ -64,8 +64,19 @@ jobs:
           Write-Host "New Version: $newVersion"
           "new_version=$newVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+      - name: Check if release tag already exists
+        id: tag_check
+        run: |
+          if git rev-parse -q --verify "refs/tags/v${{ steps.bump_version.outputs.new_version }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release tag v${{ steps.bump_version.outputs.new_version }} already exists. Reusing existing tag."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Commit Version Bump & Tag
         id: create_tag
+        if: ${{ steps.tag_check.outputs.exists != 'true' }}
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'actions@github.com'
@@ -80,13 +91,18 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create v${{ steps.bump_version.outputs.new_version }} \
-            --title "${{ inputs.release_title != '' && inputs.release_title || format('Release v{0}', steps.bump_version.outputs.new_version) }}" \
-            --draft \
-            --notes "Automated release build for v${{ steps.bump_version.outputs.new_version }}"
+          if gh release view "v${{ steps.bump_version.outputs.new_version }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release v${{ steps.bump_version.outputs.new_version }} already exists. Skipping draft creation."
+          else
+            gh release create v${{ steps.bump_version.outputs.new_version }} \
+              --title "${{ inputs.release_title != '' && inputs.release_title || format('Release v{0}', steps.bump_version.outputs.new_version) }}" \
+              --draft \
+              --notes "Automated release build for v${{ steps.bump_version.outputs.new_version }}"
+          fi
 
   call-build-android:
-    needs: bump-version
+    needs: [bump-version, check-release-assets]
+    if: ${{ needs.check-release-assets.outputs.build_android == 'true' }}
     uses: ./.github/workflows/build-android-apk.yml
     with:
       version: ${{ needs.bump-version.outputs.new_version }}
@@ -95,7 +111,8 @@ jobs:
       contents: write
 
   call-build-windows:
-    needs: bump-version
+    needs: [bump-version, check-release-assets]
+    if: ${{ needs.check-release-assets.outputs.build_windows == 'true' }}
     uses: ./.github/workflows/build-windows-msi.yml
     with:
       version: ${{ needs.bump-version.outputs.new_version }}
@@ -104,7 +121,8 @@ jobs:
       contents: write
 
   call-build-macos:
-    needs: bump-version
+    needs: [bump-version, check-release-assets]
+    if: ${{ needs.check-release-assets.outputs.build_macos == 'true' }}
     uses: ./.github/workflows/build-macos-app.yml
     with:
       version: ${{ needs.bump-version.outputs.new_version }}
@@ -114,7 +132,7 @@ jobs:
 
   publish-release:
     needs:
-      [bump-version, call-build-android, call-build-windows, call-build-macos]
+      [bump-version, check-release-assets, call-build-android, call-build-windows, call-build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -125,3 +143,45 @@ jobs:
         run: |
           gh release edit v${{ needs.bump-version.outputs.new_version }} --draft=false --repo ${{ github.repository }}
 
+  check-release-assets:
+    needs: bump-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      build_android: ${{ steps.asset_check.outputs.build_android }}
+      build_windows: ${{ steps.asset_check.outputs.build_windows }}
+      build_macos: ${{ steps.asset_check.outputs.build_macos }}
+    steps:
+      - name: Check existing release assets
+        id: asset_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.bump-version.outputs.new_version }}"
+          tag="v${version}"
+
+          android_asset="CapyCard-android-${version}.apk"
+          windows_asset="CapyCard-windows-${version}.msi"
+          macos_asset="CapyCard-macos-${version}.dmg"
+
+          assets="$(gh release view "$tag" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)"
+
+          has_android=false
+          has_windows=false
+          has_macos=false
+
+          if echo "$assets" | grep -Fxq "$android_asset"; then has_android=true; fi
+          if echo "$assets" | grep -Fxq "$windows_asset"; then has_windows=true; fi
+          if echo "$assets" | grep -Fxq "$macos_asset"; then has_macos=true; fi
+
+          echo "build_android=$([ "$has_android" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          echo "build_windows=$([ "$has_windows" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          echo "build_macos=$([ "$has_macos" = true ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+
+          echo "Detected assets:"
+          echo "- Android ($android_asset): $has_android"
+          echo "- Windows ($windows_asset): $has_windows"
+          echo "- macOS ($macos_asset): $has_macos"

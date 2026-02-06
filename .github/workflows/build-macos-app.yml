@@ -178,7 +178,6 @@ jobs:
 
           rm -rf "$WORK_DIR" "$BACKGROUND_DIR"
           echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
-          echo "dmgPath=$DMG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Upload Artifact
         if: ${{ inputs.upload_artifact == true || inputs.upload_artifact == 'true' }}
@@ -189,7 +188,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload to Release
-        if: github.event_name == 'workflow_call' || (github.event_name == 'workflow_dispatch' && github.event.inputs.version != '')
+        if: ${{ inputs.version != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
