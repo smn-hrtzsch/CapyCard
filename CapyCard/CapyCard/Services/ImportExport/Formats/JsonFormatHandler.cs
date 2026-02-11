@@ -22,7 +22,7 @@ namespace CapyCard.Services.ImportExport.Formats
     {
         public string[] SupportedExtensions => new[] { ".json", ".txt" };
         public string FormatName => "KI / JSON";
-        public string FormatDescription => "Importiere Karten direkt aus KI-generiertem Text. Unterstützt verschachtelte Themen und Bilder via Base64.";
+        public string FormatDescription => "Importiere Karten direkt aus KI-generiertem Text. Unterstützt ein Haupt-Deck mit einem SubDeck-Level und Bilder via Base64.";
         public bool IsAvailable => true;
 
         private static readonly JsonSerializerOptions JsonOptions = new()
@@ -52,6 +52,9 @@ namespace CapyCard.Services.ImportExport.Formats
                 {
                     return ImportPreview.Failed("JSON konnte nicht in das erwartete Format umgewandelt werden.");
                 }
+
+                var normalizationWarnings = new List<string>();
+                NormalizeDeckForSingleLevel(data, depth: 0, normalizationWarnings);
 
                 var cardCount = CountCards(data);
                 var subDeckCount = CountSubDecks(data);
@@ -88,6 +91,9 @@ namespace CapyCard.Services.ImportExport.Formats
                 {
                     return ImportResult.Failed("JSON konnte nicht deserialisiert werden.");
                 }
+
+                var warnings = new List<string>();
+                NormalizeDeckForSingleLevel(data, depth: 0, warnings);
 
                 using var context = new FlashcardDbContext();
 
@@ -133,12 +139,19 @@ namespace CapyCard.Services.ImportExport.Formats
                         return ImportResult.Failed("JSON-Import unterstützt nur 'Neues Fach' oder 'In bestehendes Fach'.");
                 }
 
-                var (imported, skipped, updated, additionalSubDecks) = await ImportJsonDeckAsync(context, data, targetDeck, options);
+                var (imported, skipped, updated, additionalSubDecks) = await ImportJsonDeckAsync(
+                    context,
+                    data,
+                    targetDeck,
+                    options,
+                    depth: 0,
+                    warnings);
                 subDecksCreated += additionalSubDecks;
 
                 var result = ImportResult.Successful(imported, subDecksCreated, targetDeck.Id);
                 result.CardsSkipped = skipped;
                 result.CardsUpdated = updated;
+                result.Warnings = warnings;
                 return result;
             }
             catch (Exception ex)
@@ -191,7 +204,7 @@ namespace CapyCard.Services.ImportExport.Formats
 
         private int CountCards(JsonDeck deck)
         {
-            int count = deck.Cards?.Count ?? 0;
+            int count = deck.Cards?.Count(IsValidCard) ?? 0;
             if (deck.SubDecks != null)
             {
                 count += deck.SubDecks.Sum(CountCards);
@@ -201,12 +214,7 @@ namespace CapyCard.Services.ImportExport.Formats
 
         private int CountSubDecks(JsonDeck deck)
         {
-            int count = deck.SubDecks?.Count ?? 0;
-            if (deck.SubDecks != null)
-            {
-                count += deck.SubDecks.Sum(CountSubDecks);
-            }
-            return count;
+            return deck.SubDecks?.Count(sd => !string.IsNullOrWhiteSpace(sd.Name) && HasAnyValidContent(sd)) ?? 0;
         }
 
         private bool HasEmbeddedImages(JsonDeck deck)
@@ -227,11 +235,148 @@ namespace CapyCard.Services.ImportExport.Formats
             return hasImages;
         }
 
+        private static bool IsValidCard(JsonCard? card)
+        {
+            return card != null && !string.IsNullOrWhiteSpace(card.Front);
+        }
+
+        private static bool HasAnyValidContent(JsonDeck? deck)
+        {
+            if (deck == null)
+            {
+                return false;
+            }
+
+            var hasCards = deck.Cards?.Any(IsValidCard) == true;
+            var hasSubDecks = deck.SubDecks?.Any(static child => !string.IsNullOrWhiteSpace(child.Name) && HasAnyValidContent(child)) == true;
+            return hasCards || hasSubDecks;
+        }
+
+        private void NormalizeDeckForSingleLevel(JsonDeck deck, int depth, List<string> warnings)
+        {
+            deck.Name = deck.Name?.Trim();
+
+            var normalizedCards = new List<JsonCard>();
+            if (deck.Cards != null)
+            {
+                foreach (var card in deck.Cards)
+                {
+                    if (!IsValidCard(card))
+                    {
+                        continue;
+                    }
+
+                    normalizedCards.Add(new JsonCard
+                    {
+                        Front = card!.Front!.Trim(),
+                        Back = card.Back?.Trim() ?? string.Empty
+                    });
+                }
+            }
+
+            deck.Cards = normalizedCards;
+
+            var subDecks = deck.SubDecks ?? new List<JsonDeck>();
+            if (subDecks.Count == 0)
+            {
+                deck.SubDecks = new List<JsonDeck>();
+                return;
+            }
+
+            if (depth >= 1)
+            {
+                var flattenedCards = CollectNestedCards(subDecks);
+                if (flattenedCards.Count > 0)
+                {
+                    deck.Cards.AddRange(flattenedCards);
+                }
+
+                AddWarningOnce(
+                    warnings,
+                    "Verschachtelte subDecks wurden ignoriert. CapyCard unterstützt beim JSON-Import nur ein SubDeck-Level.");
+
+                deck.SubDecks = new List<JsonDeck>();
+                return;
+            }
+
+            var normalizedSubDecks = new List<JsonDeck>();
+            foreach (var subDeck in subDecks)
+            {
+                if (subDeck == null)
+                {
+                    continue;
+                }
+
+                NormalizeDeckForSingleLevel(subDeck, depth + 1, warnings);
+
+                if (string.IsNullOrWhiteSpace(subDeck.Name))
+                {
+                    if (HasAnyValidContent(subDeck))
+                    {
+                        AddWarningOnce(warnings, "Ein Unterthema ohne Namen wurde beim Import ignoriert.");
+                    }
+
+                    continue;
+                }
+
+                if (!HasAnyValidContent(subDeck))
+                {
+                    continue;
+                }
+
+                normalizedSubDecks.Add(subDeck);
+            }
+
+            deck.SubDecks = normalizedSubDecks;
+        }
+
+        private static List<JsonCard> CollectNestedCards(IEnumerable<JsonDeck> nestedDecks)
+        {
+            var cards = new List<JsonCard>();
+
+            foreach (var deck in nestedDecks)
+            {
+                if (deck.Cards != null)
+                {
+                    foreach (var card in deck.Cards)
+                    {
+                        if (!IsValidCard(card))
+                        {
+                            continue;
+                        }
+
+                        cards.Add(new JsonCard
+                        {
+                            Front = card!.Front!.Trim(),
+                            Back = card.Back?.Trim() ?? string.Empty
+                        });
+                    }
+                }
+
+                if (deck.SubDecks != null && deck.SubDecks.Count > 0)
+                {
+                    cards.AddRange(CollectNestedCards(deck.SubDecks));
+                }
+            }
+
+            return cards;
+        }
+
+        private static void AddWarningOnce(ICollection<string> warnings, string warning)
+        {
+            if (!warnings.Contains(warning))
+            {
+                warnings.Add(warning);
+            }
+        }
+
         private async Task<(int imported, int skipped, int updated, int subDecksCreated)> ImportJsonDeckAsync(
             FlashcardDbContext context,
             JsonDeck data,
             Deck targetDeck,
-            ImportOptions options)
+            ImportOptions options,
+            int depth,
+            ICollection<string> warnings)
         {
             int imported = 0, skipped = 0, updated = 0, subDecksCreated = 0;
 
@@ -281,8 +426,17 @@ namespace CapyCard.Services.ImportExport.Formats
             }
 
             // SubDecks importieren
-            if (data.SubDecks != null)
+            if (data.SubDecks != null && data.SubDecks.Count > 0)
             {
+                if (depth >= 1)
+                {
+                    AddWarningOnce(
+                        warnings,
+                        "Verschachtelte subDecks wurden ignoriert. CapyCard unterstützt beim JSON-Import nur ein SubDeck-Level.");
+
+                    return (imported, skipped, updated, subDecksCreated);
+                }
+
                 foreach (var subData in data.SubDecks)
                 {
                     if (string.IsNullOrWhiteSpace(subData.Name)) continue;
@@ -303,7 +457,13 @@ namespace CapyCard.Services.ImportExport.Formats
                         subDecksCreated++;
                     }
 
-                    var nestedResult = await ImportJsonDeckAsync(context, subData, existingSub, options);
+                    var nestedResult = await ImportJsonDeckAsync(
+                        context,
+                        subData,
+                        existingSub,
+                        options,
+                        depth + 1,
+                        warnings);
                     imported += nestedResult.imported;
                     skipped += nestedResult.skipped;
                     updated += nestedResult.updated;

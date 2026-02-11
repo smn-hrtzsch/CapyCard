@@ -1,4 +1,5 @@
 using CapyCard.Models;
+using CapyCard.Services;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -22,10 +23,6 @@ namespace CapyCard.Services.Pdf
         // Regex zum Extrahieren von Base64-Bildern und Markdown-Formatierung
         private static readonly Regex ImageExtractPattern = new(@"!\[([^\]]*)\]\((data:image/[^;]+;base64,([^)]+))\)", RegexOptions.Compiled);
         private static readonly Regex ImageRemovePattern = new(@"!\[[^\]]*\]\([^)]+\)", RegexOptions.Compiled);
-        private static readonly Regex BoldPattern = new(@"\*\*(.+?)\*\*", RegexOptions.Compiled);
-        private static readonly Regex ItalicPattern = new(@"\*(.+?)\*", RegexOptions.Compiled);
-        private static readonly Regex UnderlinePattern = new(@"__(.+?)__", RegexOptions.Compiled);
-        private static readonly Regex HighlightPattern = new(@"==(.+?)==", RegexOptions.Compiled);
         
         // Regex für Listen-Erkennung
         private static readonly Regex BulletListPattern = new(@"^\s*[-•]\s+", RegexOptions.Multiline | RegexOptions.Compiled);
@@ -81,7 +78,7 @@ namespace CapyCard.Services.Pdf
                             var cell = table.Cell().Element(CardCellStyle).AlignMiddle();
                             
                             // Horizontale Zentrierung nur wenn keine Liste
-                            if (!ContainsList(card.Front))
+                            if (!RequiresLeftAlignedLayout(card.Front))
                                 cell = cell.AlignCenter();
                             
                             cell.ScaleToFit().Column(col => RenderCardContent(col, card.Front));
@@ -133,7 +130,7 @@ namespace CapyCard.Services.Pdf
                                     var alignedCell = cell.AlignMiddle();
                                     
                                     // Horizontale Zentrierung nur wenn keine Liste
-                                    if (!ContainsList(card.Back))
+                                    if (!RequiresLeftAlignedLayout(card.Back))
                                         alignedCell = alignedCell.AlignCenter();
                                     
                                     alignedCell.ScaleToFit().Column(col => RenderCardContent(col, card.Back));
@@ -172,13 +169,21 @@ namespace CapyCard.Services.Pdf
             // Text ohne Bilder extrahieren
             var textContent = ImageRemovePattern.Replace(content, "").Trim();
 
+            var normalizedMarkdown = MarkdownService.NormalizeInput(textContent);
+            var hasExtendedSyntax = MarkdownService.ContainsExtendedSyntax(normalizedMarkdown);
+
             // Prüfen ob der Text Listen enthält
             bool containsList = ContainsList(textContent);
 
             // Text mit Formatierung rendern (wenn vorhanden)
             if (!string.IsNullOrWhiteSpace(textContent))
             {
-                if (containsList)
+                if (hasExtendedSyntax)
+                {
+                    var fallbackText = MarkdownService.ToPlainText(normalizedMarkdown);
+                    RenderPlainTextContent(column, fallbackText);
+                }
+                else if (containsList)
                 {
                     // Listen linksbündig rendern
                     RenderListContent(column, textContent);
@@ -223,6 +228,62 @@ namespace CapyCard.Services.Pdf
             if (string.IsNullOrEmpty(text))
                 return false;
             return BulletListPattern.IsMatch(text) || NumberedListPattern.IsMatch(text);
+        }
+
+        private static bool RequiresLeftAlignedLayout(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return false;
+            }
+
+            return ContainsList(text) || MarkdownService.ContainsExtendedSyntax(text);
+        }
+
+        private void RenderPlainTextContent(ColumnDescriptor column, string plainText)
+        {
+            if (string.IsNullOrWhiteSpace(plainText))
+            {
+                return;
+            }
+
+            var lines = plainText.Split('\n');
+
+            column.Item()
+                .AlignLeft()
+                .Column(innerCol =>
+                {
+                    foreach (var line in lines)
+                    {
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            innerCol.Item()
+                                .Text(text =>
+                                {
+                                    text.DefaultTextStyle(x => x.FontSize(12 * _fontScale));
+                                    text.Span(" ");
+                                });
+                            continue;
+                        }
+
+                        var leadingSpaces = line.TakeWhile(c => c == ' ' || c == '\t').Count();
+                        var indentLevel = leadingSpaces / 2f;
+
+                        var trimmedLine = line.TrimStart();
+                        if (trimmedLine.StartsWith("- ", StringComparison.Ordinal))
+                        {
+                            trimmedLine = "• " + trimmedLine.Substring(2);
+                        }
+
+                        innerCol.Item()
+                            .PaddingLeft(indentLevel * 10)
+                            .Text(text =>
+                            {
+                                text.DefaultTextStyle(x => x.FontSize(12 * _fontScale));
+                                text.Span(trimmedLine);
+                            });
+                    }
+                });
         }
 
         /// <summary>
@@ -307,69 +368,36 @@ namespace CapyCard.Services.Pdf
         private List<TextSegment> ParseMarkdownSegments(string text)
         {
             var segments = new List<TextSegment>();
-            
-            // Kombiniertes Pattern für alle Markdown-Formate
-            var combinedPattern = new Regex(
-                @"(\*\*(.+?)\*\*)|" +      // Bold: **text**
-                @"(\*(.+?)\*)|" +           // Italic: *text*
-                @"(__(.+?)__)|" +           // Underline: __text__
-                @"(==(.+?)==)",             // Highlight: ==text==
-                RegexOptions.Singleline);
+            var inlines = MarkdownService.ParseInline(text);
 
-            int lastIndex = 0;
-            var matches = combinedPattern.Matches(text);
-
-            foreach (Match match in matches)
+            foreach (var inline in inlines)
             {
-                // Text vor dem Match hinzufügen (unformatiert)
-                if (match.Index > lastIndex)
+                switch (inline)
                 {
-                    var plainText = text.Substring(lastIndex, match.Index - lastIndex);
-                    if (!string.IsNullOrEmpty(plainText))
-                    {
-                        segments.Add(new TextSegment { Text = plainText });
-                    }
-                }
-
-                // Formatierten Text hinzufügen
-                var segment = new TextSegment();
-                
-                if (match.Groups[1].Success) // Bold
-                {
-                    segment.Text = match.Groups[2].Value;
-                    segment.IsBold = true;
-                }
-                else if (match.Groups[3].Success) // Italic
-                {
-                    segment.Text = match.Groups[4].Value;
-                    segment.IsItalic = true;
-                }
-                else if (match.Groups[5].Success) // Underline
-                {
-                    segment.Text = match.Groups[6].Value;
-                    segment.IsUnderline = true;
-                }
-                else if (match.Groups[7].Success) // Highlight
-                {
-                    segment.Text = match.Groups[8].Value;
-                    segment.IsHighlight = true;
-                }
-
-                segments.Add(segment);
-                lastIndex = match.Index + match.Length;
-            }
-
-            // Restlichen Text hinzufügen
-            if (lastIndex < text.Length)
-            {
-                var remainingText = text.Substring(lastIndex);
-                if (!string.IsNullOrEmpty(remainingText))
-                {
-                    segments.Add(new TextSegment { Text = remainingText });
+                    case MarkdownService.MarkdownTextInline textInline:
+                        segments.Add(new TextSegment
+                        {
+                            Text = textInline.Text,
+                            IsBold = textInline.IsBold,
+                            IsItalic = textInline.IsItalic,
+                            IsUnderline = textInline.IsUnderline,
+                            IsHighlight = textInline.IsHighlight
+                        });
+                        break;
+                    case MarkdownService.MarkdownFormulaInline formulaInline:
+                        segments.Add(new TextSegment { Text = "$" + formulaInline.Content + "$" });
+                        break;
+                    case MarkdownService.MarkdownImageInline imageInline:
+                        segments.Add(new TextSegment
+                        {
+                            Text = string.IsNullOrWhiteSpace(imageInline.AltText)
+                                ? "[Bild]"
+                                : imageInline.AltText
+                        });
+                        break;
                 }
             }
 
-            // Falls keine Segmente gefunden, den ganzen Text als unformatiert hinzufügen
             if (segments.Count == 0 && !string.IsNullOrEmpty(text))
             {
                 segments.Add(new TextSegment { Text = text });

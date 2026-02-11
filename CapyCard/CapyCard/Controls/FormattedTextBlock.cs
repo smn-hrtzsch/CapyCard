@@ -1,31 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using Material.Icons;
 using Material.Icons.Avalonia;
 
 namespace CapyCard.Controls
 {
     /// <summary>
-    /// Zeigt Text mit Markdown-Formatierung an (Bold, Italic, Underline, Highlight, Listen, Bilder).
+    /// Zeigt Text mit Markdown-Formatierung an.
     /// Readonly-Komponente für die Anzeige in LearnView etc.
     /// </summary>
     public class FormattedTextBlock : TextBlock
     {
-        private static readonly Regex UnorderedListRegex = new(@"^(\s*)- (.*)$", RegexOptions.Compiled);
-        private static readonly Regex OrderedListRegex = new(@"^(\s*)(\d+)\. (.*)$", RegexOptions.Compiled);
-        private static readonly Dictionary<string, List<TextSegment>> SegmentCache = new();
-        private static readonly object SegmentCacheLock = new();
-        private const int SegmentCacheMax = 500;
-
         public static readonly StyledProperty<string> FormattedTextProperty =
             AvaloniaProperty.Register<FormattedTextBlock, string>(nameof(FormattedText), string.Empty);
 
@@ -73,7 +64,9 @@ namespace CapyCard.Controls
         {
             base.OnPropertyChanged(change);
 
-            if (change.Property == FormattedTextProperty || change.Property == ShowImageHintProperty)
+            if (change.Property == FormattedTextProperty ||
+                change.Property == ShowImageHintProperty ||
+                change.Property == ForegroundProperty)
             {
                 UpdateInlines();
             }
@@ -82,24 +75,22 @@ namespace CapyCard.Controls
         private void UpdateInlines()
         {
             Inlines?.Clear();
-            
-            var text = FormattedText;
-            bool hasText = !string.IsNullOrEmpty(text);
-            var sourceLines = hasText ? text.Split('\n') : Array.Empty<string>();
-            
-            bool willShowHint = ShowImageHint;
-            bool isTruncated = false;
-            int maxTextLines = sourceLines.Length;
 
-            // Manual truncation logic for explicit line breaks
+            var text = FormattedText ?? string.Empty;
+            var sourceLines = string.IsNullOrEmpty(text) ? Array.Empty<string>() : text.Split('\n');
+
+            var willShowHint = ShowImageHint;
+            var isTruncated = false;
+            var maxTextLines = sourceLines.Length;
+
+            // Manual truncation logic for explicit line breaks.
             if (MaxLines > 0 && sourceLines.Length > 0)
             {
-                int totalNeededLines = sourceLines.Length + (willShowHint ? 1 : 0);
-                
+                var totalNeededLines = sourceLines.Length + (willShowHint ? 1 : 0);
+
                 if (totalNeededLines > MaxLines)
                 {
                     isTruncated = true;
-                    // If we show a hint, we have 1 less line for text
                     maxTextLines = (int)MaxLines - (willShowHint ? 1 : 0);
                     if (maxTextLines < 0)
                     {
@@ -109,25 +100,38 @@ namespace CapyCard.Controls
                 }
             }
 
-            for (int i = 0; i < maxTextLines; i++)
-            {
-                ProcessLine(sourceLines[i]);
-                
-                // Add ellipsis to the last line if we are truncating and there's no hint following
-                if (isTruncated && !willShowHint && i == maxTextLines - 1)
-                {
-                    Inlines?.Add(new Run("..."));
-                }
+            var textToRender = maxTextLines > 0
+                ? string.Join('\n', sourceLines.Take(maxTextLines))
+                : string.Empty;
 
-                if (i < maxTextLines - 1 || willShowHint)
+            if (isTruncated && !willShowHint && !string.IsNullOrEmpty(textToRender))
+            {
+                textToRender += "...";
+            }
+
+            if (!string.IsNullOrEmpty(textToRender))
+            {
+                var formulaColor = Foreground is SolidColorBrush solidColorBrush
+                    ? solidColorBrush.Color
+                    : (Color?)null;
+
+                var parsedInlines = WysiwygEditor.ParseMarkdownToInlines(
+                    textToRender,
+                    ConfigurePreviewImage,
+                    formulaColor);
+                foreach (var inline in parsedInlines)
                 {
-                    Inlines?.Add(new LineBreak());
+                    Inlines?.Add(inline);
                 }
             }
 
             if (willShowHint)
             {
-                // Icon einbetten
+                if (!string.IsNullOrEmpty(textToRender))
+                {
+                    Inlines?.Add(new LineBreak());
+                }
+
                 var icon = new MaterialIcon
                 {
                     Kind = MaterialIconKind.ImageOutline,
@@ -135,15 +139,15 @@ namespace CapyCard.Controls
                     Height = 16,
                     Margin = new Thickness(0, 2, 3, 0)
                 };
-                
+
                 var container = new InlineUIContainer(icon)
                 {
                     BaselineAlignment = BaselineAlignment.Center
                 };
-                
+
                 Inlines?.Add(container);
 
-                var run = new Run("Zum Darstellen in Vorschau öffnen" + (isTruncated ? "..." : ""))
+                var run = new Run("Zum Darstellen in Vorschau öffnen" + (isTruncated ? "..." : string.Empty))
                 {
                     FontStyle = FontStyle.Italic,
                     FontSize = 14
@@ -152,302 +156,16 @@ namespace CapyCard.Controls
             }
         }
 
-        private void ProcessLine(string line)
+        private void ConfigurePreviewImage(Image image)
         {
-            // Prüfe auf ungeordnete Liste
-            var unorderedMatch = UnorderedListRegex.Match(line);
-            if (unorderedMatch.Success)
+            image.Cursor = new Cursor(StandardCursorType.Hand);
+            image.PointerPressed += (_, _) =>
             {
-                var indent = unorderedMatch.Groups[1].Value;
-                var content = unorderedMatch.Groups[2].Value;
-                
-                // Einrückung berechnen
-                var indentLevel = indent.Replace("\t", "  ").Length / 2;
-                var bulletIndent = new string(' ', indentLevel * 4);
-                
-                Inlines?.Add(new Run(bulletIndent + "• "));
-                AddFormattedContent(content);
-                return;
-            }
-            
-            // Prüfe auf geordnete Liste
-            var orderedMatch = OrderedListRegex.Match(line);
-            if (orderedMatch.Success)
-            {
-                var indent = orderedMatch.Groups[1].Value;
-                var number = orderedMatch.Groups[2].Value;
-                var content = orderedMatch.Groups[3].Value;
-                
-                // Einrückung berechnen
-                var indentLevel = indent.Replace("\t", "  ").Length / 2;
-                var numberIndent = new string(' ', indentLevel * 4);
-                
-                Inlines?.Add(new Run(numberIndent + number + ". "));
-                AddFormattedContent(content);
-                return;
-            }
-            
-            // Normale Zeile
-            AddFormattedContent(line);
-        }
-
-        private void AddFormattedContent(string text)
-        {
-            var segments = ParseToSegments(text);
-            foreach (var segment in segments)
-            {
-                if (segment.IsImage && !string.IsNullOrEmpty(segment.ImagePath))
+                if (ImageClickCommand != null && image.Source != null && ImageClickCommand.CanExecute(image.Source))
                 {
-                    // Bild hinzufügen
-                    try
-                    {
-                        var image = new Avalonia.Controls.Image
-                        {
-                            MaxWidth = 300,
-                            MaxHeight = 200,
-                            Stretch = Stretch.Uniform,
-                            Margin = new Thickness(2),
-                            Cursor = new Cursor(StandardCursorType.Hand)
-                        };
-
-                        // Interaktion hinzufügen
-                        image.PointerPressed += (s, e) =>
-                        {
-                            if (ImageClickCommand != null && image.Source != null)
-                            {
-                                if (ImageClickCommand.CanExecute(image.Source))
-                                {
-                                    ImageClickCommand.Execute(image.Source);
-                                }
-                            }
-                        };
-                        
-                        // Prüfe ob Base64-Data-URI oder Dateipfad
-                        if (segment.ImagePath.StartsWith("data:"))
-                        {
-                            // Base64-Data-URI parsen
-                            var bitmap = LoadImageFromDataUri(segment.ImagePath);
-                            if (bitmap != null)
-                            {
-                                image.Source = bitmap;
-                                Inlines?.Add(new InlineUIContainer(image));
-                            }
-                            else
-                            {
-                                Inlines?.Add(new Run("[Bild konnte nicht geladen werden]") 
-                                { 
-                                    Foreground = Brushes.Gray,
-                                    FontStyle = FontStyle.Italic
-                                });
-                            }
-                        }
-                        else if (System.IO.File.Exists(segment.ImagePath))
-                        {
-                            // Lokale Datei laden
-                            image.Source = new Bitmap(segment.ImagePath);
-                            Inlines?.Add(new InlineUIContainer(image));
-                        }
-                        else
-                        {
-                            Inlines?.Add(new Run($"[Bild nicht gefunden]") 
-                            { 
-                                Foreground = Brushes.Gray,
-                                FontStyle = FontStyle.Italic
-                            });
-                        }
-                    }
-                    catch
-                    {
-                        Inlines?.Add(new Run($"[Bild nicht gefunden]") 
-                        { 
-                            Foreground = Brushes.Gray,
-                            FontStyle = FontStyle.Italic
-                        });
-                    }
+                    ImageClickCommand.Execute(image.Source);
                 }
-                else
-                {
-                    var run = new Run(segment.Text);
-                    
-                    if (segment.IsBold)
-                        run.FontWeight = FontWeight.Bold;
-                    if (segment.IsItalic)
-                        run.FontStyle = FontStyle.Italic;
-                    if (segment.IsUnderline)
-                        run.TextDecorations = Avalonia.Media.TextDecorations.Underline;
-                    if (segment.IsHighlight)
-                    {
-                        // Orange-Gelb mit guter Lesbarkeit in Dark und Light Mode
-                        run.Background = new SolidColorBrush(Color.FromRgb(255, 193, 7)); // Amber
-                        run.Foreground = Brushes.Black; // Schwarze Schrift für maximalen Kontrast
-                    }
-                    
-                    Inlines?.Add(run);
-                }
-            }
-        }
-
-        private static List<TextSegment> ParseToSegments(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return new List<TextSegment>();
-            }
-
-            lock (SegmentCacheLock)
-            {
-                if (SegmentCache.TryGetValue(text, out var cached))
-                {
-                    return cached;
-                }
-            }
-
-            var segments = new List<TextSegment>();
-            var currentIndex = 0;
-
-            // Kombiniertes Pattern für alle Formatierungen (inkl. Highlight und Bilder)
-            var combinedPattern = new Regex(
-                @"(!\[([^\]]*)\]\(([^)]+)\))|(\*\*(.+?)\*\*)|(__(.+?)__)|(==(.+?)==)|(\*(.+?)\*)", 
-                RegexOptions.Compiled);
-
-            foreach (Match match in combinedPattern.Matches(text))
-            {
-                // Text vor dem Match
-                if (match.Index > currentIndex)
-                {
-                    var beforeText = text.Substring(currentIndex, match.Index - currentIndex);
-                    if (!string.IsNullOrEmpty(beforeText))
-                    {
-                        segments.Add(new TextSegment { Text = beforeText });
-                    }
-                }
-
-                // Bild ![alt](url)
-                if (match.Groups[1].Success)
-                {
-                    segments.Add(new TextSegment 
-                    { 
-                        Text = match.Groups[2].Value,
-                        IsImage = true,
-                        ImagePath = match.Groups[3].Value
-                    });
-                }
-                // Bold **text**
-                else if (match.Groups[4].Success)
-                {
-                    segments.Add(new TextSegment 
-                    { 
-                        Text = match.Groups[5].Value, 
-                        IsBold = true 
-                    });
-                }
-                // Underline __text__
-                else if (match.Groups[6].Success)
-                {
-                    segments.Add(new TextSegment 
-                    { 
-                        Text = match.Groups[7].Value, 
-                        IsUnderline = true 
-                    });
-                }
-                // Highlight ==text==
-                else if (match.Groups[8].Success)
-                {
-                    segments.Add(new TextSegment 
-                    { 
-                        Text = match.Groups[9].Value, 
-                        IsHighlight = true 
-                    });
-                }
-                // Italic *text*
-                else if (match.Groups[10].Success)
-                {
-                    segments.Add(new TextSegment 
-                    { 
-                        Text = match.Groups[11].Value, 
-                        IsItalic = true 
-                    });
-                }
-
-                currentIndex = match.Index + match.Length;
-            }
-
-            // Restlicher Text
-            if (currentIndex < text.Length)
-            {
-                segments.Add(new TextSegment 
-                { 
-                    Text = text.Substring(currentIndex) 
-                });
-            }
-
-            // Falls keine Segmente, den ganzen Text hinzufügen
-            if (segments.Count == 0)
-            {
-                segments.Add(new TextSegment { Text = text });
-            }
-
-            lock (SegmentCacheLock)
-            {
-                if (SegmentCache.Count >= SegmentCacheMax)
-                {
-                    SegmentCache.Clear();
-                }
-                SegmentCache[text] = segments;
-            }
-
-            return segments;
-        }
-
-        private class TextSegment
-        {
-            public string Text { get; set; } = string.Empty;
-            public bool IsBold { get; set; }
-            public bool IsItalic { get; set; }
-            public bool IsUnderline { get; set; }
-            public bool IsHighlight { get; set; }
-            public bool IsImage { get; set; }
-            public string? ImagePath { get; set; }
-        }
-        
-        /// <summary>
-        /// Lädt ein Bild aus einer Base64-Data-URI.
-        /// </summary>
-        private static Bitmap? LoadImageFromDataUri(string dataUri)
-        {
-            try
-            {
-                // Robusteres Parsing: Erlaube Whitespace und sei weniger strikt am Ende
-                var match = Regex.Match(dataUri.Trim(), @"^data:image/[^;]+;base64,(.+)$");
-                if (!match.Success)
-                {
-                    // Fallback: Versuche nur den Base64 Teil nach dem Komma zu finden
-                    var commaIndex = dataUri.IndexOf(',');
-                    if (commaIndex >= 0)
-                    {
-                        var base64Part = dataUri.Substring(commaIndex + 1).Trim();
-                        // Entferne evtl. vorhandene schließende Klammer vom Markdown-Parsing
-                        if (base64Part.EndsWith(")")) base64Part = base64Part.Substring(0, base64Part.Length - 1);
-                        
-                        var bytes = Convert.FromBase64String(base64Part);
-                        using var ms = new System.IO.MemoryStream(bytes);
-                        return new Bitmap(ms);
-                    }
-                    return null;
-                }
-                    
-                var base64Data = match.Groups[1].Value.Trim();
-                if (base64Data.EndsWith(")")) base64Data = base64Data.Substring(0, base64Data.Length - 1);
-
-                var imageBytes = Convert.FromBase64String(base64Data);
-                using var stream = new System.IO.MemoryStream(imageBytes);
-                return new Bitmap(stream);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[FormattedTextBlock] Fehler beim Laden des Base64-Bildes: {ex.Message}");
-                return null;
-            }
+            };
         }
     }
 }

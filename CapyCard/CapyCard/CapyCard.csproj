@@ -32,6 +32,7 @@
     <PackageReference Include="QuestPDF" />
     <PackageReference Include="System.Text.Encoding.CodePages" />
     <PackageReference Include="WeCantSpell.Hunspell" />
+    <PackageReference Include="CSharpMath.SkiaSharp" />
     <PackageReference Include="ZstdSharp.Port" />
   </ItemGroup>
 </Project>

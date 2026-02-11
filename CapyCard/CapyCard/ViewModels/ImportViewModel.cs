@@ -240,21 +240,29 @@ Regeln für die Erstellung:
    - Vermeide unnötige Referenzen auf Seitenzahlen oder Foliennummern in der Frage oder Antwort, es sei denn, sie sind Teil des Lerninhalts.
 
 3. Strukturierung: Nutze 'subDecks', um die Karten nach Kapiteln oder Themen zu gliedern.
-   - Karten, die das Fach generell betreffen (Allgemeines), kommen direkt in das Haupt-Array ""cards"".
+    - Karten, die das Fach generell betreffen (Allgemeines), kommen direkt in das Haupt-Array ""cards"".
+    - WICHTIG: Es gibt nur eine Ebene ""subDecks"" direkt im Root-Objekt.
+    - In den Unterthemen selbst KEIN weiteres Feld ""subDecks"" ausgeben (auch nicht als leeres Array).
 
 4. Umfang & Detailtiefe:
    - Ziel ist eine maximale Abdeckung des Materials. Erstelle lieber zu viele als zu wenige Karten.
    - Kombiniere Aufzählungs-Karten (z.B. ""Nenne die 5 Schritte..."") mit Detailkarten, die die einzelnen Schritte erklären.
    - Wichtig: Wenn das Material umfangreich ist, generiere auch entsprechend viele Karten (Deep Dive), anstatt nur Oberflächliches abzufragen.
 
-Erlaubte Formatierung (WICHTIG - Nutze nur diese):
-- Fett: **Text**
-- Kursiv: *Text*
-- Unterstrichen: __Text__
-- Hervorgehoben (Highlight): ==Text==
-- Listen: Nutzung von ""- "" oder ""1. "" am Zeilenanfang.
-- Bilder: ![Alt](data:image/png;base64,...) (Nur wenn du valide Base64-Daten generieren kannst).
-- NICHT unterstützt: Code-Blöcke, Tabellen oder Zitate (z.B. > Text). Nutze stattdessen Listen oder normalen Text.
+ Erlaubte Formatierung (WICHTIG - Nutze nur diese):
+ - Fett: **Text**
+ - Kursiv: *Text*
+ - Unterstrichen: __Text__
+ - Hervorgehoben (Highlight): ==Text==
+ - Listen: Nutzung von ""- "" oder ""1. "" am Zeilenanfang.
+ - Tabellen: Pipe-Syntax, z.B. | Begriff | Bedeutung | mit Separator-Zeile | --- | --- |
+ - Checklisten: - [ ] Aufgabe und - [x] Erledigt
+ - Zitate: > Text
+  - Formeln: NUR als gültiges LaTeX. Inline mit $...$ und Block mit $$...$$.
+  - Formel-Regel (Strict-LaTeX): Verwende LaTeX-Kommandos (z.B. \Sigma, \Gamma, \exists, \in, \to, \frac{...}{...}).
+  - Keine Unicode-/Pseudoformeln wie Σ, Γ, ∃, ∈, → direkt im Formelstring.
+  - Bilder: ![Alt](data:image/png;base64,...) (Nur wenn du valide Base64-Daten generieren kannst).
+  - NICHT unterstützt: Code-Blöcke (```...```).
 
 JSON-Format (STRENG EINHALTEN):
 Antworte AUSSCHLIESSLICH mit einem JSON-Codeblock.
@@ -262,15 +270,25 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Codeblock.
 - Ende mit ```
 - KEIN Text vor oder nach dem Codeblock.
 - KEINE erfundenen Metadaten oder Tags außerhalb der Strings.
-- VERBOTEN: Generiere KEINE '[cite_start]', '[cite_end]', '[cite:...]' oder ':contentReference[...]' Tags. Weder innerhalb noch außerhalb der Strings. Dies zerstört das JSON-Format.
-- Alle Zitate oder Quellenangaben müssen TEIL des Strings in ""front"" oder ""back"" sein und als normaler Text formatiert werden (z.B. ""(Quelle: S. 5)"").
+ - VERBOTEN: Generiere KEINE '[cite_start]', '[cite_end]', '[cite:...]' oder ':contentReference[...]' Tags. Weder innerhalb noch außerhalb der Strings. Dies zerstört das JSON-Format.
+ - Alle Zitate oder Quellenangaben müssen TEIL des Strings in ""front"" oder ""back"" sein und als normaler Text formatiert werden (z.B. ""(Quelle: S. 5)"").
+  - Für LaTeX in JSON-Strings: Backslashes immer escapen (z.B. ""\\frac{a}{b}"" statt ""\frac{a}{b}"").
+  - Zeilenumbrüche innerhalb von JSON-Strings immer als ""\n"" notieren (keine rohen Zeilenumbrüche im String).
+  - In jedem Unterthema sind nur ""name"" und ""cards"" erlaubt.
 
 Beispiel für korrektes JSON:
 {
   ""name"": ""Thema"",
-  ""cards"": [
-    { ""front"": ""Frage?"", ""back"": ""Antwort mit **Fett** und ==Highlight==."" }
-  ],
+   ""cards"": [
+     {
+       ""front"": ""Nenne die Standardform der Geradengleichung."",
+       ""back"": ""Die Form ist $y = mx + b$.""
+     },
+     {
+       ""front"": ""Vergleiche Ableitungsregeln."",
+       ""back"": ""| Regel | Formel |\n| --- | --- |\n| Produktregel | $f'g + fg'$ |\n| Quotientenregel | $\\frac{f'g - fg'}{g^2}$ |""
+     }
+   ],
   ""subDecks"": [
     {
       ""name"": ""Unterthema"",
