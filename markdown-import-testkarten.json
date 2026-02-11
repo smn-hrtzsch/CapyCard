@@ -1,0 +1,45 @@
+{
+  "name": "Markdown Feature Test",
+  "cards": [
+    {
+      "front": "Welche Markdown-Features soll der Editor jetzt unterstuetzen?",
+      "back": "- [x] Tabellen\n- [x] Checklisten\n- [x] Zitate\n- [x] Formeln\n- [ ] Live-WYSIWYG"
+    },
+    {
+      "front": "Inline-Formel mit Sonderzeichen",
+      "back": "Die Sprache ist $L(M)=\\{w\\in\\Sigma^* \\mid \\exists q\\in F\\;\\exists u,v\\in\\Gamma^* : (\\varepsilon,q_0,w)\\to_M^*(u,q,v)\\}$."
+    },
+    {
+      "front": "Blockformel testen",
+      "back": "$$\n\\sum_{i=0}^{n} i = \\frac{n(n+1)}{2}\n$$"
+    }
+  ],
+  "subDecks": [
+    {
+      "name": "Tabellen",
+      "cards": [
+        {
+          "front": "Wichtige Symbole der TM-Notation",
+          "back": "| Begriff | Symbol | Bedeutung |\n| --- | --- | --- |\n| Sigma | $\\Sigma$ | Eingabealphabet |\n| Gamma | $\\Gamma$ | Bandalphabet |\n| Startzustand | $q_0$ | Anfangszustand |"
+        },
+        {
+          "front": "JSON Escaping fuer Formeln",
+          "back": "Roh im JSON muss LaTeX doppelt escaped werden: \\\\frac{a}{b}.\nGerendert als Formel: $\\frac{a}{b}$.\nZeilenumbrueche im JSON-String immer als \\n schreiben."
+        }
+      ]
+    },
+    {
+      "name": "Zitate",
+      "cards": [
+        {
+          "front": "Einfaches Zitat",
+          "back": "> Lernen ist ein Marathon, kein Sprint."
+        },
+        {
+          "front": "Verschachteltes Zitat",
+          "back": "> Ebene 1\n>> Ebene 2"
+        }
+      ]
+    }
+  ]
+}

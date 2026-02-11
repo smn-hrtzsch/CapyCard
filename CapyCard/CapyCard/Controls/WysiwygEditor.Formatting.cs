@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Threading;
+using CapyCard.Services;
 
 namespace CapyCard.Controls
 {
@@ -156,6 +157,8 @@ namespace CapyCard.Controls
                 
                 if (!string.IsNullOrEmpty(clipboardText))
                 {
+                    var normalizedClipboardText = MarkdownService.NormalizeForPaste(clipboardText);
+
                     // Ersetze selektierten Text oder füge an Cursor-Position ein
                     var text = EditorTextBox.Text ?? string.Empty;
                     var selStart = Math.Min(_cachedSelectionStart, _cachedSelectionEnd);
@@ -165,14 +168,14 @@ namespace CapyCard.Controls
                     selStart = Math.Max(0, Math.Min(selStart, text.Length));
                     selEnd = Math.Max(selStart, Math.Min(selEnd, text.Length));
                     
-                    var newText = text.Substring(0, selStart) + clipboardText + text.Substring(selEnd);
+                    var newText = text.Substring(0, selStart) + normalizedClipboardText + text.Substring(selEnd);
                     
                     _isUpdating = true;
                     EditorTextBox.Text = newText;
                     Text = ConvertPlaceholdersToBase64(newText);
                     _isUpdating = false;
                     
-                    var newCursorPos = selStart + clipboardText.Length;
+                    var newCursorPos = selStart + normalizedClipboardText.Length;
                     
                     Avalonia.Threading.Dispatcher.UIThread.Post(() =>
                     {

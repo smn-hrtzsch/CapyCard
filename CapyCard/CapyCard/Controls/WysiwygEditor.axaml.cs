@@ -893,6 +893,26 @@ namespace CapyCard.Controls
             InsertListPrefix("1. ");
         }
 
+        private void OnChecklistClick(object? sender, RoutedEventArgs e)
+        {
+            InsertListPrefix("- [ ] ");
+        }
+
+        private void OnQuoteClick(object? sender, RoutedEventArgs e)
+        {
+            InsertTextAtCursor("> ");
+        }
+
+        private void OnTableClick(object? sender, RoutedEventArgs e)
+        {
+            InsertTextAtCursor("| Spalte 1 | Spalte 2 |\n| --- | --- |\n| Wert 1 | Wert 2 |");
+        }
+
+        private void OnFormulaClick(object? sender, RoutedEventArgs e)
+        {
+            InsertTextAtCursor("$$\nFormel\n$$");
+        }
+
         private void OnHighlightClick(object? sender, RoutedEventArgs e)
         {
             ApplyFormattingFromCache("==", "==");

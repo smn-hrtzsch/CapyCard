@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CapyCard.Data;
 using CapyCard.Models;
+using CapyCard.Services;
 using CapyCard.Services.ImportExport.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +33,9 @@ namespace CapyCard.Services.ImportExport.Formats
         private static readonly Regex HtmlImageRegex = new(@"<img[^>]+src=(?:""([^""]*)""|'([^']*)'|([^"">\s]+))[^>]*>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex MarkdownImageRegex = new(@"!\[([^\]]*)\]\(data:([^;]+);base64,([^)]+)\)", RegexOptions.Compiled);
         private static readonly Regex SoundRegex = new(@"\[sound:([^\]]+)\]", RegexOptions.Compiled);
+        private static readonly Regex AnkiMathJaxBlockRegex = new(@"\\\[(.+?)\\\]", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex AnkiMathJaxInlineRegex = new(@"\\\((.+?)\\\)", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static readonly Regex AnkiLatexTagRegex = new(@"\[latex\](.+?)\[/latex\]", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         public async Task<ImportPreview> AnalyzeAsync(Stream stream, string fileName)
         {
@@ -588,195 +592,294 @@ namespace CapyCard.Services.ImportExport.Formats
 
         private string ConvertMarkdownToAnki(string markdown, string tempDir, Dictionary<string, string> mediaFiles)
         {
-            if (string.IsNullOrEmpty(markdown))
-                return "";
+            if (string.IsNullOrWhiteSpace(markdown))
+                return string.Empty;
 
-            var result = markdown;
+            var document = MarkdownService.Parse(markdown);
+            var html = new StringBuilder();
 
-            // 1. Bilder verarbeiten
-            result = MarkdownImageRegex.Replace(result, m =>
+            foreach (var block in document.Blocks)
             {
-                var altText = m.Groups[1].Value;
-                var mimeType = m.Groups[2].Value;
-                var base64Data = m.Groups[3].Value;
+                AppendBlockAsHtml(html, block, tempDir, mediaFiles);
+            }
 
+            return html.ToString();
+        }
+
+        private void AppendBlockAsHtml(
+            StringBuilder html,
+            MarkdownService.MarkdownBlock block,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            switch (block)
+            {
+                case MarkdownService.MarkdownBlankLineBlock:
+                    html.Append("<div><br></div>");
+                    break;
+
+                case MarkdownService.MarkdownParagraphBlock paragraphBlock:
+                    html.Append("<div>")
+                        .Append(RenderInlineCollectionAsHtml(paragraphBlock.Inlines, tempDir, mediaFiles))
+                        .Append("</div>");
+                    break;
+
+                case MarkdownService.MarkdownListBlock listBlock:
+                    AppendListBlockAsHtml(html, listBlock, tempDir, mediaFiles);
+                    break;
+
+                case MarkdownService.MarkdownChecklistBlock checklistBlock:
+                    AppendChecklistBlockAsHtml(html, checklistBlock, tempDir, mediaFiles);
+                    break;
+
+                case MarkdownService.MarkdownQuoteBlock quoteBlock:
+                    AppendQuoteBlockAsHtml(html, quoteBlock, tempDir, mediaFiles);
+                    break;
+
+                case MarkdownService.MarkdownTableBlock tableBlock:
+                    AppendTableBlockAsHtml(html, tableBlock, tempDir, mediaFiles);
+                    break;
+
+                case MarkdownService.MarkdownFormulaBlock formulaBlock:
+                    var encodedFormula = System.Net.WebUtility.HtmlEncode(formulaBlock.Content);
+                    html.Append("<div>\\[")
+                        .Append(encodedFormula)
+                        .Append("\\]</div>");
+                    break;
+            }
+        }
+
+        private void AppendListBlockAsHtml(
+            StringBuilder html,
+            MarkdownService.MarkdownListBlock listBlock,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            var tag = listBlock.IsOrdered ? "ol" : "ul";
+            html.Append('<').Append(tag).Append('>');
+
+            foreach (var item in listBlock.Items)
+            {
+                html.Append("<li>")
+                    .Append(RenderInlineCollectionAsHtml(item.Inlines, tempDir, mediaFiles))
+                    .Append("</li>");
+            }
+
+            html.Append("</").Append(tag).Append('>');
+        }
+
+        private void AppendChecklistBlockAsHtml(
+            StringBuilder html,
+            MarkdownService.MarkdownChecklistBlock checklistBlock,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            html.Append("<ul>");
+
+            foreach (var item in checklistBlock.Items)
+            {
+                html.Append("<li>")
+                    .Append(item.IsChecked ? "[x] " : "[ ] ")
+                    .Append(RenderInlineCollectionAsHtml(item.Inlines, tempDir, mediaFiles))
+                    .Append("</li>");
+            }
+
+            html.Append("</ul>");
+        }
+
+        private void AppendQuoteBlockAsHtml(
+            StringBuilder html,
+            MarkdownService.MarkdownQuoteBlock quoteBlock,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            html.Append("<blockquote>");
+
+            foreach (var line in quoteBlock.Lines)
+            {
+                html.Append("<div>");
+
+                if (line.Level > 1)
+                {
+                    html.Append(System.Net.WebUtility.HtmlEncode(new string('>', line.Level - 1) + " "));
+                }
+
+                html.Append(RenderInlineCollectionAsHtml(line.Inlines, tempDir, mediaFiles));
+                html.Append("</div>");
+            }
+
+            html.Append("</blockquote>");
+        }
+
+        private void AppendTableBlockAsHtml(
+            StringBuilder html,
+            MarkdownService.MarkdownTableBlock tableBlock,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            html.Append("<table border=\"1\" style=\"border-collapse:collapse;\"><thead><tr>");
+
+            foreach (var headerCell in tableBlock.Header)
+            {
+                html.Append("<th>")
+                    .Append(RenderInlineCollectionAsHtml(headerCell.Inlines, tempDir, mediaFiles))
+                    .Append("</th>");
+            }
+
+            html.Append("</tr></thead>");
+
+            if (tableBlock.Rows.Count > 0)
+            {
+                html.Append("<tbody>");
+
+                foreach (var row in tableBlock.Rows)
+                {
+                    html.Append("<tr>");
+                    foreach (var cell in row)
+                    {
+                        html.Append("<td>")
+                            .Append(RenderInlineCollectionAsHtml(cell.Inlines, tempDir, mediaFiles))
+                            .Append("</td>");
+                    }
+
+                    html.Append("</tr>");
+                }
+
+                html.Append("</tbody>");
+            }
+
+            html.Append("</table>");
+        }
+
+        private string RenderInlineCollectionAsHtml(
+            IReadOnlyList<MarkdownService.MarkdownInline> inlines,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            var html = new StringBuilder();
+
+            foreach (var inline in inlines)
+            {
+                switch (inline)
+                {
+                    case MarkdownService.MarkdownTextInline textInline:
+                        html.Append(RenderTextInlineAsHtml(textInline));
+                        break;
+
+                    case MarkdownService.MarkdownFormulaInline formulaInline:
+                        html.Append("\\(")
+                            .Append(System.Net.WebUtility.HtmlEncode(formulaInline.Content))
+                            .Append("\\)");
+                        break;
+
+                    case MarkdownService.MarkdownImageInline imageInline:
+                        html.Append(ConvertImageInlineToAnkiHtml(imageInline, tempDir, mediaFiles));
+                        break;
+                }
+            }
+
+            return html.ToString();
+        }
+
+        private static string RenderTextInlineAsHtml(MarkdownService.MarkdownTextInline textInline)
+        {
+            var content = System.Net.WebUtility.HtmlEncode(textInline.Text);
+
+            if (textInline.IsHighlight)
+            {
+                content = "<mark>" + content + "</mark>";
+            }
+
+            if (textInline.IsUnderline)
+            {
+                content = "<u>" + content + "</u>";
+            }
+
+            if (textInline.IsItalic)
+            {
+                content = "<i>" + content + "</i>";
+            }
+
+            if (textInline.IsBold)
+            {
+                content = "<b>" + content + "</b>";
+            }
+
+            return content;
+        }
+
+        private string ConvertImageInlineToAnkiHtml(
+            MarkdownService.MarkdownImageInline imageInline,
+            string tempDir,
+            Dictionary<string, string> mediaFiles)
+        {
+            if (string.IsNullOrWhiteSpace(imageInline.Source))
+            {
+                return string.Empty;
+            }
+
+            if (!TryExtractImageData(imageInline.Source, out var imageBytes, out var extension))
+            {
+                return System.Net.WebUtility.HtmlEncode(imageInline.AltText);
+            }
+
+            var currentIndex = mediaFiles.Count;
+            var zipFileName = currentIndex.ToString();
+            var contentFileName = $"image-{currentIndex}.{extension}";
+
+            var filePath = Path.Combine(tempDir, zipFileName);
+            File.WriteAllBytes(filePath, imageBytes);
+            mediaFiles[zipFileName] = contentFileName;
+
+            return $"<img src=\"{contentFileName}\">";
+        }
+
+        private static bool TryExtractImageData(string source, out byte[] bytes, out string extension)
+        {
+            bytes = Array.Empty<byte>();
+            extension = "png";
+
+            var dataUriMatch = Regex.Match(source, @"^data:([^;]+);base64,(.+)$", RegexOptions.IgnoreCase);
+            if (dataUriMatch.Success)
+            {
                 try
                 {
-                    var bytes = Convert.FromBase64String(base64Data);
-                    var extension = mimeType switch
-                    {
-                        "image/jpeg" => "jpg",
-                        "image/png" => "png",
-                        "image/gif" => "gif",
-                        "image/webp" => "webp",
-                        _ => "jpg"
-                    };
-
-                    var currentIdx = mediaFiles.Count;
-                    var zipFileName = currentIdx.ToString();
-                    var contentFileName = $"image-{currentIdx}.{extension}";
-
-                    var filePath = Path.Combine(tempDir, zipFileName);
-                    File.WriteAllBytes(filePath, bytes);
-
-                    mediaFiles[zipFileName] = contentFileName;
-
-                    return $"<img src=\"{contentFileName}\">";
+                    bytes = Convert.FromBase64String(dataUriMatch.Groups[2].Value);
+                    extension = GetExtensionForMimeType(dataUriMatch.Groups[1].Value);
+                    return true;
                 }
                 catch
                 {
-                    return m.Value;
+                    return false;
                 }
-            });
+            }
 
-            // 2. Block-Level Elemente verarbeiten (Listen, Absätze)
-            result = ConvertBlocksToHtml(result);
+            if (File.Exists(source))
+            {
+                bytes = File.ReadAllBytes(source);
+                extension = Path.GetExtension(source).TrimStart('.').ToLowerInvariant();
+                if (string.IsNullOrWhiteSpace(extension))
+                {
+                    extension = "png";
+                }
 
-            return result;
+                return true;
+            }
+
+            return false;
         }
 
-        private string ConvertBlocksToHtml(string markdown)
+        private static string GetExtensionForMimeType(string mimeType)
         {
-            var lines = markdown.Split('\n');
-            var output = new List<string>();
-            var listStack = new Stack<(string Type, int Indent)>();
-            int lastListIndent = -1;
-
-            for (int i = 0; i < lines.Length; i++)
+            return mimeType.ToLowerInvariant() switch
             {
-                var line = lines[i];
-                
-                // Prüfe ob Zeile eine Liste ist
-                var listInfo = ParseListLine(line);
-                
-                if (listInfo.IsList)
-                {
-                    lastListIndent = listInfo.Indent;
-                    
-                    // Schließe Listen mit größerer Einrückung (wir gehen zurück)
-                    while (listStack.Count > 0 && listStack.Peek().Indent > listInfo.Indent)
-                    {
-                        var closed = listStack.Pop();
-                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-                    }
-
-                    // Schließe Listen gleichen Typs auf gleicher Ebene (neues Element)
-                    if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type == listInfo.Type)
-                    {
-                        // Nichts schließen - wir fügen ein neues <li> hinzu
-                    }
-                    else if (listStack.Count > 0 && listStack.Peek().Indent == listInfo.Indent && listStack.Peek().Type != listInfo.Type)
-                    {
-                        // Typ hat sich geändert (ul -> ol oder ol -> ul) auf gleicher Ebene
-                        var closed = listStack.Pop();
-                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
-                        listStack.Push((listInfo.Type, listInfo.Indent));
-                    }
-                    else if (listStack.Count == 0 || listStack.Peek().Indent < listInfo.Indent)
-                    {
-                        // Neue Liste auf tieferer Ebene
-                        output.Add(listInfo.Type == "ul" ? "<ul>" : "<ol>");
-                        listStack.Push((listInfo.Type, listInfo.Indent));
-                    }
-
-                    // Füge Listenelement hinzu (auch wenn Content leer ist)
-                    var content = string.IsNullOrWhiteSpace(listInfo.Content) ? "" : ConvertInlineFormatting(listInfo.Content);
-                    output.Add($"<li>{content}</li>");
-                }
-                else if (string.IsNullOrWhiteSpace(line))
-                {
-                    // Leere Zeile: Nur schließen wenn nächste Zeile keine Liste ist
-                    if (i + 1 < lines.Length)
-                    {
-                        var nextListInfo = ParseListLine(lines[i + 1]);
-                        if (!nextListInfo.IsList || nextListInfo.Indent < lastListIndent)
-                        {
-                            // Nächste Zeile ist keine Liste oder höher eingerückt - schließe Listen
-                            while (listStack.Count > 0)
-                            {
-                                var closed = listStack.Pop();
-                                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-                            }
-                            lastListIndent = -1;
-                        }
-                        // Wenn nächste Zeile eine Liste ist, mach nichts (Leerzeile innerhalb Liste ignorieren)
-                    }
-                    else
-                    {
-                        // Letzte Zeile ist leer
-                        while (listStack.Count > 0)
-                        {
-                            var closed = listStack.Pop();
-                            output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-                        }
-                        lastListIndent = -1;
-                    }
-                }
-                else
-                {
-                    // Nicht-Listen-Zeile: Schließe alle Listen
-                    lastListIndent = -1;
-                    while (listStack.Count > 0)
-                    {
-                        var closed = listStack.Pop();
-                        output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-                    }
-
-                    // Verarbeite Nicht-Listen-Zeile
-                    output.Add($"<div>{ConvertInlineFormatting(line)}</div>");
-                }
-            }
-
-            // Schließe verbleibende Listen
-            while (listStack.Count > 0)
-            {
-                var closed = listStack.Pop();
-                output.Add(closed.Type == "ul" ? "</ul>" : "</ol>");
-            }
-
-            return string.Join("", output);
-        }
-
-        private (bool IsList, string Type, int Indent, string Content) ParseListLine(string line)
-        {
-            if (string.IsNullOrEmpty(line))
-                return (false, "", 0, "");
-
-            var leadingSpaces = line.TakeWhile(c => c == ' ').Count();
-            var trimmed = line.TrimStart();
-
-            // Unordered list: - item oder nur "-"
-            if (trimmed.StartsWith("- ") || trimmed == "-")
-            {
-                var content = trimmed.StartsWith("- ") ? trimmed.Substring(2) : "";
-                return (true, "ul", leadingSpaces, content);
-            }
-
-            // Ordered list: 1. item oder nur "1."
-            var orderedMatch = Regex.Match(trimmed, @"^(\d+)\.\s*(.*)$");
-            if (orderedMatch.Success)
-            {
-                var content = orderedMatch.Groups[2].Value;
-                return (true, "ol", leadingSpaces, content);
-            }
-
-            return (false, "", leadingSpaces, line);
-        }
-
-        private string ConvertInlineFormatting(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-
-            // Reihenfolge wichtig: zuerst längere Patterns
-            text = Regex.Replace(text, @"\*\*(.+?)\*\*", "<b>$1</b>");  // Bold
-            text = Regex.Replace(text, @"__(.+?)__", "<u>$1</u>");        // Underline
-            text = Regex.Replace(text, @"\*(.+?)\*", "<i>$1</i>");        // Italic
-            text = Regex.Replace(text, @"_(.+?)_", "<i>$1</i>");          // Italic (alternative)
-            text = Regex.Replace(text, @"==(.+?)==", "<mark>$1</mark>");  // Highlight
-
-            return text;
+                "image/jpeg" => "jpg",
+                "image/png" => "png",
+                "image/gif" => "gif",
+                "image/webp" => "webp",
+                "image/svg+xml" => "svg",
+                _ => "png"
+            };
         }
 
         private static long GetCrc32(string input)
@@ -977,6 +1080,24 @@ namespace CapyCard.Services.ImportExport.Formats
                 return $"[Bild: {src}]";
             });
             res = SoundRegex.Replace(res, "");
+
+            // Anki-MathJax / LaTeX-Tags zurück in Markdown-Formeln konvertieren
+            res = AnkiLatexTagRegex.Replace(res, m =>
+            {
+                var latex = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value).Trim();
+                return "$$\n" + latex + "\n$$";
+            });
+            res = AnkiMathJaxBlockRegex.Replace(res, m =>
+            {
+                var latex = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value).Trim();
+                return "$$\n" + latex + "\n$$";
+            });
+            res = AnkiMathJaxInlineRegex.Replace(res, m =>
+            {
+                var latex = System.Net.WebUtility.HtmlDecode(m.Groups[1].Value).Trim();
+                return "$" + latex + "$";
+            });
+
             res = res.Replace("<div>", "\n").Replace("</div>", "").Replace("<p>", "\n").Replace("</p>", "\n").Replace("<br>", "\n").Replace("<br/>", "\n").Replace("<br />", "\n");
             res = res.Replace("<ul>", "\n").Replace("</ul>", "\n").Replace("<ol>", "\n").Replace("</ol>", "\n").Replace("<li>", "\n- ").Replace("</li>", "");
             res = res.Replace("<b>", "**").Replace("</b>", "**").Replace("<strong>", "**").Replace("</strong>", "**").Replace("<i>", "_").Replace("</i>", "_").Replace("<em>", "_").Replace("</em>", "_");
