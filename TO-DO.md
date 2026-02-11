@@ -21,7 +21,7 @@
 
 ## Editor
 
-- [ ] Markdown Support im Rich-Text Editor sollte noch erweitert werden. Es sollten noch mehr markdown Features unterstützt werden, wie z.B. Tabellen, Checklisten, Zitate etc. Außerdem sollte es möglich sein, Markdown direkt in den Editor einzufügen und es sollte automatisch formatiert werden. Auch Formeln (LaTeX oder z.B. sowas hier: ) sollten unterstützt werden.
+- [ ] Markdown Support im Rich-Text Editor sollte noch erweitert werden. Es sollten noch mehr markdown Features unterstützt werden, wie z.B. Tabellen, Checklisten, Zitate etc. Außerdem sollte es möglich sein, Markdown direkt in den Editor einzufügen und es sollte automatisch formatiert werden. Auch Formeln (LaTeX oder z.B. sowas hier: L(M) = { w∈Σ* | ∃q∈F ∃u,v∈Γ*: (ε,q0,w) ⇝*_M (u,q,v) }) sollten unterstützt werden. Der System-Prompt für das KI-gestützte Erstellen von Karten muss dann auch entrsprechend angepasst werden, damit die KI weiß, wie sie Formeln, Tabellen etc. formatieren soll.
 - [ ] Sofort-Vorschau im Rich-Text Editor: Während der Nutzer den Text für die Vorder- oder Rückseite eingibt, sollte eine Live-Vorschau angezeigt werden, die zeigt, wie die Karte später aussehen wird. Es sollte sich so anfühlen, als ob man direkt in der Karte schreibt und sieht, wie sie formatiert wird. Momentan muss man erst die Eingabe beenden oder den Fokus wechseln, damit der Editor die Formatierung anzeigt. Das sollte sofort beim Tippen passieren.
 - [ ] Die Farbe für die Hervorhebungen auf den Karten sollte an das Farbschema der App angepasst werden. Es sollte dann die Farbe für die Primary Buttons als Hervorherbungsfarbe genutzt werdenu und die Textfarbe der Primary Buttons für die Schriftfarbe der Hervorhebung. So passt es besser zum Design der App.
 
